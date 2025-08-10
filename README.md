@@ -1,6 +1,6 @@
 # 🎯 LABA Gestionale Attrezzature – Versione 1.0
 
-**LABA Gestionale Attrezzature** è un’applicazione web completa per la gestione centralizzata dell’inventario, dei prestiti e delle riparazioni delle attrezzature LABA Firenze.  
+**LABA Gestionale Attrezzature** è un’applicazione web completa per la gestione centralizzata dell’inventario, dei prestiti e delle riparazioni delle attrezzature LABA Firenze.
 È pensata per essere veloce, intuitiva e ottimizzata sia per desktop che per dispositivi mobili.
 
 ---
@@ -103,7 +103,7 @@ mongoose.connect("mongodb://localhost:27017/laba_gestionale", {
 
 ### 2. Porte
 - Backend: `3001`
-- Frontend: `5173`
+- Frontend: `3000`
 
 Se le modifichi, aggiorna anche il **proxy** in `frontend/vite.config.js`.
 
@@ -133,5 +133,5 @@ Apri il browser su **[http://localhost:5173](http://localhost:5173)**
 ---
 
 ## 📜 Licenza
-Progetto sviluppato per uso interno **LABA Firenze** da *Simone Azzinelli*.  
+Progetto sviluppato per uso interno **LABA Firenze** da *Simone Azzinelli*.
 Tutti i diritti riservati – Distribuzione e utilizzo esterno non autorizzati.
