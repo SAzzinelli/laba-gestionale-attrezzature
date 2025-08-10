@@ -7,14 +7,14 @@ dell’inventario, dei prestiti e delle riparazioni delle attrezzature LABA Fire
 ---
 
 ## Sommario 📖
-1. [Funzionalità principali](#-funzionalità-principali)
-2. [Tecnologie utilizzate](#-tecnologie-utilizzate)
-3. [Struttura del progetto](#-struttura-del-progetto)
-4. [Installazione](#-installazione)
-5. [Configurazione](#-configurazione)
-6. [Avvio del progetto](#-avvio-del-progetto)
-7. [Screenshot](#-screenshot)
-8. [Licenza](#-licenza)
+1. [Funzionalità principali](#funzionalità-principali)
+2. [Tecnologie utilizzate](#tecnologie-utilizzate)
+3. [Struttura del progetto](#struttura-del-progetto)
+4. [Installazione](#installazione)
+5. [Configurazione](#configurazione)
+6. [Avvio del progetto](#avvio-del-progetto)
+7. [Screenshot](#screenshot)
+8. [Licenza](#licenza)
 
 ---
 
