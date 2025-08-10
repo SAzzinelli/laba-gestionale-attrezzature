@@ -1,8 +1,3 @@
-Perfetto, ecco il README.md pronto da copiare e incollare così com’è:
-
-⸻
-
-
 # 🎯 LABA Gestionale Attrezzature – Versione 1.0
 
 **LABA Gestionale Attrezzature** è un’applicazione web completa per la gestione centralizzata
@@ -11,7 +6,7 @@ dell’inventario, dei prestiti e delle riparazioni delle attrezzature LABA Fire
 
 ---
 
-## 📖 Sommario
+## Sommario 📖
 1. [Funzionalità principali](#-funzionalità-principali)
 2. [Tecnologie utilizzate](#-tecnologie-utilizzate)
 3. [Struttura del progetto](#-struttura-del-progetto)
@@ -23,7 +18,7 @@ dell’inventario, dei prestiti e delle riparazioni delle attrezzature LABA Fire
 
 ---
 
-## 🚀 Funzionalità principali
+## Funzionalità principali 🚀
 
 - **📅 Calendario interattivo** (FullCalendar):
   - Vista Giorno, Settimana e Mese.
@@ -56,7 +51,7 @@ dell’inventario, dei prestiti e delle riparazioni delle attrezzature LABA Fire
 
 ---
 
-## 🖥 Tecnologie utilizzate
+## Tecnologie utilizzate 🖥
 
 ### **Frontend**
 - **React 18** – Libreria per la UI.
@@ -71,40 +66,14 @@ dell’inventario, dei prestiti e delle riparazioni delle attrezzature LABA Fire
 - **MongoDB** – Database NoSQL.
 - **Mongoose** – ODM per MongoDB.
 
----
+## Installazione ⚙️
 
-## 📂 Struttura del progetto
-
-LABA_GestionaleAttrezzature/
-│
-├── backend/                  # Server API
-│   ├── models/                # Modelli Mongoose
-│   ├── routes/                # API endpoints
-│   ├── server.js              # Avvio server Express
-│   ├── package.json
-│
-├── frontend/                  # App React
-│   ├── src/
-│   │   ├── components/        # Componenti React (Calendar, Inventory, ecc.)
-│   │   ├── styles/            # CSS principali
-│   │   ├── main.jsx           # Entry point React
-│   ├── public/
-│   ├── package.json
-│
-├── .gitignore                 # File e cartelle da ignorare
-├── package.json               # Configurazione principale
-└── README.md                  # Documentazione
-
----
-
-## ⚙️ Installazione
-
-1️⃣ **Clona il repository**
+**Clona il repository** 1️⃣
 ```bash
 git clone https://github.com/SAzzinelli/laba-gestionale-attrezzature.git
 cd laba-gestionale-attrezzature
 
-2️⃣ Installa le dipendenze
+Installa le dipendenze 2️⃣
 
 Backend:
 
@@ -119,7 +88,7 @@ npm install
 
 ⸻
 
-🔧 Configurazione
+Configurazione 🔧
 	1.	Database MongoDB
 	•	Imposta l’URL di connessione in backend/models/db.js
 	•	Esempio:
@@ -137,7 +106,7 @@ mongoose.connect("mongodb://localhost:27017/laba_gestionale", {
 
 ⸻
 
-▶️ Avvio del progetto
+Avvio del progetto ▶️
 
 Avvia il backend:
 
@@ -153,20 +122,16 @@ Apri nel browser: http://localhost:5173
 
 ⸻
 
-📸 Screenshot
+Screenshot 📸+
 
-(Aggiungere screenshot reali dell’interfaccia)
-
-Vista Calendario (Settimana)
-
-Vista Inventario
+A breve arriveranno...
 
 
 ⸻
 
-📜 Licenza
+ Licenza 📜
 
-Progetto sviluppato per uso interno LABA Firenze
+Progetto sviluppato per uso interno LABA Firenze da Simone Azzinelli
 Tutti i diritti riservati – Distribuzione e utilizzo esterno non autorizzati.
 
 ---
