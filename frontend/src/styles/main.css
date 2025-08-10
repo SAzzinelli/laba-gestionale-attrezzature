@@ -1,0 +1,519 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Root & base ===== */
+:root {
+    --brand: #033157;
+    --border-light: rgba(15, 23, 42, 0.1);
+    --border-light-strong: rgba(15, 23, 42, 0.16);
+    --ring: rgba(3, 49, 87, 0.45);
+    --today-red: #ef4444;
+}
+body {
+    @apply bg-macbg text-slate-800 antialiased;
+}
+
+/* ===== Cards / sections ===== */
+.card,
+.table-card {
+    @apply rounded-2xl shadow bg-white backdrop-blur;
+    border: 1px solid var(--border-light);
+}
+.section-head {
+    border-bottom: 1px solid var(--border-light-strong);
+}
+hr,
+.divider {
+    height: 1px;
+    border: 0;
+    background: var(--border-light-strong);
+}
+.app-header {
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* ===== Table ===== */
+.table {
+    @apply w-full text-sm;
+}
+.table thead {
+    @apply bg-slate-100;
+    border-bottom: 1px solid var(--border-light-strong);
+}
+.table th {
+    @apply text-left font-semibold px-4 py-2;
+    color: #0f172a;
+}
+.table td {
+    @apply px-4 py-2;
+    border-bottom: 1px solid var(--border-light);
+}
+.table tr:last-child td {
+    border-bottom: 0;
+}
+.table tr:hover td {
+    @apply bg-slate-50;
+}
+.th-sort-asc::after {
+    content: " ↑";
+    opacity: 0.6;
+}
+.th-sort-desc::after {
+    content: " ↓";
+    opacity: 0.6;
+}
+
+/* ===== Buttons ===== */
+.btn {
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 font-medium transition-all duration-200 ease-out shadow-sm border border-transparent text-slate-800;
+    background: transparent;
+}
+.btn:hover {
+    @apply bg-slate-100;
+    transform: translateY(-0.5px);
+}
+.btn:active {
+    transform: translateY(0);
+}
+.btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-primary {
+    background: var(--brand);
+    color: #fff !important;
+    box-shadow: 0 6px 16px rgba(3, 49, 87, 0.18);
+}
+.btn-primary:hover {
+    background: #184a73;
+    box-shadow: 0 8px 22px rgba(3, 49, 87, 0.24);
+}
+.btn-primary:active {
+    background: #022c4b;
+}
+
+.btn-danger {
+    @apply text-red-600 border border-red-400;
+    background: transparent;
+}
+.btn-danger:hover {
+    @apply bg-red-500 text-white border-red-500;
+}
+
+/* Bottoni chiari (tabelle/toolbar) */
+.btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-1 font-medium transition;
+    background: #eef2f7;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+}
+.btn-secondary:hover {
+    background: #e2e8f0;
+}
+.btn-danger.solid {
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-1 font-medium;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+.btn-danger.solid:hover {
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+}
+
+/* ===== Inputs / selects ===== */
+.input,
+select,
+textarea {
+    @apply w-full rounded-xl border px-3 py-2 bg-white text-slate-800 placeholder-slate-400;
+    border-color: #cbd5e1;
+    transition:
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+}
+.input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--ring);
+    border-color: #60a5fa;
+}
+
+/* Flat select (Safari friendly) */
+.select,
+select.input {
+    @apply w-full rounded-xl border px-3 py-2 text-slate-800;
+    border-color: #cbd5e1;
+    background-color: #fff;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%231f2937' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 16px;
+    padding-right: 2.25rem;
+}
+.select:hover {
+    border-color: #94a3b8;
+}
+.select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--ring);
+    border-color: #60a5fa;
+}
+.qty-select,
+.select-qty {
+    @apply rounded-full border px-3 py-1;
+    border-color: #cbd5e1;
+}
+
+/* ===== Badges & alerts ===== */
+.badge {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium;
+}
+.badge-green {
+    @apply bg-green-100 text-green-800;
+}
+.badge-orange {
+    @apply bg-orange-100 text-orange-800;
+}
+.badge-red {
+    @apply bg-red-100 text-red-800;
+}
+.blink-red {
+    animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+    50% {
+        background-color: rgba(239, 68, 68, 0.28);
+    }
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+    @apply fixed inset-0 bg-black/40 backdrop-blur-sm;
+}
+.modal {
+    @apply bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden;
+}
+.modal-header {
+    @apply px-5 py-4 border-b border-slate-200 flex items-center justify-between;
+}
+.modal-body {
+    @apply p-5;
+}
+.modal-footer {
+    @apply px-5 py-4 border-t border-slate-200 bg-slate-50;
+}
+.modal-close {
+    @apply text-slate-500 hover:text-slate-700;
+}
+
+/* ===== Footer ===== */
+.footer {
+    @apply text-center text-xs text-slate-500 mt-8 pb-6;
+}
+
+/* ===== Header nav pills (header scuro) ===== */
+.nav-pill {
+    @apply rounded-full px-4 py-2 font-medium transition-all duration-200;
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+}
+.nav-pill:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.18);
+}
+.nav-pill.active {
+    background: #fff;
+    color: var(--brand);
+    border-color: transparent;
+    box-shadow: 0 6px 16px rgba(3, 49, 87, 0.15);
+}
+
+/* ===== Nav pills “light” (calendario) ===== */
+.nav-pill--light {
+    color: #0f172a;
+    background: #eef2f7;
+    border: 1px solid #e2e8f0;
+}
+.nav-pill--light:hover {
+    background: #e2e8f0;
+}
+.nav-pill--light.active {
+    background: #fff;
+    color: var(--brand);
+    border-color: var(--brand);
+    box-shadow: 0 2px 8px rgba(3, 49, 87, 0.12);
+}
+
+/* ===================== CALENDAR (custom) ===================== */
+/* Grid mese/settimana */
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+}
+.cal-row {
+    position: relative;
+}
+
+/* Cella giorno */
+.cal-cell {
+    margin-top: 1px;
+    background: #fff;
+    border: 0.5px solid var(--border-light-strong);
+    border-radius: 10px;
+    min-height: 120px;
+    position: relative;
+    overflow: hidden;
+}
+.cal-day {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* Overlay barre dentro le celle */
+.cal-overlay {
+    position: absolute;
+    left: 0;
+    right: 2px;
+    top: 38px;
+    bottom: 6px;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+    padding: 0;
+    pointer-events: none;
+    grid-auto-rows: minmax(40px, auto); /* più aria verticale */
+}
+
+/* Event base (neutro) */
+.cal-eventBar,
+.cal-event {
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(3, 49, 87, 0.06);
+    pointer-events: auto;
+    transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease,
+        filter 0.12s ease;
+    height: 28px;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.05;
+    width: calc(100% - 12px);
+    margin-left: 6px;
+    margin-right: 6px; /* allineate e centrate nella cella */
+}
+.cal-eventBar::before,
+.cal-event::before {
+    content: "";
+    width: 8px;
+    align-self: stretch;
+    border-radius: 4px;
+    background: var(--accent, rgba(3, 49, 87, 0.25));
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+.cal-eventBar:hover,
+.cal-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(3, 49, 87, 0.1);
+    filter: saturate(1.05);
+}
+
+/* Tipografia base (compatto) */
+.cal-eventBar .title,
+.cal-event .title {
+    font-weight: 900;
+    font-size: 12px;
+}
+.cal-eventBar .object,
+.cal-event .object {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.95;
+}
+.cal-eventBar .qty,
+.cal-event .qty {
+    font-size: 11px;
+    opacity: 0.85;
+}
+
+/* Versione COMPATTA (Mese) */
+.cal-eventBar--compact {
+    height: 30px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Versione RICCA (Giorno/Settimana) */
+.cal-eventBar--rich {
+    display: block;
+    height: auto;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(3, 49, 87, 0.06);
+    width: calc(100% - 12px);
+    margin-left: 6px;
+    margin-right: 6px;
+}
+.cal-eventBar--rich:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(3, 49, 87, 0.1);
+    filter: saturate(1.02);
+}
+.cal-eventBar--rich .head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--accent, #033157);
+    color: #fff;
+    font-weight: 600;
+    line-height: 1.05;
+}
+.cal-eventBar--rich .body {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 6px 10px;
+    background: var(--event-bg, #f8fafc);
+    color: var(--event-tx, #0f172a);
+}
+.cal-eventBar--rich .object {
+    font-weight: 600;
+    opacity: 0.95;
+}
+.cal-eventBar--rich .qty {
+    font-size: 11px;
+    opacity: 0.85;
+}
+
+/* Settimana: celle più alte per accogliere più eventi */
+.cal-week .cal-cell {
+    min-height: 180px;
+}
+
+/* ===================== FullCalendar skin (se presente) ===================== */
+.fc,
+.fc * {
+    font-family: inherit;
+}
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid table {
+    border: 0 !important;
+}
+.fc .fc-daygrid-day,
+.fc .fc-timegrid-col {
+    background: #fff;
+    border-radius: 10px;
+}
+.fc .fc-daygrid-day-frame,
+.fc .fc-timegrid-col-frame {
+    padding: 4px;
+}
+
+/* Vista Mese: celle più alte */
+.fc .fc-daygrid-day {
+    min-height: 120px !important;
+    padding-bottom: 8px !important;
+}
+
+/* Vista Settimana/Giorno: slot leggermente più alti */
+.fc .fc-timegrid-slot {
+    height: 3.2em !important;
+}
+.fc .fc-timegrid-col-frame {
+    padding-bottom: 8px !important;
+}
+
+.fc .fc-daygrid-day-number {
+    font-size: 11px;
+    color: #64748b;
+}
+.fc .fc-day-today {
+    box-shadow: none !important;
+    outline-offset: -2px;
+}
+.fc .fc-day-sat,
+.fc .fc-day-sun {
+    background: #fcfcfd;
+}
+.fc .fc-daygrid-body-unbalanced .fc-daygrid-day-events {
+    margin-top: 4px;
+}
+
+/* Eventi FC (usiamo contenuto custom) */
+.fc .fc-event.fc-daygrid-event,
+.fc .fc-h-event {
+    border-radius: 12px;
+    padding: 0 !important;
+    box-shadow: 0 1px 2px rgba(3, 49, 87, 0.06);
+    transition:
+        transform 0.12s,
+        box-shadow 0.12s,
+        filter 0.12s;
+}
+.fc .fc-h-event .fc-event-title,
+.fc .fc-event-time {
+    display: none;
+}
+.fc .fc-event.fc-daygrid-event:hover,
+.fc .fc-h-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(3, 49, 87, 0.14);
+    filter: saturate(1.06) brightness(1.02);
+}
+.fc .fc-event.fc-daygrid-event:active,
+.fc .fc-h-event:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(3, 49, 87, 0.12);
+}
+
+/* Cerchio rosso sul giorno “oggi” (vista mese) */
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+    background: var(--today-red);
+    color: #fff !important;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    font-weight: 700;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.fc .fc-daygrid-day-top {
+    display: flex;
+    justify-content: flex-end;
+    padding: 4px 6px;
+}
+
+/* “+ altri” */
+.fc .fc-more-link {
+    font-size: 11px;
+    color: #475569;
+    background: #eef2f7;
+    border: 1px dashed #cbd5e1;
+    padding: 3px 8px;
+    border-radius: 10px;
+}
