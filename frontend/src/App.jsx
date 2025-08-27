@@ -1,11 +1,15 @@
 import React, { useState } from "react";
+import AuthProvider, { useAuth } from "./auth/AuthContext";
+import Login from "./auth/Login";
+
 import Dashboard from "./components/Dashboard.jsx";
 import Inventory from "./components/Inventory.jsx";
 import Loans from "./components/Loans.jsx";
 import Repairs from "./components/Repairs.jsx";
 import Footer from "./components/Footer.jsx";
 
-export default function App() {
+// La tua app "vera"
+function AppInner() {
   const [tab, setTab] = useState("dashboard");
   return (
     <div className="min-h-screen flex flex-col">
@@ -39,7 +43,7 @@ export default function App() {
 
             <button
               type="button"
-              className={`nav-pill ${tab === "active" ? "disabled" : ""}`}
+              className={`nav-pill ${tab === "riparazioni" ? "active" : ""}`}
               onClick={() => setTab("riparazioni")}
             >
               ⚙️ Riparaz. e guasti
@@ -47,13 +51,40 @@ export default function App() {
           </nav>
         </div>
       </header>
+
       <main className="max-w-6xl mx-auto px-4 py-6 flex-1 w-full">
         {tab === "dashboard" && <Dashboard />}
         {tab === "inventario" && <Inventory />}
         {tab === "prestiti" && <Loans />}
         {tab === "riparazioni" && <Repairs />}
       </main>
+
       <Footer />
     </div>
+  );
+}
+
+// Gate di autenticazione
+function Gate() {
+  const { isAuthenticated, logout } = useAuth();
+  if (!isAuthenticated)
+    return <Login branding="LABA – Gestione Attrezzature" />;
+  return (
+    <>
+      <div className="fixed right-4 top-4 z-50">
+        <button onClick={logout} className="text-xs underline">
+          Esci
+        </button>
+      </div>
+      <AppInner />
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Gate />
+    </AuthProvider>
   );
 }
