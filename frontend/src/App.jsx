@@ -18,7 +18,7 @@ export default function App() {
               className={`nav-pill ${tab === "dashboard" ? "active" : ""}`}
               onClick={() => setTab("dashboard")}
             >
-              Dashboard
+              📊 Dashboard
             </button>
 
             <button
@@ -26,7 +26,7 @@ export default function App() {
               className={`nav-pill ${tab === "inventario" ? "active" : ""}`}
               onClick={() => setTab("inventario")}
             >
-              Inventario
+              🗃️ Inventario
             </button>
 
             <button
@@ -34,15 +34,15 @@ export default function App() {
               className={`nav-pill ${tab === "prestiti" ? "active" : ""}`}
               onClick={() => setTab("prestiti")}
             >
-              Prestiti
+              🤝🏻 Prestiti
             </button>
 
             <button
               type="button"
-              className={`nav-pill ${tab === "riparazioni" ? "active" : ""}`}
+              className={`nav-pill ${tab === "active" ? "disabled" : ""}`}
               onClick={() => setTab("riparazioni")}
             >
-              Riparaz. e guasti
+              ⚙️ Riparaz. e guasti
             </button>
           </nav>
         </div>

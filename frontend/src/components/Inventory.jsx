@@ -51,7 +51,7 @@ export default function Inventory() {
         <h2 className="text-xl font-semibold">Inventario</h2>
         <div className="flex items-center gap-2">
           <button className="btn btn-primary" onClick={() => setCatOpen(true)}>
-            Aggiungi sottocategoria
+            + Aggiungi sottocategoria
           </button>
           <button
             className="btn btn-primary"
@@ -83,7 +83,7 @@ export default function Inventory() {
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Madre</th>
+              <th>Categoria madre</th>
               <th>Sottocategoria</th>
               <th>Posizione</th>
               <th>Totale</th>
