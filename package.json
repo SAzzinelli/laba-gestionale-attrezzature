@@ -4,11 +4,9 @@
   "version": "4.1.0",
   "description": "LABA Gestionale – inventario & prestiti & riparazioni (v4.1.0, light-only)",
   "scripts": {
-    "postinstall": "npm --prefix backend install && npm --prefix frontend install && npm --prefix frontend run build",
-    "build": "npm --prefix frontend run build",
-    "start": "node backend/server.js",
-    "dev": "concurrently -n api,web -c auto,auto \"npm --prefix backend start\" \"npm --prefix frontend run dev\""
-  }
+    "postinstall": "npm --prefix backend install && npm --prefix frontend install",
+    "start": "concurrently -n api,web -c auto,auto \"npm --prefix backend start\" \"npm --prefix frontend start\""
+  },
   "devDependencies": {
     "concurrently": "^9.0.0"
   },
