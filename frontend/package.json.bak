@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "vite --port 3000",
-    "build": "vite build",
-    "dev": "vite --port 3000"
+    "build": "vite build"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.5",
