@@ -75,7 +75,7 @@ export default function Inventory() {
   const [catsOverlayOpen, setCatsOverlayOpen] = useState(false);
   const [catEdit, setCatEdit] = useState(null); // { type: 'figlia', madre, figlia, new_figlia }
   const [catDelete, setCatDelete] = useState(null); // { madre, figlia }
-  const [activeMadre, setActiveMadre] = useState("TRIENNIO");
+  const [newCat, setNewCat] = useState({ madre: "Graphic Design & Multimedia", figlia: "" });
   const [catSearch, setCatSearch] = useState("");
   const [newCat, setNewCat] = useState({ madre: "TRIENNIO", figlia: "" });
   const [overlayItem, setOverlayItem] = useState(null);
@@ -174,7 +174,7 @@ export default function Inventory() {
               setForm({
                 nome: "",
                 quantita_totale: 1,
-                categoria_madre: "TRIENNIO",
+                categoria_madre: "Graphic Design & Multimedia",
                 categoria_figlia: "",
                 posizione: "",
                 note: "",
@@ -299,11 +299,17 @@ export default function Inventory() {
             <div className="flex gap-6">
               {/* Sidebar madri */}
               <div className="w-56 shrink-0">
-                <div className="text-xs uppercase text-neutral-500 mb-2">Categorie madri</div>
+                <div className="text-xs uppercase text-neutral-500 mb-2">Corsi Accademici</div>
                 {[
-                  { key: "TRIENNIO", label: "TRIENNIO" },
-                  { key: "BIENNIO", label: "BIENNIO" },
-                ].map((m) => {
+  { key: "Graphic Design & Multimedia", label: "Graphic Design & Multimedia" },
+  { key: "Regia e Videomaking", label: "Regia e Videomaking" },
+  { key: "Fashion Design", label: "Fashion Design" },
+  { key: "Fotografia", label: "Fotografia" },
+  { key: "Pittura", label: "Pittura" },
+  { key: "Design", label: "Design" },
+  { key: "Cinema e Audiovisivi", label: "Cinema e Audiovisivi" },
+  { key: "Interior Design", label: "Interior Design" },
+].map((m) => {
                   const count = (groupedCats[m.key] || []).length;
                   const active = activeMadre === m.key;
                   return (
@@ -526,20 +532,26 @@ export default function Inventory() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Corso Accademico</label>
-              <select
-                className="select"
-                value={form.categoria_madre}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    categoria_madre: e.target.value,
-                    categoria_figlia: "",
-                  }))
-                }
-              >
-                <option value="TRIENNIO">Triennio</option>
-                <option value="BIENNIO">Biennio</option>
-              </select>
+<select
+  className="select"
+  value={form.categoria_madre}
+  onChange={(e) =>
+    setForm((f) => ({
+      ...f,
+      categoria_madre: e.target.value,
+      categoria_figlia: "",
+    }))
+  }
+>
+  <option value="Graphic Design & Multimedia">Graphic Design & Multimedia</option>
+  <option value="Regia e Videomaking">Regia e Videomaking</option>
+  <option value="Fashion Design">Fashion Design</option>
+  <option value="Fotografia">Fotografia</option>
+  <option value="Pittura">Pittura</option>
+  <option value="Design">Design</option>
+  <option value="Cinema e Audiovisivi">Cinema e Audiovisivi</option>
+  <option value="Interior Design">Interior Design</option>
+</select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Categoria</label>
@@ -716,7 +728,7 @@ export default function Inventory() {
                   try {
                     await axios.post("/api/categorie", newCat);
                     setCatOpen(false);
-                    setNewCat({ madre: "TRIENNIO", figlia: "" });
+                    setNewCat({ madre: "Graphic Design & Multimedia", figlia: "" });
                     loadCats();
                   } catch (e) {
                     alert(e?.response?.data?.error || e.message);
@@ -730,15 +742,21 @@ export default function Inventory() {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <select
-              className="input"
-              value={newCat.madre}
-              onChange={(e) =>
-                setNewCat((c) => ({ ...c, madre: e.target.value }))
-              }
-            >
-              <option value="TRIENNIO">Triennio</option>
-              <option value="BIENNIO">Biennio</option>
-            </select>
+  className="input"
+  value={newCat.madre}
+  onChange={(e) =>
+    setNewCat((c) => ({ ...c, madre: e.target.value }))
+  }
+>
+  <option value="Graphic Design & Multimedia">Graphic Design & Multimedia</option>
+  <option value="Regia e Videomaking">Regia e Videomaking</option>
+  <option value="Fashion Design">Fashion Design</option>
+  <option value="Fotografia">Fotografia</option>
+  <option value="Pittura">Pittura</option>
+  <option value="Design">Design</option>
+  <option value="Cinema e Audiovisivi">Cinema e Audiovisivi</option>
+  <option value="Interior Design">Interior Design</option>
+</select>
             <input
               className="input"
               placeholder="Nome sottocategoria…"

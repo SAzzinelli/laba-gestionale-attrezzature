@@ -1,4 +1,20 @@
+
 import { db } from './db.js'
+
+// Madri ammesse (uppercase). Include TRIENNIO/BIENNIO per retrocompatibilità temporanea
+const ALLOWED_MADRI = [
+  'GRAPHIC DESIGN & MULTIMEDIA',
+  'REGIA E VIDEOMAKING',
+  'FASHION DESIGN',
+  'FOTOGRAFIA',
+  'PITTURA',
+  'DESIGN',
+  'CINEMA E AUDIOVISIVI',
+  'INTERIOR DESIGN',
+  // legacy
+  'TRIENNIO',
+  'BIENNIO',
+]
 
 // Ritorna tutte le sottocategorie ordinate
 export function listCategorie() {
@@ -9,7 +25,7 @@ export function listCategorie() {
 export function addCategoria({ madre, figlia }) {
   const M = String(madre || '').toUpperCase()
   const F = String(figlia || '').trim()
-  if (!['TRIENNIO', 'BIENNIO'].includes(M)) throw new Error('Madre non valida')
+  if (!ALLOWED_MADRI.includes(M)) throw new Error('Madre non valida')
   if (!F) throw new Error('Nome sottocategoria obbligatorio')
   const exists = db.prepare('SELECT 1 FROM categorie WHERE madre=? AND figlia=?').get(M, F)
   if (exists) throw new Error('La sottocategoria esiste già')
@@ -21,7 +37,7 @@ export function addCategoria({ madre, figlia }) {
 export function removeCategoria({ madre, figlia }) {
   const M = String(madre || '').toUpperCase()
   const F = String(figlia || '').trim()
-  if (!['TRIENNIO', 'BIENNIO'].includes(M)) throw new Error('Madre non valida')
+  if (!ALLOWED_MADRI.includes(M)) throw new Error('Madre non valida')
   if (!F) throw new Error('Nome sottocategoria obbligatorio')
 
   const del = db.prepare('DELETE FROM categorie WHERE madre=? AND figlia=?').run(M, F)
@@ -38,7 +54,7 @@ export function renameCategoria({ madre, figlia, new_figlia }) {
   const M = String(madre || '').toUpperCase()
   const F = String(figlia || '').trim()
   const N = String(new_figlia || '').trim()
-  if (!['TRIENNIO', 'BIENNIO'].includes(M)) throw new Error('Madre non valida')
+  if (!ALLOWED_MADRI.includes(M)) throw new Error('Madre non valida')
   if (!F || !N) throw new Error('Nomi obbligatori')
   if (F === N) return { ok: true, changed: 0 }
 
