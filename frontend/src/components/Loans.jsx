@@ -64,6 +64,10 @@ export default function Loans() {
   const [form, setForm] = useState(null);
   const [search, setSearch] = useState("");
   const [unitSelectOpen, setUnitSelectOpen] = useState(false);
+  // disponibilità unità per il periodo selezionato
+  const [avail, setAvail] = useState(null);
+  const [loadingAvail, setLoadingAvail] = useState(false);
+  const [availErr, setAvailErr] = useState(null);
 
   const load = () => axios.get("/api/prestiti").then((r) => setList(r.data));
 
@@ -78,6 +82,23 @@ export default function Loans() {
     }
   }, [form]);
 
+  // Carica disponibilità dal backend quando si apre il selettore unità
+  useEffect(() => {
+    if (!unitSelectOpen || !form?.inventario_id) return;
+    const params = new URLSearchParams();
+    params.set("inventario_id", String(form.inventario_id));
+    params.set("dal", form.data_uscita || todayISO);
+    if (form.data_rientro) params.set("al", form.data_rientro);
+    if (form.id) params.set("exclude_id", String(form.id));
+    setLoadingAvail(true);
+    setAvailErr(null);
+    axios
+      .get(`/api/prestiti/availability?${params.toString()}`)
+      .then((r) => setAvail(r.data))
+      .catch((e) => setAvailErr(e?.response?.data?.error || e.message))
+      .finally(() => setLoadingAvail(false));
+  }, [unitSelectOpen, form?.inventario_id, form?.data_uscita, form?.data_rientro, form?.id]);
+
   const filtered = useMemo(
     () =>
       list.filter((p) =>
@@ -88,20 +109,41 @@ export default function Loans() {
     [list, search],
   );
 
-  const flattened = useMemo(() => {
-    return filtered.flatMap((r) => {
-      if (Array.isArray(r.unita) && r.unita.length > 0) {
-        return r.unita.map((u, idx) => ({ ...r, _sub: idx, _unitName: u || `Unità ${idx + 1}` }));
-      }
-      const q = Math.max(1, r.quantita || 1);
-      return Array.from({ length: q }, (_, i) => ({ ...r, _sub: i, _unitName: r.unita?.[i] || `Unità ${i + 1}` }));
-    });
-  }, [filtered]);
+const flattened = useMemo(() => {
+  return filtered.flatMap((r) => {
+    const item = getItemById(inv, r.inventario_id);
+    const total = Math.max(1, item?.quantita_totale || r.quantita || 1);
+    const invUnitNames = ensureUnitaLen(item?.unita, total);
+
+    const selectedNames = Array.isArray(r.unita) ? r.unita : [];
+    if (selectedNames.length > 0) {
+      return selectedNames.map((name, idx) => ({
+        ...r,
+        _sub: idx,
+        _unitIdx: idx,
+        _unitName: name || invUnitNames[idx] || `Unità ${idx + 1}`,
+      }));
+    }
+
+    // Nessuna lista di unità salvata: una sola riga per prestito
+    return [{
+      ...r,
+      _sub: 0,
+      _unitIdx: 0,
+      _unitName: invUnitNames[0] || `Unità 1`,
+    }];
+  });
+}, [filtered, inv]);
 
   async function save() {
     // VALIDAZIONE: rientro non può essere prima dell'uscita
     if (form.data_uscita && form.data_rientro && cmpDates(form.data_rientro, form.data_uscita) < 0) {
       alert("La data di riconsegna non può essere precedente alla data di uscita.");
+      return;
+    }
+    // VALIDAZIONE: "Prestato a" obbligatorio
+    if (!form.chi || String(form.chi).trim() === "") {
+      alert("Inserisci il campo \"Prestato a\".");
       return;
     }
     if (!form.inventario_id) {
@@ -118,18 +160,38 @@ export default function Loans() {
     }
     const payload = { ...form, quantita: units.length, unita: units };
     delete payload.unita_idx;
-    try {
-      if (form.id) {
-        await axios.put(`/api/prestiti/${form.id}`, payload);
-      } else {
-        await axios.post("/api/prestiti", payload);
-      }
-      setForm(null);
-      load();
-    } catch (e) {
-      alert(e?.response?.data?.error || e.message);
+try {
+  const originalQty = Number(form.quantita || 0);
+  const selectedQty = units.length;
+
+  if (form.id) {
+    if (selectedQty < originalQty) {
+      // 1) riduci il prestito originale (lascia invariate le altre unità)
+      await axios.put(`/api/prestiti/${form.id}`, { quantita: originalQty - selectedQty });
+
+      // 2) crea un nuovo prestito solo per le unità selezionate, con le nuove info
+      await axios.post("/api/prestiti", {
+        inventario_id: form.inventario_id,
+        quantita: selectedQty,
+        chi: form.chi,
+        data_uscita: form.data_uscita,
+        data_rientro: form.data_rientro || null,
+        note: form.note || "",
+        unita: units,
+      });
+    } else {
+      // aggiorna normalmente (caso 1:1 o tutte le unità)
+      await axios.put(`/api/prestiti/${form.id}`, payload);
     }
+  } else {
+    await axios.post("/api/prestiti", payload);
   }
+  setForm(null);
+  load();
+} catch (e) {
+  alert(e?.response?.data?.error || e.message);
+}
+}
 
   return (
     <div>
@@ -198,12 +260,14 @@ export default function Loans() {
                 <tr
                   key={`${r.id}-${r._sub}`}
                   className="cursor-pointer"
-                  onClick={() => {
-                    const item = getItemById(inv, r.inventario_id);
-                    const listUnita = ensureUnitaLen(item?.unita, Math.max(1, item?.quantita_totale || 1));
-                    const idx = namesToIdx(Array.isArray(r.unita) ? r.unita : [], listUnita);
-                    setForm({ ...r, unita: Array.isArray(r.unita) ? r.unita : [], unita_idx: idx });
-                  }}
+onClick={() => {
+  const unitIdx = typeof r._unitIdx === "number" ? r._unitIdx : r._sub || 0;
+  setForm({
+    ...r,
+    unita: Array.isArray(r.unita) ? r.unita : [],
+    unita_idx: [unitIdx], // preseleziona solo l'unità cliccata
+  });
+}}
                 >
                   <td>{r.chi}</td>
                   <td>{r.inventario_nome}</td>
@@ -220,10 +284,12 @@ export default function Loans() {
                         onClick={(e) => {
                           e.stopPropagation();
                           setForm(() => {
-                            const item = getItemById(inv, r.inventario_id);
-                            const listUnita = ensureUnitaLen(item?.unita, Math.max(1, item?.quantita_totale || 1));
-                            const idx = namesToIdx(Array.isArray(r.unita) ? r.unita : [], listUnita);
-                            return { ...r, unita: Array.isArray(r.unita) ? r.unita : [], unita_idx: idx };
+                            const unitIdx = typeof r._unitIdx === "number" ? r._unitIdx : r._sub || 0;
+                            return {
+                              ...r,
+                              unita: Array.isArray(r.unita) ? r.unita : [],
+                              unita_idx: [unitIdx], // preseleziona solo l'unità cliccata
+                            };
                           });
                         }}
                       >
@@ -301,6 +367,8 @@ export default function Loans() {
                 className="input"
                 placeholder="Nome della persona/classe"
                 value={form.chi}
+                required
+                title="Campo obbligatorio"
                 onChange={(e) => setForm((f) => ({ ...f, chi: e.target.value }))}
               />
             </div>
@@ -370,45 +438,126 @@ export default function Loans() {
           })()}
           onClose={() => setUnitSelectOpen(false)}
           footer={
-            <div className="flex items-center gap-2">
-              <button
-                className="btn"
-                onClick={() => {
-                  const item = getItemById(inv, form.inventario_id);
-                  if (!item) return;
-                  const count = Math.max(1, item.quantita_totale || 1);
-                  setForm((f) => ({ ...f, unita_idx: Array.from({ length: count }, (_, i) => i) }));
-                }}
-              >
-                Seleziona tutto
-              </button>
-              <button className="btn" onClick={() => setForm((f) => ({ ...f, unita_idx: [] }))}>Nessuno</button>
-              <button className="btn btn-primary" onClick={() => setUnitSelectOpen(false)}>Conferma</button>
-            </div>
+            (() => {
+              const item = getItemById(inv, form.inventario_id);
+              const count = item ? Math.max(1, item.quantita_totale || 1) : 0;
+              const names = item ? ensureUnitaLen(item.unita, count) : [];
+              // calcola gli indici disponibili (non occupati)
+              let availableIdx = Array.from({ length: count }, (_, i) => i);
+              if (item && avail && String(avail.inventario_id) === String(form.inventario_id) && Array.isArray(avail.units)) {
+                const disabledIdx = new Set(
+                  avail.units
+                    .filter((u) => !u.available)
+                    .map((u) => names.findIndex((n) => n === u.name))
+                    .filter((i) => i >= 0)
+                );
+                availableIdx = availableIdx.filter((i) => !disabledIdx.has(i));
+              }
+              const selected = new Set(form.unita_idx || []);
+              const allSelected = availableIdx.length > 0 && availableIdx.every((i) => selected.has(i));
+              const toggleAll = () => {
+                if (!item) return;
+                if (allSelected) {
+                  setForm((f) => ({ ...f, unita_idx: [] }));
+                } else {
+                  setForm((f) => ({ ...f, unita_idx: availableIdx }));
+                }
+              };
+              return (
+                <div className="flex items-center gap-2">
+                  <button className="btn" onClick={toggleAll}>
+                    {allSelected ? "Deseleziona tutto" : "Seleziona tutto"}
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setUnitSelectOpen(false)}>Conferma</button>
+                </div>
+              );
+            })()
           }
         >
           {(() => {
             const item = getItemById(inv, form.inventario_id);
             if (!item) return <div className="text-sm text-neutral-500">Seleziona prima un oggetto dall'elenco.</div>;
-            const unita = ensureUnitaLen(item.unita, Math.max(1, item.quantita_totale || 1));
+            // --- Nuovo blocco: unità con gestione disponibilità e pillola data ---
+            const count = Math.max(1, item.quantita_totale || 1);
+            const unita = ensureUnitaLen(item.unita, count);
             const selected = new Set(form.unita_idx || []);
+            const disabledSet = new Set();
+            const availableFromMap = new Map();
+
+            if (avail && String(avail.inventario_id) === String(form.inventario_id) && Array.isArray(avail.units)) {
+              for (const u of avail.units) {
+                const idx = unita.findIndex((n) => n === u.name);
+                if (idx >= 0 && !u.available) {
+                  disabledSet.add(idx);
+                  if (u.available_from) availableFromMap.set(idx, u.available_from);
+                }
+              }
+            }
+
             const toggle = (idx) => {
+              if (disabledSet.has(idx)) return; // non selezionabile
               setForm((f) => {
                 const cur = new Set(f.unita_idx || []);
-                if (cur.has(idx)) cur.delete(idx); else cur.add(idx);
+                if (cur.has(idx)) cur.delete(idx);
+                else cur.add(idx);
                 return { ...f, unita_idx: Array.from(cur) };
               });
             };
+
             return (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                {unita.map((name, idx) => (
-                  <label key={idx} className="inline-flex items-center gap-2 border rounded px-2 py-1 hover:bg-neutral-50">
-                    <input type="checkbox" checked={selected.has(idx)} onChange={() => toggle(idx)} />
-                    <span className="text-sm truncate">{name || `Unità ${idx + 1}`}</span>
-                  </label>
-                ))}
-              </div>
+              <>
+                {loadingAvail && (
+                  <div className="text-xs text-neutral-500 mb-2">Verifico disponibilità…</div>
+                )}
+                {availErr && (
+                  <div className="text-xs text-red-600 mb-2">Errore disponibilità: {availErr}</div>
+                )}
+                <div className="flex flex-col gap-2">
+                  {unita.map((name, idx) => {
+                    const disabled = disabledSet.has(idx);
+                    const availableFrom = availableFromMap.get(idx);
+                    return (
+                      <label
+                        key={idx}
+                        className={`flex items-center gap-3 w-full border rounded-lg px-3 py-2 shadow-sm transition ${disabled ? "opacity-60 cursor-not-allowed bg-neutral-50" : "bg-white hover:bg-neutral-50"}`}
+                        title={disabled ? (availableFrom ? `Disponibile da ${fmt(availableFrom)}` : "Non disponibile in questo periodo") : ""}
+                      >
+                        <input
+                          type="checkbox"
+                          disabled={disabled}
+                          checked={selected.has(idx)}
+                          onChange={() => toggle(idx)}
+                        />
+                        <span className="text-sm font-medium truncate">{name || `Unità ${idx + 1}`}</span>
+                        {disabled && (() => {
+                          // Pillole colorate: verde se "da oggi", gialla se futura, rossa se senza data (occupata)
+                          let pillClass = "bg-slate-100 text-slate-600";
+                          let pillText = "occupata";
+                          if (availableFrom) {
+                            if (String(availableFrom) === todayISO) {
+                              pillClass = "bg-green-100 text-green-700";
+                              pillText = "da oggi";
+                            } else {
+                              pillClass = "bg-amber-100 text-amber-700";
+                              pillText = `da ${fmt(availableFrom)}`;
+                            }
+                          } else {
+                            pillClass = "bg-red-100 text-red-700";
+                            pillText = "occupata";
+                          }
+                          return (
+                            <span className={`ml-auto inline-block px-2 py-0.5 text-xs font-semibold rounded-full ${pillClass}`}>
+                              {pillText}
+                            </span>
+                          );
+                        })()}
+                      </label>
+                    );
+                  })}
+                </div>
+              </>
             );
+            // --- Fine nuovo blocco ---
           })()}
         </Modal>
       )}

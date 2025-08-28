@@ -1,71 +1,80 @@
+// backend/models/categorie.js
+import { db } from "./db.js";
 
-import { db } from './db.js'
+const norm = (v) => String(v ?? "").trim();
 
-// Madri ammesse (uppercase). Include TRIENNIO/BIENNIO per retrocompatibilità temporanea
-const ALLOWED_MADRI = [
-  'GRAPHIC DESIGN & MULTIMEDIA',
-  'REGIA E VIDEOMAKING',
-  'FASHION DESIGN',
-  'FOTOGRAFIA',
-  'PITTURA',
-  'DESIGN',
-  'CINEMA E AUDIOVISIVI',
-  'INTERIOR DESIGN',
-  // legacy
-  'TRIENNIO',
-  'BIENNIO',
-]
-
-// Ritorna tutte le sottocategorie ordinate
+/** Ritorna tutte le coppie (madre, figlia) ordinate */
 export function listCategorie() {
-  return db.prepare('SELECT madre, figlia FROM categorie ORDER BY madre, figlia').all()
+  return db
+    .prepare(
+      "SELECT madre, figlia FROM categorie ORDER BY madre COLLATE NOCASE, figlia COLLATE NOCASE"
+    )
+    .all();
 }
 
-// Aggiunge una sottocategoria
+/** Crea una categoria */
 export function addCategoria({ madre, figlia }) {
-  const M = String(madre || '').toUpperCase()
-  const F = String(figlia || '').trim()
-  if (!ALLOWED_MADRI.includes(M)) throw new Error('Madre non valida')
-  if (!F) throw new Error('Nome sottocategoria obbligatorio')
-  const exists = db.prepare('SELECT 1 FROM categorie WHERE madre=? AND figlia=?').get(M, F)
-  if (exists) throw new Error('La sottocategoria esiste già')
-  db.prepare('INSERT INTO categorie (madre, figlia) VALUES (?, ?)').run(M, F)
-  return { ok: true }
+  const M = norm(madre);
+  const F = norm(figlia);
+  if (!M || !F) throw new Error("Parametri mancanti");
+
+  // Evita duplicati (case-insensitive)
+  const dup = db
+    .prepare(
+      "SELECT 1 FROM categorie WHERE madre = ? COLLATE NOCASE AND figlia = ? COLLATE NOCASE LIMIT 1"
+    )
+    .get(M, F);
+  if (dup) throw new Error("Categoria già esistente");
+
+  const info = db
+    .prepare("INSERT INTO categorie (madre, figlia) VALUES (?, ?)")
+    .run(M, F);
+
+  return { id: info.lastInsertRowid, madre: M, figlia: F };
 }
 
-// Elimina una sottocategoria (e libera i riferimenti negli oggetti inventario)
+/** Elimina una categoria */
 export function removeCategoria({ madre, figlia }) {
-  const M = String(madre || '').toUpperCase()
-  const F = String(figlia || '').trim()
-  if (!ALLOWED_MADRI.includes(M)) throw new Error('Madre non valida')
-  if (!F) throw new Error('Nome sottocategoria obbligatorio')
+  const M = norm(madre);
+  const F = norm(figlia);
+  if (!M || !F) throw new Error("Parametri mancanti");
 
-  const del = db.prepare('DELETE FROM categorie WHERE madre=? AND figlia=?').run(M, F)
-  if (!del.changes) throw new Error('Sottocategoria non trovata')
+  const info = db
+    .prepare(
+      "DELETE FROM categorie WHERE madre = ? COLLATE NOCASE AND figlia = ? COLLATE NOCASE"
+    )
+    .run(M, F);
 
-  try {
-    db.prepare('UPDATE inventario SET categoria_figlia=NULL WHERE categoria_madre=? AND categoria_figlia=?').run(M, F)
-  } catch {}
-  return { ok: true, removed: del.changes }
+  if (info.changes === 0) throw new Error("Categoria non trovata");
+  return { removed: { madre: M, figlia: F } };
 }
 
-// Rinomina una sottocategoria e propaga sugli oggetti inventario
+/** Rinomina una categoria figlia all'interno della stessa madre */
 export function renameCategoria({ madre, figlia, new_figlia }) {
-  const M = String(madre || '').toUpperCase()
-  const F = String(figlia || '').trim()
-  const N = String(new_figlia || '').trim()
-  if (!ALLOWED_MADRI.includes(M)) throw new Error('Madre non valida')
-  if (!F || !N) throw new Error('Nomi obbligatori')
-  if (F === N) return { ok: true, changed: 0 }
+  const M = norm(madre);
+  const F = norm(figlia);
+  const NF = norm(new_figlia);
+  if (!M || !F || !NF) throw new Error("Parametri mancanti");
 
-  const dup = db.prepare('SELECT 1 FROM categorie WHERE madre=? AND figlia=?').get(M, N)
-  if (dup) throw new Error('Esiste già una sottocategoria con quel nome')
+  // esiste la vecchia?
+  const exists = db
+    .prepare(
+      "SELECT 1 FROM categorie WHERE madre = ? COLLATE NOCASE AND figlia = ? COLLATE NOCASE LIMIT 1"
+    )
+    .get(M, F);
+  if (!exists) throw new Error("Categoria non trovata");
 
-  const upd = db.prepare('UPDATE categorie SET figlia=? WHERE madre=? AND figlia=?').run(N, M, F)
-  if (!upd.changes) throw new Error('Sottocategoria non trovata')
+  // conflitto sul nuovo nome?
+  const clash = db
+    .prepare(
+      "SELECT 1 FROM categorie WHERE madre = ? COLLATE NOCASE AND figlia = ? COLLATE NOCASE LIMIT 1"
+    )
+    .get(M, NF);
+  if (clash) throw new Error("Categoria già esistente");
 
-  try {
-    db.prepare('UPDATE inventario SET categoria_figlia=? WHERE categoria_madre=? AND categoria_figlia=?').run(N, M, F)
-  } catch {}
-  return { ok: true, changed: upd.changes }
+  db.prepare(
+    "UPDATE categorie SET figlia = ? WHERE madre = ? COLLATE NOCASE AND figlia = ? COLLATE NOCASE"
+  ).run(NF, M, F);
+
+  return { madre: M, from: F, to: NF };
 }

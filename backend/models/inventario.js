@@ -1,84 +1,144 @@
-import { db } from './db.js'
+import { db } from "./db.js";
 
-function todayISO(){ return new Date().toISOString().slice(0,10) }
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+const norm = (v) => String(v ?? "").trim();
 
-export function listInventario(){
-  const rows = db.prepare('SELECT * FROM inventario ORDER BY nome ASC').all()
-  const t = todayISO()
+const ensureUnitaLen = (arr, len) => {
+  const out = Array.isArray(arr) ? arr.slice(0, len) : [];
+  if (out.length < len) out.push(...Array.from({ length: len - out.length }, () => ""));
+  return out;
+};
+const parseUnita = (json, len) => {
+  try { return ensureUnitaLen(JSON.parse(json ?? "[]"), Math.max(1, len || 0)); }
+  catch { return ensureUnitaLen([], Math.max(1, len || 0)); }
+};
+
+/** Lista completa con calcolo e unita[] */
+export function listInventario() {
+  const rows = db.prepare("SELECT * FROM inventario ORDER BY nome ASC").all();
+  const t = todayISO();
   const inPrestito = db.prepare(`
-    SELECT IFNULL(SUM(quantita),0) AS q FROM prestiti
-    WHERE inventario_id=@id AND data_uscita<=@t AND (data_rientro IS NULL OR data_rientro='' OR data_rientro>=@t)
-  `)
-  return rows.map(r=>{
-    const { q } = inPrestito.get({ id:r.id, t })
-    const disponibili = Math.max(0, (r.quantita_totale||0) - (q||0))
-    return { ...r, in_prestito:q||0, disponibili }
-  })
+    SELECT IFNULL(SUM(quantita),0) AS q
+    FROM prestiti
+    WHERE inventario_id=@id
+      AND data_uscita<=@t
+      AND (data_rientro IS NULL OR data_rientro='' OR data_rientro>=@t)
+  `);
+  return rows.map((r) => {
+    const { q } = inPrestito.get({ id: r.id, t });
+    const disponibili = Math.max(0, (r.quantita_totale || 0) - (q || 0));
+    const unita = parseUnita(r.unita, r.quantita_totale);
+    return { ...r, in_prestito: q || 0, disponibili, unita };
+  });
 }
 
-export function getInventario(id){
-  const r = db.prepare('SELECT * FROM inventario WHERE id=?').get(id)
-  if(!r) return null
-  const t = todayISO()
+export function getInventario(id) {
+  const r = db.prepare("SELECT * FROM inventario WHERE id=?").get(id);
+  if (!r) return null;
+  const t = todayISO();
   const { q } = db.prepare(`
-    SELECT IFNULL(SUM(quantita),0) AS q FROM prestiti
-    WHERE inventario_id=@id AND data_uscita<=@t AND (data_rientro IS NULL OR data_rientro='' OR data_rientro>=@t)
-  `).get({ id, t })
-  const disponibili = Math.max(0, (r.quantita_totale||0) - (q||0))
-  return { ...r, in_prestito:q||0, disponibili }
+    SELECT IFNULL(SUM(quantita),0) AS q
+    FROM prestiti
+    WHERE inventario_id=@id
+      AND data_uscita<=@t
+      AND (data_rientro IS NULL OR data_rientro='' OR data_rientro>=@t)
+  `).get({ id, t });
+  const disponibili = Math.max(0, (r.quantita_totale || 0) - (q || 0));
+  const unita = parseUnita(r.unita, r.quantita_totale);
+  return { ...r, in_prestito: q || 0, disponibili, unita };
 }
 
-export function addInventario(b){
+/** Insert (accetta opzionale unita[]) */
+export function addInventario(body) {
   const safe = {
-    nome: b.nome,
-    quantita_totale: parseInt(b.quantita_totale||0,10),
-    categoria_madre: ['TRIENNIO','BIENNIO'].includes(b.categoria_madre)?b.categoria_madre:'TRIENNIO',
-    categoria_figlia: b.categoria_figlia || null,
-    posizione: b.posizione || null,
-    note: b.note || null,
-    in_manutenzione: b.in_manutenzione ? 1 : 0,
-  }
-  const info = db.prepare(`INSERT INTO inventario
-    (nome,quantita_totale,categoria_madre,categoria_figlia,posizione,note,in_manutenzione)
-    VALUES (@nome,@quantita_totale,@categoria_madre,@categoria_figlia,@posizione,@note,@in_manutenzione)`).run(safe)
-  return getInventario(info.lastInsertRowid)
+    nome: norm(body.nome),
+    quantita_totale: parseInt(body.quantita_totale ?? 0, 10) || 0,
+    categoria_madre: norm(body.categoria_madre),
+    categoria_figlia: body.categoria_figlia ? norm(body.categoria_figlia) : null,
+    posizione: body.posizione ? norm(body.posizione) : null,
+    note: body.note != null ? String(body.note) : null,
+    in_manutenzione: body.in_manutenzione ? 1 : 0,
+  };
+  const unitaArr = Array.isArray(body.unita)
+    ? ensureUnitaLen(body.unita.map(norm), safe.quantita_totale)
+    : ensureUnitaLen([], safe.quantita_totale);
+  const info = db.prepare(`
+    INSERT INTO inventario
+      (nome, quantita_totale, categoria_madre, categoria_figlia, posizione, note, in_manutenzione, unita)
+    VALUES
+      (@nome, @quantita_totale, @categoria_madre, @categoria_figlia, @posizione, @note, @in_manutenzione, @unita)
+  `).run({ ...safe, unita: JSON.stringify(unitaArr) });
+  return getInventario(info.lastInsertRowid);
 }
 
-export function updateInventario(id,b){
+/** Update (se passi unita[], la aggiorna; altrimenti lascia quella esistente) */
+export function updateInventario(id, body) {
   const safe = {
-    nome: b.nome,
-    quantita_totale: parseInt(b.quantita_totale||0,10),
-    categoria_madre: ['TRIENNIO','BIENNIO'].includes(b.categoria_madre)?b.categoria_madre:'TRIENNIO',
-    categoria_figlia: b.categoria_figlia || null,
-    posizione: b.posizione || null,
-    note: b.note || null,
-    in_manutenzione: b.in_manutenzione ? 1 : 0,
-    id
-  }
-  db.prepare(`UPDATE inventario SET
-    nome=@nome, quantita_totale=@quantita_totale, categoria_madre=@categoria_madre, categoria_figlia=@categoria_figlia,
-    posizione=@posizione, note=@note, in_manutenzione=@in_manutenzione, updated_at=CURRENT_TIMESTAMP
-  WHERE id=@id`).run(safe)
-  return getInventario(id)
+    id,
+    nome: norm(body.nome),
+    quantita_totale: parseInt(body.quantita_totale ?? 0, 10) || 0,
+    categoria_madre: norm(body.categoria_madre),
+    categoria_figlia: body.categoria_figlia ? norm(body.categoria_figlia) : null,
+    posizione: body.posizione ? norm(body.posizione) : null,
+    note: body.note != null ? String(body.note) : null,
+    in_manutenzione: body.in_manutenzione ? 1 : 0,
+  };
+  const hasUnita = Array.isArray(body.unita);
+  const unitaJSON = hasUnita
+    ? JSON.stringify(ensureUnitaLen(body.unita.map(norm), safe.quantita_totale))
+    : null;
+
+  db.prepare(`
+    UPDATE inventario SET
+      nome=@nome,
+      quantita_totale=@quantita_totale,
+      categoria_madre=@categoria_madre,
+      categoria_figlia=@categoria_figlia,
+      posizione=@posizione,
+      note=@note,
+      in_manutenzione=@in_manutenzione,
+      unita=COALESCE(@unita, unita),
+      updated_at=CURRENT_TIMESTAMP
+    WHERE id=@id
+  `).run({ ...safe, unita: unitaJSON });
+
+  return getInventario(id);
 }
 
-export function delInventario(id){
-  const info = db.prepare('DELETE FROM inventario WHERE id=?').run(id)
-  return { deleted: info.changes>0 }
+export function delInventario(id) {
+  const info = db.prepare("DELETE FROM inventario WHERE id=?").run(id);
+  return { deleted: info.changes > 0 };
 }
 
-export function summary(){
-  const inv = listInventario()
-  const strumenti_totali = inv.length
-  const strumenti_esauriti = inv.filter(r=>r.disponibili===0).length
-  const t = todayISO()
+/** KPI riepilogo */
+export function summary(threshold = 1) {
+  const inv = listInventario();
+  const strumenti_totali = inv.length;
+  const strumenti_esauriti = inv.filter((r) => r.disponibili === 0).length;
+
+  const t = todayISO();
   const strumenti_in_prestito = db.prepare(`
-    SELECT COUNT(DISTINCT inventario_id) AS c FROM prestiti
-    WHERE data_uscita<=@t AND (data_rientro IS NULL OR data_rientro='' OR data_rientro>=@t)
-  `).get({ t }).c
+    SELECT COUNT(DISTINCT inventario_id) AS c
+    FROM prestiti
+    WHERE data_uscita<=@t
+      AND (data_rientro IS NULL OR data_rientro='' OR data_rientro>=@t)
+  `).get({ t }).c;
+
   const prestiti_scaduti = db.prepare(`
-    SELECT COUNT(*) AS c FROM prestiti
+    SELECT COUNT(*) AS c
+    FROM prestiti
     WHERE data_rientro IS NOT NULL AND data_rientro<@t
-  `).get({ t }).c
-  return { strumenti_totali, strumenti_in_prestito, strumenti_esauriti, prestiti_scaduti }
+  `).get({ t }).c;
+
+  const th = Number(threshold);
+  const sotto_soglia = inv.filter((r) => (r.disponibili ?? 0) <= th).length;
+
+  return { strumenti_totali, strumenti_in_prestito, strumenti_esauriti, prestiti_scaduti, sotto_soglia, soglia_usata: th };
+}
+
+/** Elenco oggetti sotto soglia (<= threshold) */
+export function lowStock(threshold = 1) {
+  const inv = listInventario();
+  const th = Number(threshold);
+  return inv.filter((r) => (r.disponibili ?? 0) <= th);
 }

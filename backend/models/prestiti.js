@@ -1,203 +1,241 @@
+// backend/models/prestiti.js
 import { db } from "./db.js";
-import { getInventario } from "./inventario.js";
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+// utils ---------------------------------------------------------------
+const none = (v) => (v == null || String(v).trim() === "" ? null : String(v).trim());
+
+function parseUnita(u) {
+  try { const a = Array.isArray(u) ? u : JSON.parse(u ?? "[]"); return Array.isArray(a) ? a.map(String) : []; }
+  catch { return []; }
+}
+const jsonUnita = (u) => JSON.stringify(parseUnita(u));
+
+function parseDateAny(s) {
+  const v = none(s); if (!v) return null;
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v);
+  if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}`);
+  const iso = v.length > 10 ? v.slice(0, 10) : v;
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? null : d;
+}
+const beginOfDay = (d) => { d = new Date(d); d.setHours(0,0,0,0); return d; };
+const today = () => beginOfDay(new Date());
+const daysDiff = (a, b) => !a || !b ? null : Math.max(0, Math.round((beginOfDay(b)-beginOfDay(a))/86400000));
+
+// core availability ---------------------------------------------------
+function getInventarioRow(id) {
+  const r = db.prepare(`SELECT id, quantita_totale, unita FROM inventario WHERE id=?`).get(id);
+  if (!r) throw new Error("Inventario non trovato");
+  r.unita = parseUnita(r.unita);
+  return r;
 }
 
-function daysBetween(a, b) {
-  const d1 = new Date(a + "T00:00:00");
-  const d2 = new Date(b + "T00:00:00");
-  return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
-}
-
-function availableOnDay(inventario_id, dayISO) {
-  const inv = getInventario(inventario_id);
-  if (!inv) return 0;
-  const used = db
-    .prepare(
-      `
-    SELECT IFNULL(SUM(quantita),0) AS used
+/** Prestiti che si sovrappongono al periodo richiesto (escluso un id se presente) */
+function overlappingLoans({ inventario_id, dal, al, exclude_id=null }) {
+  return db.prepare(`
+    SELECT id, quantita, data_uscita, data_rientro, unita
     FROM prestiti
-    WHERE inventario_id=@id
-      AND data_uscita<=@d
-      AND (data_rientro IS NULL OR data_rientro='' OR data_rientro>=@d)
-  `,
-    )
-    .get({ id: inventario_id, d: dayISO }).used;
-  return Math.max(0, (inv.quantita_totale || 0) - (used || 0));
+    WHERE inventario_id = @inventario_id
+      AND (@al IS NULL OR date(data_uscita) <= date(@al))
+      AND (data_rientro IS NULL OR date(data_rientro) >= date(@dal))
+      AND (@exclude_id IS NULL OR id <> @exclude_id)
+  `).all({ inventario_id, dal, al, exclude_id })
+   .map(r => ({ ...r, unita: parseUnita(r.unita) }));
 }
 
-/**
- * Trova la prima data di inizio (>= startISO) in cui tutto l'intervallo [start, end]
- * può essere soddisfatto con la quantità richiesta.
- */
-function firstAvailable(inventario_id, startISO, endISO, qty) {
-  const step = 86400000;
-  const s = new Date(startISO);
-  const e = new Date(endISO || startISO);
-
-  // prova fino a 180 giorni nel futuro
-  for (let k = 0; k < 180; k++) {
-    const s2 = new Date(s.getTime() + k * step);
-    const e2 = new Date(e.getTime() + k * step);
-    let ok = true;
-    for (let t = new Date(s2); t <= e2; t = new Date(t.getTime() + step)) {
-      const day = t.toISOString().slice(0, 10);
-      if (qty > availableOnDay(inventario_id, day)) {
-        ok = false;
-        break;
+/** Calcola occupazione e conflitti */
+function computeOccupation({ inv, loans }) {
+  // unità occupate -> data rientro max (serve per "disponibile da")
+  const occByUnit = new Map(); // name -> rientro (Date|null)
+  let generic = 0;
+  for (const p of loans) {
+    if (p.unita.length > 0) {
+      const back = p.data_rientro ? parseDateAny(p.data_rientro) : null;
+      for (const name of p.unita) {
+        const prev = occByUnit.get(name);
+        if (!prev || (back && (!prev || back > prev))) occByUnit.set(name, back);
+        if (!occByUnit.has(name)) occByUnit.set(name, back);
       }
+    } else {
+      generic += Number(p.quantita || 0);
     }
-    if (ok) return s2.toISOString().slice(0, 10);
   }
-  return null;
+  const used = generic + occByUnit.size;
+  const cap = Math.max(0, (inv.quantita_totale || 0) - used);
+  return { occByUnit, genericUsed: generic, used, cap };
 }
 
+/** Verifica disponibilità e lancia con errore 400 in caso di conflitti */
+function assertAvailability({ inventario_id, dal, al, quantita=1, unita=[], exclude_id=null, chi }) {
+  if (!none(chi)) throw new Error("Parametri mancanti: prestato a (chi)");
+  const inv = getInventarioRow(inventario_id);
+  const reqUnits = parseUnita(unita);
+  // date sane
+  const D = parseDateAny(dal); if (!D) throw new Error("Data di uscita non valida");
+  const A = none(al) ? null : parseDateAny(al);
+  if (A && A < D) throw new Error("La data di riconsegna è precedente all'uscita");
+
+  // overlapping
+  const loans = overlappingLoans({ inventario_id, dal: dal, al: al ?? null, exclude_id });
+  const { occByUnit, used, cap, genericUsed } = computeOccupation({ inv, loans });
+
+  // 1) unità richieste devono esistere e non essere già occupate
+  const conflicts = [];
+  const invalid = [];
+  for (const name of reqUnits) {
+    if (name && !inv.unita.includes(name)) invalid.push(name);
+    const busyUntil = occByUnit.get(name);
+    if (busyUntil !== undefined) {
+      conflicts.push({ name, available_from: busyUntil ? busyUntil.toISOString().slice(0,10) : null });
+    }
+  }
+  if (invalid.length) {
+    throw new Error(`Unità inesistenti: ${invalid.join(", ")}`);
+  }
+  if (conflicts.length) {
+    const msg = conflicts.map(c => `“${c.name}” non disponibile${c.available_from ? ` (disponibile da ${c.available_from})` : ""}`).join("; ");
+    const e = new Error(msg); e.code = 400; throw e;
+  }
+
+  // 2) capacità residua per quota non nominativa
+  const reqQty = Math.max(1, Number(quantita) || 1);
+  const named = reqUnits.length;
+  const extra = Math.max(0, reqQty - named);
+  const availableForExtra = Math.max(0, (inv.quantita_totale || 0) - (genericUsed + occByUnit.size + named));
+  if (extra > availableForExtra) {
+    const msg = `Capienza insufficiente: richiesti ${reqQty}, disponibili ${availableForExtra + named} nel periodo`;
+    const e = new Error(msg); e.code = 400; throw e;
+  }
+  // ok
+  return { ok:true, availableForExtra, total: inv.quantita_totale, usedNow: used };
+}
+
+// public API ----------------------------------------------------------
+export function unitAvailability({ inventario_id, dal, al, exclude_id=null }) {
+  const inv = getInventarioRow(inventario_id);
+  const loans = overlappingLoans({ inventario_id, dal, al, exclude_id });
+  const { occByUnit, used, cap } = computeOccupation({ inv, loans });
+  return {
+    inventario_id,
+    total: inv.quantita_totale,
+    used_now: used,
+    available_generic: cap,
+    units: inv.unita.map(name => ({
+      name,
+      available: !occByUnit.has(name),
+      available_from: occByUnit.get(name)
+        ? (occByUnit.get(name) ? occByUnit.get(name).toISOString().slice(0,10) : null)
+        : null,
+    })),
+  };
+}
+
+// list/get ------------------------------------------------------------
 export function listPrestiti() {
-  const rows = db
-    .prepare(
-      `
-    SELECT p.*, i.nome AS inventario_nome, i.categoria_madre, i.categoria_figlia, i.posizione
+  const rows = db.prepare(`
+    SELECT p.id, p.inventario_id, p.quantita, p.chi,
+           p.data_uscita, p.data_rientro, p.note,
+           p.created_at, p.updated_at, p.unita,
+           COALESCE(i.nome, (SELECT nome FROM inventario WHERE id=p.inventario_id)) AS inventario_nome
     FROM prestiti p
-    JOIN inventario i ON i.id = p.inventario_id
-    ORDER BY p.created_at DESC
-  `,
-    )
-    .all();
-  const today = todayISO();
-  return rows.map((r) => {
-    const tot = r.data_rientro
-      ? daysBetween(r.data_uscita, r.data_rientro) + 1
-      : 1;
-    const rem = r.data_rientro
-      ? daysBetween(today, r.data_rientro)
-      : daysBetween(today, r.data_uscita) >= 0
-        ? 1
-        : 0;
-    return { ...r, giorni_totali: tot, giorni_rimanenti: rem };
+    LEFT JOIN inventario i ON i.id = p.inventario_id
+    ORDER BY COALESCE(p.updated_at, p.created_at, p.data_uscita) DESC, p.id DESC
+  `).all();
+
+  return rows.map(r => {
+    const dOut = parseDateAny(r.data_uscita);
+    const dBack = parseDateAny(r.data_rientro);
+    return {
+      ...r,
+      unita: parseUnita(r.unita),
+      giorni_totali: dOut && dBack ? daysDiff(dOut, dBack) : null,
+      giorni_rimanenti: dBack ? (daysDiff(today(), dBack) ?? 0) : null,
+    };
   });
 }
 
-export function addPrestito(b) {
-  const inv = getInventario(b.inventario_id);
-  if (!inv) throw new Error("Oggetto inesistente");
+export function getPrestito(id) {
+  const r = db.prepare(`
+    SELECT p.id, p.inventario_id, p.quantita, p.chi,
+           p.data_uscita, p.data_rientro, p.note,
+           p.created_at, p.updated_at, p.unita,
+           COALESCE(i.nome, (SELECT nome FROM inventario WHERE id=p.inventario_id)) AS inventario_nome
+    FROM prestiti p
+    LEFT JOIN inventario i ON i.id = p.inventario_id
+    WHERE p.id = ?
+  `).get(id);
+  if (!r) return null;
+  const dOut = parseDateAny(r.data_uscita);
+  const dBack = parseDateAny(r.data_rientro);
+  return {
+    ...r,
+    unita: parseUnita(r.unita),
+    giorni_totali: dOut && dBack ? daysDiff(dOut, dBack) : null,
+    giorni_rimanenti: dBack ? (daysDiff(today(), dBack) ?? 0) : null,
+  };
+}
 
-  const q = parseInt(b.quantita, 10);
-  if (q < 1 || q > 10) throw new Error("Quantità non valida (1–10)");
+// create/update/delete ------------------------------------------------
+export function addPrestito({ inventario_id, quantita=1, chi, data_uscita, note, unita=[], data_rientro, riconsegna }) {
+  const out = none(data_uscita);
+  const back = none(data_rientro ?? riconsegna);
+  assertAvailability({ inventario_id, dal: out, al: back, quantita, unita, chi });
 
-  const start = b.data_uscita;
-  const end = b.data_rientro || b.data_uscita;
-  const step = 86400000;
-
-  for (
-    let t = new Date(start);
-    t <= new Date(end);
-    t = new Date(t.getTime() + step)
-  ) {
-    const day = t.toISOString().slice(0, 10);
-    const left = availableOnDay(b.inventario_id, day);
-    if (q > left) {
-      const first = firstAvailable(b.inventario_id, start, end, q);
-      const [y, m, d] = (first || "").split("-");
-      const when = first ? `${d}/${m}/${y}` : "—";
-      throw new Error(
-        `Non ci sono sufficienti ${inv.nome} disponibili: max ${left} per queste date. Prima data utile: ${when}`,
-      );
-    }
-  }
-
-  const info = db
-    .prepare(
-      `
-    INSERT INTO prestiti (inventario_id, chi, data_uscita, data_rientro, quantita, note)
-    VALUES (@inventario_id, @chi, @data_uscita, @data_rientro, @quantita, @note)
-  `,
-    )
-    .run(b);
-
+  const info = db.prepare(`
+    INSERT INTO prestiti (inventario_id, quantita, chi, data_uscita, data_rientro, note, unita)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(Number(inventario_id), Number(quantita)||1, none(chi), out, back, none(note), jsonUnita(unita));
   return getPrestito(info.lastInsertRowid);
 }
 
-export function updatePrestito(id, b) {
-  const inv = getInventario(b.inventario_id);
-  if (!inv) throw new Error("Oggetto inesistente");
+export function updatePrestito(id, { quantita, chi, data_uscita, data_rientro, riconsegna, uscita, note, unita }) {
+  const out = none(data_uscita ?? uscita);
+  const back = none(data_rientro ?? riconsegna);
+  const q = quantita == null ? undefined : (Number(quantita)||1);
+  const u = unita === undefined ? undefined : parseUnita(unita);
 
-  const q = parseInt(b.quantita, 10);
-  if (q < 1 || q > 10) throw new Error("Quantità non valida (1–10)");
+  // rileggo record per avere valori correnti se alcuni campi non vengono passati
+  const curr = getPrestito(id);
+  if (!curr) throw new Error("Prestito non trovato");
 
-  const start = b.data_uscita;
-  const end = b.data_rientro || b.data_uscita;
-  const step = 86400000;
+  const newOut = out ?? curr.data_uscita;
+  const newBack = (back === undefined ? curr.data_rientro : back);
+  const newQty = q ?? curr.quantita;
+  const newUnita = u ?? curr.unita;
 
-  for (
-    let t = new Date(start);
-    t <= new Date(end);
-    t = new Date(t.getTime() + step)
-  ) {
-    const day = t.toISOString().slice(0, 10);
-    const used = db
-      .prepare(
-        `
-      SELECT IFNULL(SUM(quantita),0) AS used
-      FROM prestiti
-      WHERE inventario_id=@id
-        AND data_uscita<=@d
-        AND (data_rientro IS NULL OR data_rientro='' OR data_rientro>=@d)
-        AND id != @self
-    `,
-      )
-      .get({ id: b.inventario_id, d: day, self: id }).used;
-    const left = Math.max(0, (inv.quantita_totale || 0) - (used || 0));
-    if (q > left) {
-      throw new Error(
-        `Non ci sono sufficienti ${inv.nome} disponibili: max ${left} per queste date.`,
-      );
-    }
-  }
+  assertAvailability({
+    inventario_id: curr.inventario_id,
+    dal: newOut,
+    al: newBack,
+    quantita: newQty,
+    unita: newUnita,
+    exclude_id: id,
+    chi: chi ?? curr.chi,
+  });
 
-  db.prepare(
-    `
+  db.prepare(`
     UPDATE prestiti SET
-      inventario_id=@inventario_id,
-      chi=@chi,
-      data_uscita=@data_uscita,
-      data_rientro=@data_rientro,
-      quantita=@quantita,
-      note=@note,
-      updated_at=CURRENT_TIMESTAMP
-    WHERE id=@id
-  `,
-  ).run({ ...b, id });
+      quantita     = COALESCE(?, quantita),
+      chi          = COALESCE(?, chi),
+      data_uscita  = COALESCE(?, data_uscita),
+      data_rientro = COALESCE(?, data_rientro),
+      note         = COALESCE(?, note),
+      unita        = COALESCE(?, unita),
+      updated_at   = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `).run(q ?? null, none(chi), out ?? null, back ?? null, none(note), (unita===undefined ? null : jsonUnita(unita)), id);
 
   return getPrestito(id);
 }
 
-export function delPrestito(id) {
-  const info = db.prepare("DELETE FROM prestiti WHERE id = ?").run(id);
-  return { deleted: info.changes > 0 };
+export function chiudiPrestito(id, { data_rientro, riconsegna }) {
+  const back = none(data_rientro ?? riconsegna);
+  if (!back) throw new Error("Parametri mancanti: data_rientro");
+  db.prepare(`UPDATE prestiti SET data_rientro=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`).run(back, id);
+  return getPrestito(id);
 }
 
-export function getPrestito(id) {
-  const r = db
-    .prepare(
-      `
-    SELECT p.*, i.nome AS inventario_nome
-    FROM prestiti p
-    JOIN inventario i ON i.id = p.inventario_id
-    WHERE p.id = ?
-  `,
-    )
-    .get(id);
-  if (!r) return null;
-  const today = todayISO();
-  const tot = r.data_rientro
-    ? daysBetween(r.data_uscita, r.data_rientro) + 1
-    : 1;
-  const rem = r.data_rientro
-    ? daysBetween(today, r.data_rientro)
-    : daysBetween(today, r.data_uscita) >= 0
-      ? 1
-      : 0;
-  return { ...r, giorni_totali: tot, giorni_rimanenti: rem };
+export function deletePrestito(id) {
+  const info = db.prepare(`DELETE FROM prestiti WHERE id=?`).run(id);
+  return { deleted: info.changes > 0 };
 }

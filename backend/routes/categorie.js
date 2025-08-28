@@ -1,58 +1,91 @@
-import express from 'express'
-import { listCategorie, addCategoria, removeCategoria, renameCategoria } from '../models/categorie.js'
+// backend/routes/categorie.js
+import express from "express";
+import {
+  listCategorie,
+  addCategoria,
+  removeCategoria,
+  renameCategoria,
+} from "../models/categorie.js";
 
-const router = express.Router()
+const router = express.Router();
 
-// helper: prende madre/figlia da path, body o query
-const pick = (req) => ({
-  madre: req.params?.madre ?? req.body?.madre ?? req.query?.madre,
-  figlia: req.params?.figlia ?? req.body?.figlia ?? req.query?.figlia,
-})
-
-// LISTA
-router.get('/', (_req, res) => {
-  res.json(listCategorie())
-})
-
-// CREA
-router.post('/', (req, res) => {
+// GET tutte -> GET /api/categorie
+router.get("/", async (_req, res) => {
   try {
-    const out = addCategoria(req.body || {})
-    res.status(201).json(out)
+    const rows = await listCategorie();
+    res.json(rows);
   } catch (e) {
-    res.status(400).json({ error: e.message })
+    res.status(500).json({ error: e.message || "Errore" });
   }
-})
+});
 
-// RINOMINA: { madre, figlia, new_figlia }
-router.put('/', (req, res) => {
+// POST nuova -> POST /api/categorie
+router.post("/", async (req, res) => {
   try {
-    const out = renameCategoria(req.body || {})
-    res.json(out)
+    const out = await addCategoria({
+      madre: req.body?.madre,
+      figlia: req.body?.figlia,
+    });
+    res.json(out);
   } catch (e) {
-    const msg = e?.message || 'Errore'
-    const status = msg.includes('non trovata') ? 404 : msg.includes('già') ? 409 : 400
-    res.status(status).json({ error: msg })
+    const code = /mancanti|esistente|non trovata/i.test(e.message) ? 400 : 500;
+    res.status(code).json({ error: e.message || "Errore" });
   }
-})
+});
 
-// ELIMINA (body, query o path)
-function handleDelete(req, res) {
+// PUT rinomina -> PUT /api/categorie
+router.put("/", async (req, res) => {
   try {
-    const { madre, figlia } = pick(req)
-    if (!madre || !figlia) return res.status(400).json({ error: 'madre e figlia sono obbligatorie' })
-    const out = removeCategoria({ madre, figlia })
-    res.json(out)
+    const out = await renameCategoria({
+      madre: req.body?.madre,
+      figlia: req.body?.figlia,
+      new_figlia: req.body?.new_figlia,
+    });
+    res.json(out);
   } catch (e) {
-    const msg = e?.message || 'Errore'
-    const status = msg.includes('non trovata') ? 404 : 400
-    res.status(status).json({ error: msg })
+    const code = /mancanti|esistente|non trovata/i.test(e.message) ? 400 : 500;
+    res.status(code).json({ error: e.message || "Errore" });
   }
-}
+});
 
-router.delete('/', handleDelete)
-router.delete('/:madre/:figlia', handleDelete)
-router.post('/delete', handleDelete)
-router.post('/remove', handleDelete)
+// DELETE -> DELETE /api/categorie
+router.delete("/", async (req, res) => {
+  try {
+    const madre = req.body?.madre ?? req.query?.madre;
+    const figlia = req.body?.figlia ?? req.query?.figlia;
+    const out = await removeCategoria({ madre, figlia });
+    res.json(out);
+  } catch (e) {
+    const code = /mancanti|non trovata/i.test(e.message) ? 400 : 500;
+    res.status(code).json({ error: e.message || "Errore" });
+  }
+});
 
-export default router
+// DELETE alternativa con params -> DELETE /api/categorie/:madre/:figlia
+router.delete("/:madre/:figlia", async (req, res) => {
+  try {
+    const out = await removeCategoria({
+      madre: req.params.madre,
+      figlia: req.params.figlia,
+    });
+    res.json(out);
+  } catch (e) {
+    const code = /mancanti|non trovata/i.test(e.message) ? 400 : 500;
+    res.status(code).json({ error: e.message || "Errore" });
+  }
+});
+
+// Fallback POST helpers (compat vecchio frontend)
+router.post("/delete", async (req, res) => {
+  req.method = "DELETE";
+  req.url = "/";
+  res.app._router.handle(req, res);
+});
+
+router.post("/remove", async (req, res) => {
+  req.method = "DELETE";
+  req.url = "/";
+  res.app._router.handle(req, res);
+});
+
+export default router;

@@ -13,11 +13,59 @@ export default function Dashboard() {
   const [focus, setFocus] = useState(new Date());
   const [selected, setSelected] = useState(null);
 
+  const [soglia, setSoglia] = useState(1);
+  const [kpiInv, setKpiInv] = useState(null);
+  const [low, setLow] = useState([]);
+
   // Carica dati
   useEffect(() => {
     axios.get("/api/prestiti").then((r) => setPrestiti(r.data));
     axios.get("/api/inventario").then((r) => setInventario(r.data));
   }, []);
+
+  // Carica KPI inventario e lista sotto scorta dalla API con soglia
+  useEffect(() => {
+    (async () => {
+      try {
+        const [s, l] = await Promise.all([
+          axios.get(`/api/inventario/summary?threshold=${soglia}`),
+          axios.get(`/api/inventario/low-stock?threshold=${soglia}`),
+        ]);
+        setKpiInv(s.data);
+        setLow(l.data);
+      } catch (e) {
+        console.error("Errore fetch soglia:", e);
+      }
+    })();
+  }, [soglia, inventario, prestiti]);
+
+  // Scorte basse visive: solo quelli con disponibili > 0 (gli esauriti vanno nella sezione dedicata)
+  const scorteBasse = useMemo(
+    () => low.filter((it) => Number(it.disponibili || 0) > 0),
+    [low]
+  );
+  // Elenco esauriti (indipendente dalla soglia)
+  const esauritiList = useMemo(
+    () => inventario.filter((it) => Number(it.disponibili || 0) === 0),
+    [inventario]
+  );
+
+  // Mappa: inventario_id -> prima data di rientro futura
+  const nextReturnByInv = useMemo(() => {
+    const map = new Map();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    prestiti.forEach((p) => {
+      if (!p.data_rientro) return;
+      const d = new Date(p.data_rientro);
+      if (isNaN(d)) return;
+      d.setHours(0, 0, 0, 0);
+      if (d < today) return; // solo oggi o futuro
+      const prev = map.get(p.inventario_id);
+      if (!prev || d < prev) map.set(p.inventario_id, d);
+    });
+    return map;
+  }, [prestiti]);
 
   // Avvisi riconsegne
   const now = todayISO();
@@ -37,17 +85,6 @@ export default function Dashboard() {
   const inRitardo = useMemo(
     () => prestiti.filter((p) => (p.giorni_rimanenti ?? 0) < 0),
     [prestiti],
-  );
-
-  // Scorte basse (regola: 3->≤1, 10->≤5)
-  const scorteBasse = useMemo(
-    () =>
-      inventario.filter((it) => {
-        const tot = Number(it.quantita_totale || 0);
-        const disp = Number(it.disponibili || 0);
-        return (tot === 3 && disp <= 1) || (tot === 10 && disp <= 5);
-      }),
-    [inventario],
   );
 
   // Summary
@@ -129,7 +166,7 @@ export default function Dashboard() {
         </div>
         <div className="table-card p-4">
           <div className="text-sm text-slate-500">Esauriti</div>
-          <div className="text-2xl font-semibold">{esauriti}</div>
+          <div className={`text-2xl font-semibold ${esauriti > 0 ? "text-red-600" : ""}`}>{esauriti}</div>
         </div>
         <div className="table-card p-4">
           <div className="text-sm text-slate-500">Prestiti scaduti</div>
@@ -203,9 +240,45 @@ export default function Dashboard() {
           <ul className="text-sm space-y-1">
             {scorteBasse.map((it) => (
               <li key={it.id}>
-                <b>{it.nome}</b> — rimasti {it.disponibili} /{" "}
-                {it.quantita_totale}
-                {it.posizione ? ` — ${it.posizione}` : ""}
+                <b>{it.nome}</b>{" — "} 
+                <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-700">
+                  {Number(it.disponibili) === 1 ? "ne rimane 1" : `ne rimangono ${Number(it.disponibili)}`}
+                </span>
+               
+                {" — primo rientro utile: "}
+                {nextReturnByInv.get(it.id)
+                  ? (
+                    <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                      {nextReturnByInv.get(it.id).toLocaleDateString("it-IT")}
+                    </span>
+                  ) : (
+                    <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">—</span>
+                  )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Esauriti (sempre a parte) */}
+      {esauritiList.length > 0 && (
+        <div className="table-card p-4">
+          <div className="font-semibold text-red-600 mb-2">Esauriti</div>
+          <ul className="text-sm space-y-1">
+            {esauritiList.map((it) => (
+              <li key={it.id}>
+                <b>{it.nome}</b>{" — "}
+                <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-700">
+                  esaurito
+                </span>
+                {" — primo rientro utile: "}
+                {nextReturnByInv.get(it.id) ? (
+                  <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                    {nextReturnByInv.get(it.id).toLocaleDateString("it-IT")}
+                  </span>
+                ) : (
+                  <span className="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">—</span>
+                )}
               </li>
             ))}
           </ul>
