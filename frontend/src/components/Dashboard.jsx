@@ -145,7 +145,7 @@ export default function Dashboard() {
             <ul className="text-sm space-y-1">
               {riconsegnaOggi.map((p) => (
                 <li key={p.id}>
-                  <b>{p.chi}</b> — {p.inventario_nome} — q.tà {p.quantita}
+                  <b>{p.chi}</b> — {p.inventario_nome} — quantità {p.quantita}
                 </li>
               ))}
             </ul>
@@ -187,7 +187,7 @@ export default function Dashboard() {
                 <div>
                   {p.chi} — {fmt(p.data_rientro)}{" "}
                   <span className="ml-2 inline-block px-2 py-0.5 text-xs font-semibold bg-red-600 text-white rounded-full">
-                    ritardo di {Math.abs(p.giorni_rimanenti)} giorni
+                    Ritardo di {Math.abs(p.giorni_rimanenti)} giorni
                   </span>
                 </div>
               </li>
