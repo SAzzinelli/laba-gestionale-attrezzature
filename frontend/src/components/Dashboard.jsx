@@ -34,6 +34,11 @@ export default function Dashboard() {
     [prestiti, domISO],
   );
 
+  const inRitardo = useMemo(
+    () => prestiti.filter((p) => (p.giorni_rimanenti ?? 0) < 0),
+    [prestiti],
+  );
+
   // Scorte basse (regola: 3->≤1, 10->≤5)
   const scorteBasse = useMemo(
     () =>
@@ -46,7 +51,10 @@ export default function Dashboard() {
   );
 
   // Summary
-  const totStrumenti = inventario.length;
+  const totStrumenti = inventario.reduce(
+    (acc, it) => acc + Number(it.quantita_totale || 0),
+    0
+  );
   const inPrestito = inventario.reduce(
     (acc, it) => acc + Number(it.in_prestito || 0),
     0,
@@ -166,6 +174,27 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {inRitardo.length > 0 && (
+        <div className="table-card p-4">
+          <div className="font-semibold text-red-600 mb-1">In ritardo</div>
+          <ul className="text-sm space-y-2">
+            {inRitardo.map((p) => (
+              <li key={p.id} className="bg-red-50 border border-red-200 rounded p-2">
+                <div>
+                  <b>{p.inventario_nome}</b> — q.tà {p.quantita}
+                </div>
+                <div>
+                  {p.chi} — {fmt(p.data_rientro)}{" "}
+                  <span className="ml-2 inline-block px-2 py-0.5 text-xs font-semibold bg-red-600 text-white rounded-full">
+                    ritardo di {Math.abs(p.giorni_rimanenti)} giorni
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Scorte basse (se serve) */}
       {scorteBasse.length > 0 && (
