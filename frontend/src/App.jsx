@@ -15,7 +15,7 @@ function AppInner() {
     <div className="min-h-screen flex flex-col">
       <header className="app-header bg-[color:var(--brand)] text-white sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
-          <span className="text-xl font-semibold">Attrezzatura LABA</span>
+          <span className="text-xl font-semibold">Gestione Attrezzatura</span>
           <nav className="ml-auto flex gap-2">
             <button
               type="button"
