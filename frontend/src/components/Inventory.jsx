@@ -36,8 +36,8 @@ function exportInventarioCSV(allItems, filename = `inventario-${new Date().toISO
   }
   const header = [
     "Nome",
-    "Categoria madre",
-    "Sottocategoria",
+    "Corso Accademico",
+    "Categoria",
     "Posizione",
     "Totale",
     "In prestito",
@@ -205,8 +205,8 @@ export default function Inventory() {
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Categoria madre</th>
-              <th>Sottocategoria</th>
+              <th>Corso Accademico</th>
+              <th>Categoria</th>
               <th>Posizione</th>
               <th>Totale</th>
               <th>In prestito</th>
@@ -326,7 +326,7 @@ export default function Inventory() {
                 <div className="flex items-end justify-between gap-4 mb-4">
                   <input
                     className="input w-72 mt-1"
-                    placeholder="Cerca sottocategoria…"
+                    placeholder="Cerca categoria…"
                     value={catSearch}
                     onChange={(e) => setCatSearch(e.target.value)}
                   />
@@ -340,7 +340,7 @@ export default function Inventory() {
                   if (figlie.length === 0) {
                     return (
                       <div className="text-sm text-neutral-500 border rounded p-6 text-center">
-                        Nessuna sottocategoria. Usa “Aggiungi sottocategoria”.
+                        Nessuna categoria. Usa “Aggiungi categoria”.
                       </div>
                     );
                   }
@@ -419,7 +419,7 @@ export default function Inventory() {
 
       {catDelete && (
         <Modal
-          title="Elimina sottocategoria"
+          title="Elimina categoria"
           onClose={() => setCatDelete(null)}
           footer={
             <div className="flex items-center gap-2">
@@ -462,7 +462,7 @@ export default function Inventory() {
                 {items.length > 0 ? (
                   <>
                     <div className="text-sm">
-                      La sottocategoria <b>{catDelete.figlia}</b> (madre: <b>{catDelete.madre}</b>) è assegnata a <b>{items.length}</b> oggetto/i:
+                      La categoria <b>{catDelete.figlia}</b> (madre: <b>{catDelete.madre}</b>) è assegnata a <b>{items.length}</b> oggetto/i:
                     </div>
                     <ul className="list-disc pl-5 text-sm space-y-1 max-h-48 overflow-auto">
                       {items.map((it) => (
@@ -470,11 +470,11 @@ export default function Inventory() {
                       ))}
                     </ul>
                     <div className="text-sm text-red-600">
-                      Se la elimini, questi oggetti <b>perderanno la sottocategoria</b> e il campo resterà vuoto.
+                      Se la elimini, questi oggetti <b>perderanno la categoria</b> e il campo resterà vuoto.
                     </div>
                   </>
                 ) : (
-                  <div className="text-sm">Nessun oggetto utilizza questa sottocategoria.</div>
+                  <div className="text-sm">Nessun oggetto utilizza questa categoria.</div>
                 )}
               </div>
             );
@@ -525,7 +525,7 @@ export default function Inventory() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Categoria madre</label>
+              <label className="block text-sm font-medium mb-1">Corso Accademico</label>
               <select
                 className="select"
                 value={form.categoria_madre}
@@ -542,7 +542,7 @@ export default function Inventory() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Sottocategoria</label>
+              <label className="block text-sm font-medium mb-1">Categoria</label>
               <select
                 className="select"
                 value={form.categoria_figlia || ""}
@@ -703,7 +703,7 @@ export default function Inventory() {
 
       {catOpen && (
         <Modal
-          title="Nuova sottocategoria"
+          title="Nuova categoria"
           onClose={() => setCatOpen(false)}
           footer={
             <>
