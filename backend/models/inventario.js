@@ -18,17 +18,25 @@ export function listInventario() {
   const rows = db.prepare("SELECT * FROM inventario ORDER BY nome ASC").all();
   const t = todayISO();
   const inPrestito = db.prepare(`
-    SELECT IFNULL(SUM(quantita),0) AS q
+    SELECT IFNULL(SUM(COALESCE(quantita, json_array_length(unit_ids_json))),0) AS q
     FROM prestiti
     WHERE inventario_id=@id
       AND data_uscita<=@t
       AND (data_rientro IS NULL OR data_rientro='' OR data_rientro>=@t)
   `);
+  const inRiparazione = db.prepare(`
+    SELECT IFNULL(SUM(COALESCE(quantita, json_array_length(unit_ids_json))),0) AS q
+    FROM riparazioni
+    WHERE inventario_id=@id
+      AND data_inizio<=@t
+      AND (data_fine IS NULL OR data_fine='' OR data_fine>=@t)
+  `);
   return rows.map((r) => {
-    const { q } = inPrestito.get({ id: r.id, t });
-    const disponibili = Math.max(0, (r.quantita_totale || 0) - (q || 0));
+    const { q: prestitoQ } = inPrestito.get({ id: r.id, t });
+    const { q: riparazioneQ } = inRiparazione.get({ id: r.id, t });
+    const disponibili = Math.max(0, (r.quantita_totale || 0) - (prestitoQ || 0) - (riparazioneQ || 0));
     const unita = parseUnita(r.unita, r.quantita_totale);
-    return { ...r, in_prestito: q || 0, disponibili, unita };
+    return { ...r, in_prestito: prestitoQ || 0, in_riparazione: riparazioneQ || 0, disponibili, unita };
   });
 }
 
@@ -36,16 +44,23 @@ export function getInventario(id) {
   const r = db.prepare("SELECT * FROM inventario WHERE id=?").get(id);
   if (!r) return null;
   const t = todayISO();
-  const { q } = db.prepare(`
-    SELECT IFNULL(SUM(quantita),0) AS q
+  const { q: prestitoQ } = db.prepare(`
+    SELECT IFNULL(SUM(COALESCE(quantita, json_array_length(unit_ids_json))),0) AS q
     FROM prestiti
     WHERE inventario_id=@id
       AND data_uscita<=@t
       AND (data_rientro IS NULL OR data_rientro='' OR data_rientro>=@t)
   `).get({ id, t });
-  const disponibili = Math.max(0, (r.quantita_totale || 0) - (q || 0));
+  const { q: riparazioneQ } = db.prepare(`
+    SELECT IFNULL(SUM(COALESCE(quantita, json_array_length(unit_ids_json))),0) AS q
+    FROM riparazioni
+    WHERE inventario_id=@id
+      AND data_inizio<=@t
+      AND (data_fine IS NULL OR data_fine='' OR data_fine>=@t)
+  `).get({ id, t });
+  const disponibili = Math.max(0, (r.quantita_totale || 0) - (prestitoQ || 0) - (riparazioneQ || 0));
   const unita = parseUnita(r.unita, r.quantita_totale);
-  return { ...r, in_prestito: q || 0, disponibili, unita };
+  return { ...r, in_prestito: prestitoQ || 0, in_riparazione: riparazioneQ || 0, disponibili, unita };
 }
 
 /** Insert (accetta opzionale unita[]) */
@@ -64,9 +79,9 @@ export function addInventario(body) {
     : ensureUnitaLen([], safe.quantita_totale);
   const info = db.prepare(`
     INSERT INTO inventario
-      (nome, quantita_totale, categoria_madre, categoria_figlia, posizione, note, in_manutenzione, unita)
+      (nome, quantita_totale, quantita, categoria_madre, categoria_figlia, posizione, note, in_manutenzione, unita)
     VALUES
-      (@nome, @quantita_totale, @categoria_madre, @categoria_figlia, @posizione, @note, @in_manutenzione, @unita)
+      (@nome, @quantita_totale, @quantita_totale, @categoria_madre, @categoria_figlia, @posizione, @note, @in_manutenzione, @unita)
   `).run({ ...safe, unita: JSON.stringify(unitaArr) });
   return getInventario(info.lastInsertRowid);
 }
@@ -92,6 +107,7 @@ export function updateInventario(id, body) {
     UPDATE inventario SET
       nome=@nome,
       quantita_totale=@quantita_totale,
+      quantita=@quantita_totale,
       categoria_madre=@categoria_madre,
       categoria_figlia=@categoria_figlia,
       posizione=@posizione,
@@ -141,4 +157,55 @@ export function lowStock(threshold = 1) {
   const inv = listInventario();
   const th = Number(threshold);
   return inv.filter((r) => (r.disponibili ?? 0) <= th);
+}
+
+// --- Helpers stock aggregato basati sulla vista v_inventario_stock ---
+export function getStockRow(id) {
+  return db.prepare(`
+    SELECT 
+      id,
+      nome,
+      COALESCE(quantita_totale, 0)     AS quantita_totale,
+      COALESCE(qta_prestata, 0)        AS qta_prestata,
+      COALESCE(qta_in_riparazione, 0)  AS qta_in_riparazione,
+      COALESCE(qta_disponibile, 0)     AS qta_disponibile
+    FROM v_inventario_stock
+    WHERE id = ?
+  `).get(id);
+}
+
+export function listWithStock() {
+  return db.prepare(`
+    SELECT 
+      id,
+      nome,
+      COALESCE(quantita_totale, 0)     AS quantita_totale,
+      COALESCE(qta_prestata, 0)        AS qta_prestata,
+      COALESCE(qta_in_riparazione, 0)  AS qta_in_riparazione,
+      COALESCE(qta_disponibile, 0)     AS qta_disponibile
+    FROM v_inventario_stock
+    ORDER BY nome ASC
+  `).all();
+}
+
+export function listDisponibili() {
+  return db.prepare(`
+    SELECT 
+      id,
+      nome,
+      COALESCE(quantita_totale, 0)     AS quantita_totale,
+      COALESCE(qta_prestata, 0)        AS qta_prestata,
+      COALESCE(qta_in_riparazione, 0)  AS qta_in_riparazione,
+      COALESCE(qta_disponibile, 0)     AS qta_disponibile
+    FROM v_inventario_stock
+    WHERE COALESCE(qta_disponibile, 0) > 0
+    ORDER BY nome ASC
+  `).all();
+}
+
+export function isDisponibile(id, richiesta = 1) {
+  const r = getStockRow(id);
+  const disp = Number(r?.qta_disponibile ?? 0);
+  const q = Number(richiesta ?? 1);
+  return disp >= q;
 }

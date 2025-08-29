@@ -60,9 +60,25 @@ function computeOccupation({ inv, loans }) {
       generic += Number(p.quantita || 0);
     }
   }
-  const used = generic + occByUnit.size;
-  const cap = Math.max(0, (inv.quantita_totale || 0) - used);
-  return { occByUnit, genericUsed: generic, used, cap };
+  return { occByUnit, genericUsed: generic, used: generic + occByUnit.size, cap: Math.max(0, (inv.quantita_totale || 0) - (generic + occByUnit.size)) };
+}
+
+/** Riparazioni attive per un inventario (tutte le righe sono considerate attive, senza stato/tempo) */
+function listRepairs(inventario_id) {
+  try {
+    const rows = db.prepare(`
+      SELECT quantita, unit_ids_json
+      FROM riparazioni
+      WHERE inventario_id = ?
+    `).all(inventario_id);
+    return rows.map(r => ({
+      quantita: Number(r?.quantita || 0),
+      units: parseUnita(r?.unit_ids_json),
+    }));
+  } catch {
+    // se la tabella non esiste o manca la colonna, consideriamo 0 riparazioni
+    return [];
+  }
 }
 
 /** Verifica disponibilità e lancia con errore 400 in caso di conflitti */
@@ -77,7 +93,25 @@ function assertAvailability({ inventario_id, dal, al, quantita=1, unita=[], excl
 
   // overlapping
   const loans = overlappingLoans({ inventario_id, dal: dal, al: al ?? null, exclude_id });
-  const { occByUnit, used, cap, genericUsed } = computeOccupation({ inv, loans });
+  let { occByUnit, used, cap, genericUsed } = computeOccupation({ inv, loans });
+
+  // --- integra riparazioni: unità e quantità in riparazione non sono prenotabili ---
+  const repairs = listRepairs(inventario_id);
+  let repGeneric = 0;
+  for (const r of repairs) {
+    const units = Array.isArray(r.units) ? r.units : [];
+    if (units.length > 0) {
+      for (const name of units) {
+        if (!occByUnit.has(name)) occByUnit.set(name, null); // occupata senza data di rientro
+      }
+    } else {
+      repGeneric += Number(r.quantita || 0);
+    }
+  }
+  // aggiorna i conteggi con le riparazioni
+  genericUsed += repGeneric;
+  used = genericUsed + occByUnit.size;
+  cap = Math.max(0, (inv.quantita_totale || 0) - used);
 
   // 1) unità richieste devono esistere e non essere già occupate
   const conflicts = [];

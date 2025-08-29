@@ -316,7 +316,7 @@ export default function Inventory() {
             </div>
           }
         >
-          <div className="w-[min(98vw,1280px)] max-w-full mx-auto max-h-[70vh] overflow-y-auto">
+          <div className="w-[min(96vw,1600px)] max-w-full mx-auto max-h-[70vh] overflow-y-auto">
             <div className="flex gap-6">
               {/* Sidebar madri */}
               <div className="w-56 shrink-0">

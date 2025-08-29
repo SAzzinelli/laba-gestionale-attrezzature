@@ -1,4 +1,4 @@
-// backend/routes/prestiti.js
+// routes/prestiti.js
 import express from "express";
 import {
   listPrestiti,
@@ -6,11 +6,13 @@ import {
   chiudiPrestito,
   updatePrestito,
   deletePrestito,
-  unitAvailability, // 👈 nuovo: API disponibilità per disabilitare unità/overbooking
+  unitAvailability,
 } from "../models/prestiti.js";
+import { isDisponibile, getStockRow } from "../models/inventario.js";
 
 const router = express.Router();
 
+// Mappa la payload mantenendo retrocompatibilità con i nomi campo
 const mapPayload = (b = {}) => ({
   inventario_id: b.inventario_id,
   quantita: b.quantita,
@@ -21,19 +23,13 @@ const mapPayload = (b = {}) => ({
   unita: b.unita,
 });
 
-// Normalizza errori dai model in HTTP status sensati (400 vs 500)
+// Normalizza errori in HTTP status sensati
 const httpError = (e) => {
-  const msg = e?.message || "Errore";
-  const code =
-    typeof e?.code === "number"
-      ? e.code
-      : /mancanti|non valida|insufficiente|non disponibile|inesisten/i.test(msg)
-      ? 400
-      : 500;
-  return { code, msg };
+  const code = typeof e?.code === "number" ? e.code : (/non valida|mancanti|inesisten|insufficiente|disponibil/i.test(e?.message||"") ? 400 : 500);
+  return { code, msg: e?.message || "Errore", details: e?.details };
 };
 
-// 👉 Disponibilità per un range (serve alla modale per disabilitare unità occupate)
+// 👉 Disponibilità per un range (disabilitare unità occupate in UI)
 router.get("/availability", (req, res) => {
   try {
     const { inventario_id, dal, al, exclude_id } = req.query;
@@ -50,7 +46,7 @@ router.get("/availability", (req, res) => {
   }
 });
 
-// GET elenco
+// GET elenco prestiti
 router.get("/", (_req, res) => {
   try {
     res.json(listPrestiti());
@@ -60,18 +56,61 @@ router.get("/", (_req, res) => {
   }
 });
 
-// Crea prestito
+// Crea prestito con controllo disponibilità (riparazioni incluse)
 router.post("/", (req, res) => {
   try {
+    const inventario_id = Number(req.body?.inventario_id);
+    const quantita = Number(req.body?.quantita);
+    if (!Number.isFinite(inventario_id) || inventario_id <= 0 || !Number.isFinite(quantita) || quantita <= 0) {
+      return res.status(400).json({ error: "Parametri mancanti o non validi: inventario_id, quantita" });
+    }
+
+    // Check stock aggregato (scala prestiti e riparazioni)
+    if (!isDisponibile(inventario_id, quantita)) {
+      const stock = getStockRow(inventario_id);
+      return res.status(409).json({
+        error: "Quantità richiesta non disponibile",
+        dettagli: {
+          richiesti: quantita,
+          qta_disponibile: Number(stock?.qta_disponibile ?? 0),
+          qta_in_riparazione: Number(stock?.qta_in_riparazione ?? 0),
+          qta_prestata: Number(stock?.qta_prestata ?? 0),
+        },
+      });
+    }
+
+    // Se sono state richieste unità specifiche, verifico che siano libere nel periodo
+    const dal = req.body?.data_uscita || req.body?.uscita || null;
+    const al  = req.body?.data_rientro || req.body?.riconsegna || req.body?.rientro || null;
+    const requestedUnits = Array.isArray(req.body?.unita) ? req.body.unita : [];
+    if (requestedUnits.length > 0) {
+      const avail = unitAvailability({ inventario_id, dal, al, exclude_id: null });
+      const allowed = new Set(
+        Array.isArray(avail?.units)
+          ? avail.units.filter(u => u?.name && u.available).map(u => u.name)
+          : Array.isArray(avail?.disponibili) ? avail.disponibili : []
+      );
+      const allOk = requestedUnits.every(u => allowed.has(u));
+      if (!allOk) {
+        return res.status(409).json({
+          error: "Unità selezionate non disponibili per il periodo richiesto",
+          dettagli: { richieste: requestedUnits, disponibili: Array.from(allowed) }
+        });
+      }
+      if (requestedUnits.length !== quantita) {
+        return res.status(400).json({ error: "Quantità e lista unità non coerenti" });
+      }
+    }
+
     const out = addPrestito(mapPayload(req.body || {}));
-    res.json(out);
+    res.status(201).json(out);
   } catch (e) {
     const { code, msg } = httpError(e);
     res.status(code).json({ error: msg });
   }
 });
 
-// Aggiorna prestito (salva anche riconsegna)
+// Aggiorna prestito
 router.put("/:id", (req, res) => {
   try {
     const out = updatePrestito(req.params.id, mapPayload(req.body || {}));
@@ -82,7 +121,7 @@ router.put("/:id", (req, res) => {
   }
 });
 
-// Chiudi prestito (compat) — accetta anche { riconsegna: 'DD/MM/YYYY' }
+// Chiudi prestito (accetta anche { riconsegna: 'DD/MM/YYYY' })
 router.put("/:id/chiudi", (req, res) => {
   try {
     const out = chiudiPrestito(req.params.id, {
