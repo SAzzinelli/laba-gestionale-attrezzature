@@ -221,7 +221,6 @@ export default function Repairs() {
               >
                 <option value="RIPARAZIONE">In riparazione</option>
                 <option value="GUASTO">Guasto</option>
-                <option value="RIPARATO">Riparato</option>
               </select>
             </div>
 

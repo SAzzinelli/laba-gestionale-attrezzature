@@ -20,7 +20,7 @@ db.prepare(`
 try { db.prepare('ALTER TABLE riparazioni ADD COLUMN unit_ids_json TEXT').run() } catch (_) {}
 try { db.prepare('ALTER TABLE riparazioni ADD COLUMN tipo TEXT').run() } catch (_) {}
 
-const VALID_TIPI = new Set(['GUASTO', 'RIPARAZIONE', 'RIPARATO'])
+const VALID_TIPI = new Set(['GUASTO', 'RIPARAZIONE'])
 
 // === Helpers =================================================================
 const todayISO = () => new Date().toISOString().slice(0, 10)
@@ -34,7 +34,6 @@ function normTipo(t) {
   const T = String(t || '').toUpperCase().trim()
   return VALID_TIPI.has(T) ? T : 'RIPARAZIONE'
 }
-function statoFromTipo(t) { return t === 'RIPARATO' ? 'CHIUSO' : 'APERTO' }
 
 // === Queries =================================================================
 export function listRip() {
@@ -71,14 +70,13 @@ export function addRip(body) {
   if (data_fine && data_fine < data_inizio) throw new Error('La data di fine non può precedere la data di inizio')
 
   const info = db.prepare(`
-    INSERT INTO riparazioni (inventario_id, descrizione, data_inizio, data_fine, stato, tipo, unit_ids_json)
-    VALUES (@inventario_id, @descrizione, @data_inizio, @data_fine, @stato, @tipo, @unit_ids_json)
+    INSERT INTO riparazioni (inventario_id, descrizione, data_inizio, data_fine, tipo, unit_ids_json)
+    VALUES (@inventario_id, @descrizione, @data_inizio, @data_fine, @tipo, @unit_ids_json)
   `).run({
     inventario_id,
     descrizione,
     data_inizio,
     data_fine,
-    stato: statoFromTipo(tipo),
     tipo,
     unit_ids_json: JSON.stringify(unit_ids)
   })
@@ -103,7 +101,6 @@ export function updateRip(id, body) {
       descrizione=@descrizione,
       data_inizio=@data_inizio,
       data_fine=@data_fine,
-      stato=@stato,
       tipo=@tipo,
       unit_ids_json=@unit_ids_json,
       updated_at=CURRENT_TIMESTAMP
@@ -114,7 +111,6 @@ export function updateRip(id, body) {
     descrizione,
     data_inizio,
     data_fine,
-    stato: statoFromTipo(tipo),
     tipo,
     unit_ids_json: JSON.stringify(unit_ids)
   })

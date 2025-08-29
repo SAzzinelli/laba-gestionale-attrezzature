@@ -483,13 +483,15 @@ onClick={() => {
             const selected = new Set(form.unita_idx || []);
             const disabledSet = new Set();
             const availableFromMap = new Map();
+	    const reasonMap = new Map();
 
             if (avail && String(avail.inventario_id) === String(form.inventario_id) && Array.isArray(avail.units)) {
               for (const u of avail.units) {
                 const idx = unita.findIndex((n) => n === u.name);
                 if (idx >= 0 && !u.available) {
                   disabledSet.add(idx);
-                  if (u.available_from) availableFromMap.set(idx, u.available_from);
+		  if (u.available_from) availableFromMap.set(idx, u.available_from);
+		 if (u.reason) reasonMap.set(idx, u.reason);
                 }
               }
             }
@@ -529,6 +531,9 @@ onClick={() => {
                           onChange={() => toggle(idx)}
                         />
                         <span className="text-sm font-medium truncate">{name || `Unità ${idx + 1}`}</span>
+                        {disabled && reasonMap.get(idx) === "riparazione" && (
+                          <span className="text-xs text-red-600 ml-2">non disponibile – in riparazione</span>
+                        )}
                         {disabled && (() => {
                           // Pillole colorate: verde se "da oggi", gialla se futura, rossa se senza data (occupata)
                           let pillClass = "bg-slate-100 text-slate-600";

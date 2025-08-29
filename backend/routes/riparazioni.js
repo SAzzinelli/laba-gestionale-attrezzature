@@ -7,16 +7,10 @@ const router = express.Router()
 function normalizeBody(b = {}) {
   const out = { ...b }
 
-  // Legacy: se arriva "stato" ma non "tipo", mappa a tipo
-  if (!out.tipo && out.stato) {
-    const S = String(out.stato).toUpperCase()
-    out.tipo = S === 'CHIUSO' ? 'RIPARATO' : 'RIPARAZIONE'
-  }
-
   // Se arriva tipo in italiano/minuscolo, normalizza
   if (out.tipo) {
     const t = String(out.tipo).trim().toUpperCase()
-    if (['GUASTO', 'RIPARAZIONE', 'RIPARATO'].includes(t)) out.tipo = t
+    if (['GUASTO', 'RIPARAZIONE'].includes(t)) out.tipo = t
     else out.tipo = 'RIPARAZIONE'
   }
 

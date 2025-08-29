@@ -149,18 +149,30 @@ export function unitAvailability({ inventario_id, dal, al, exclude_id=null }) {
   const inv = getInventarioRow(inventario_id);
   const loans = overlappingLoans({ inventario_id, dal, al, exclude_id });
   const { occByUnit, used, cap } = computeOccupation({ inv, loans });
+
+  // integra riparazioni: queste unità non sono selezionabili
+  const repairs = listRepairs(inventario_id);
+  const repairSet = new Set();
+  for (const r of repairs) {
+    const units = Array.isArray(r?.units) ? r.units : [];
+    for (const name of units) repairSet.add(name);
+  }
+
   return {
     inventario_id,
     total: inv.quantita_totale,
     used_now: used,
     available_generic: cap,
-    units: inv.unita.map(name => ({
-      name,
-      available: !occByUnit.has(name),
-      available_from: occByUnit.get(name)
+    units: inv.unita.map(name => {
+      const inLoan = occByUnit.has(name);
+      const inRepair = repairSet.has(name);
+      const available = !(inLoan || inRepair);
+      const available_from = inLoan
         ? (occByUnit.get(name) ? occByUnit.get(name).toISOString().slice(0,10) : null)
-        : null,
-    })),
+        : null;
+      const reason = inRepair ? "riparazione" : (inLoan ? "prestito" : null);
+      return { name, available, available_from, reason };
+    }),
   };
 }
 
