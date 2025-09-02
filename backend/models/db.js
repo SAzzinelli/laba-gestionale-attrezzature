@@ -109,6 +109,17 @@ db.exec(`
   db.exec(`UPDATE prestiti SET unit_ids_json = COALESCE(unit_ids_json, '[]')`);
 }
 
+// PRESTITI: anagrafica studente (Prestato a)
+{
+  const cols = db.prepare(`PRAGMA table_info(prestiti)`).all();
+  const missing = (name) => !cols.some(c => c.name === name);
+  if (missing("prestato_nome"))      db.exec(`ALTER TABLE prestiti ADD COLUMN prestato_nome TEXT`);
+  if (missing("prestato_cognome"))   db.exec(`ALTER TABLE prestiti ADD COLUMN prestato_cognome TEXT`);
+  if (missing("prestato_telefono"))  db.exec(`ALTER TABLE prestiti ADD COLUMN prestato_telefono TEXT`);
+  if (missing("prestato_email"))     db.exec(`ALTER TABLE prestiti ADD COLUMN prestato_email TEXT`);
+  if (missing("prestato_matricola")) db.exec(`ALTER TABLE prestiti ADD COLUMN prestato_matricola TEXT`);
+}
+
 // RIPARAZIONI: assicurati che unit_ids_json esista
 {
   const cols = db.prepare(`PRAGMA table_info(riparazioni)`).all();

@@ -47,7 +47,7 @@ function exportPrestitiCSV(allLoans, filename = `prestiti-totali-${todayISO}.csv
   ]);
 
   const csv = [csvJoin(header), ...rows.map(csvJoin)].join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }); // BOM UTF-8 per Excel
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -68,6 +68,29 @@ export default function Loans() {
   const [avail, setAvail] = useState(null);
   const [loadingAvail, setLoadingAvail] = useState(false);
   const [availErr, setAvailErr] = useState(null);
+
+// Modal anagrafica studente
+const [showStudentModal, setShowStudentModal] = useState(false);
+const [student, setStudent] = useState({
+  prestato_nome: "",
+  prestato_cognome: "",
+  prestato_telefono: "",
+  prestato_email: "",
+  prestato_matricola: "",
+});
+
+function openStudentModal(from) {
+  // from può essere una riga esistente o il form corrente
+  const src = from || form || {};
+  setStudent({
+    prestato_nome: src.prestato_nome || "",
+    prestato_cognome: src.prestato_cognome || "",
+    prestato_telefono: src.prestato_telefono || "",
+    prestato_email: src.prestato_email || "",
+    prestato_matricola: src.prestato_matricola || "",
+  });
+  setShowStudentModal(true);
+}
 
   const load = () => axios.get("/api/prestiti").then((r) => setList(r.data));
 
@@ -141,11 +164,11 @@ const flattened = useMemo(() => {
       alert("La data di riconsegna non può essere precedente alla data di uscita.");
       return;
     }
-    // VALIDAZIONE: "Prestato a" obbligatorio
-    if (!form.chi || String(form.chi).trim() === "") {
-      alert("Inserisci il campo \"Prestato a\".");
-      return;
-    }
+// VALIDAZIONE: dati studente obbligatori (coerente con backend)
+if (!student.prestato_nome || !student.prestato_cognome || !student.prestato_telefono) {
+alert("Compila Nome, Cognome e Telefono dello studente (Prestato a)");
+return;
+}
     if (!form.inventario_id) {
       alert("Seleziona un oggetto dell'inventario.");
       return;
@@ -158,7 +181,18 @@ const flattened = useMemo(() => {
       alert("Seleziona almeno una unità specifica dell'oggetto.");
       return;
     }
-    const payload = { ...form, quantita: units.length, unita: units };
+const chiFromStudent = `${student.prestato_nome} ${student.prestato_cognome}`.trim();
+const payload = {
+...form,
+chi: chiFromStudent || form.chi || "",
+quantita: units.length,
+unita: units,
+prestato_nome: student.prestato_nome,
+prestato_cognome: student.prestato_cognome,
+prestato_telefono: student.prestato_telefono,
+prestato_email: student.prestato_email,
+prestato_matricola: student.prestato_matricola,
+};
     delete payload.unita_idx;
 try {
   const originalQty = Number(form.quantita || 0);
@@ -171,13 +205,18 @@ try {
 
       // 2) crea un nuovo prestito solo per le unità selezionate, con le nuove info
       await axios.post("/api/prestiti", {
-        inventario_id: form.inventario_id,
-        quantita: selectedQty,
-        chi: form.chi,
-        data_uscita: form.data_uscita,
-        data_rientro: form.data_rientro || null,
-        note: form.note || "",
-        unita: units,
+inventario_id: form.inventario_id,
+  quantita: selectedQty,
+  chi: chiFromStudent || form.chi || "",
+  data_uscita: form.data_uscita,
+  data_rientro: form.data_rientro || null,
+  note: form.note || "",
+  unita: units,
+  prestato_nome: student.prestato_nome,
+  prestato_cognome: student.prestato_cognome,
+  prestato_telefono: student.prestato_telefono,
+  prestato_email: student.prestato_email,
+  prestato_matricola: student.prestato_matricola,
       });
     } else {
       // aggiorna normalmente (caso 1:1 o tutte le unità)
@@ -200,18 +239,30 @@ try {
         <div className="inline-flex items-center gap-2">
           <button
             className="btn btn-primary"
-            onClick={() =>
+            onClick={() => {
               setForm({
                 inventario_id: "",
                 chi: "",
+                prestato_nome: "",
+                prestato_cognome: "",
+                prestato_telefono: "",
+                prestato_email: "",
+                prestato_matricola: "",
                 data_uscita: todayISO,
                 data_rientro: "",
                 quantita: 0,
                 unita: [],
                 unita_idx: [],
                 note: "",
-              })
-            }
+              });
+              setStudent({
+                prestato_nome: "",
+                prestato_cognome: "",
+                prestato_telefono: "",
+                prestato_email: "",
+                prestato_matricola: "",
+              });
+            }}
           >
             + Nuovo
           </button>
@@ -264,8 +315,20 @@ onClick={() => {
   const unitIdx = typeof r._unitIdx === "number" ? r._unitIdx : r._sub || 0;
   setForm({
     ...r,
+    prestato_nome: r.prestato_nome || "",
+    prestato_cognome: r.prestato_cognome || "",
+    prestato_telefono: r.prestato_telefono || "",
+    prestato_email: r.prestato_email || "",
+    prestato_matricola: r.prestato_matricola || "",
     unita: Array.isArray(r.unita) ? r.unita : [],
     unita_idx: [unitIdx], // preseleziona solo l'unità cliccata
+  });
+  setStudent({
+    prestato_nome: r.prestato_nome || "",
+    prestato_cognome: r.prestato_cognome || "",
+    prestato_telefono: r.prestato_telefono || "",
+    prestato_email: r.prestato_email || "",
+    prestato_matricola: r.prestato_matricola || "",
   });
 }}
                 >
@@ -287,9 +350,21 @@ onClick={() => {
                             const unitIdx = typeof r._unitIdx === "number" ? r._unitIdx : r._sub || 0;
                             return {
                               ...r,
+                              prestato_nome: r.prestato_nome || "",
+                              prestato_cognome: r.prestato_cognome || "",
+                              prestato_telefono: r.prestato_telefono || "",
+                              prestato_email: r.prestato_email || "",
+                              prestato_matricola: r.prestato_matricola || "",
                               unita: Array.isArray(r.unita) ? r.unita : [],
-                              unita_idx: [unitIdx], // preseleziona solo l'unità cliccata
+                              unita_idx: [unitIdx],
                             };
+                          });
+                          setStudent({
+                            prestato_nome: r.prestato_nome || "",
+                            prestato_cognome: r.prestato_cognome || "",
+                            prestato_telefono: r.prestato_telefono || "",
+                            prestato_email: r.prestato_email || "",
+                            prestato_matricola: r.prestato_matricola || "",
                           });
                         }}
                       >
@@ -297,9 +372,15 @@ onClick={() => {
                       </button>
                       <button
                         className="btn-danger solid"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
-                          if (confirm("Eliminare?")) axios.delete(`/api/prestiti/${r.id}`).then(load);
+                          if (!window.confirm("Eliminare questo prestito?")) return;
+                          try {
+                            await axios.delete(`/api/prestiti/${r.id}`);
+                            load();
+                          } catch (err) {
+                            alert(err?.response?.data?.error || err.message);
+                          }
                         }}
                       >
                         Elimina
@@ -363,14 +444,18 @@ onClick={() => {
 
             <div>
               <label className="block text-sm mb-1">Prestato a</label>
-              <input
-                className="input"
-                placeholder="Nome della persona/classe"
-                value={form.chi}
-                required
-                title="Campo obbligatorio"
-                onChange={(e) => setForm((f) => ({ ...f, chi: e.target.value }))}
-              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => openStudentModal(form)}
+                >
+                  {form?.chi ? form.chi : "Compila dati studente"}
+                </button>
+                {student?.prestato_telefono ? (
+                  <span className="text-xs text-neutral-600">{student.prestato_telefono}</span>
+                ) : null}
+              </div>
             </div>
 
             <div>
@@ -566,6 +651,76 @@ onClick={() => {
           })()}
         </Modal>
       )}
-    </div>
+    {/* Student Modal rendered at end */}
+    {showStudentModal && (
+      <Modal
+        title="Dati studente"
+        onClose={() => setShowStudentModal(false)}
+        footer={
+          <>
+            <button className="btn" onClick={() => setShowStudentModal(false)}>Annulla</button>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                if (!student.prestato_nome || !student.prestato_cognome || !student.prestato_telefono) {
+                  alert("Compila Nome, Cognome e Telefono");
+                  return;
+                }
+                const chi = `${student.prestato_nome} ${student.prestato_cognome}`.trim();
+                setForm((f) => ({ ...f, chi }));
+                setShowStudentModal(false);
+              }}
+            >
+              Salva
+            </button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm mb-1">Nome *</label>
+            <input
+              className="input"
+              value={student.prestato_nome}
+              onChange={(e) => setStudent((s) => ({ ...s, prestato_nome: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Cognome *</label>
+            <input
+              className="input"
+              value={student.prestato_cognome}
+              onChange={(e) => setStudent((s) => ({ ...s, prestato_cognome: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Telefono *</label>
+            <input
+              className="input"
+              value={student.prestato_telefono}
+              onChange={(e) => setStudent((s) => ({ ...s, prestato_telefono: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Email</label>
+            <input
+              className="input"
+              type="email"
+              value={student.prestato_email}
+              onChange={(e) => setStudent((s) => ({ ...s, prestato_email: e.target.value }))}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm mb-1">Matricola</label>
+            <input
+              className="input"
+              value={student.prestato_matricola}
+              onChange={(e) => setStudent((s) => ({ ...s, prestato_matricola: e.target.value }))}
+            />
+          </div>
+        </div>
+      </Modal>
+    )}
+  </div>
   );
 }

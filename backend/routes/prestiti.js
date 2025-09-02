@@ -21,6 +21,11 @@ const mapPayload = (b = {}) => ({
   data_rientro: b.data_rientro ?? b.riconsegna ?? b.rientro,
   note: b.note,
   unita: b.unita,
+  prestato_nome: b.prestato_nome,
+  prestato_cognome: b.prestato_cognome,
+  prestato_telefono: b.prestato_telefono,
+  prestato_email: b.prestato_email,
+  prestato_matricola: b.prestato_matricola,
 });
 
 // Normalizza errori in HTTP status sensati
@@ -63,6 +68,11 @@ router.post("/", (req, res) => {
     const quantita = Number(req.body?.quantita);
     if (!Number.isFinite(inventario_id) || inventario_id <= 0 || !Number.isFinite(quantita) || quantita <= 0) {
       return res.status(400).json({ error: "Parametri mancanti o non validi: inventario_id, quantita" });
+    }
+
+    const { prestato_nome, prestato_cognome, prestato_telefono } = req.body || {};
+    if (!prestato_nome || !prestato_cognome || !prestato_telefono) {
+      return res.status(400).json({ error: "Parametri mancanti: nome, cognome, telefono dello studente" });
     }
 
     // Check stock aggregato (scala prestiti e riparazioni)

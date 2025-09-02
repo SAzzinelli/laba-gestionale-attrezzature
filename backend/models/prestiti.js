@@ -182,6 +182,7 @@ export function listPrestiti() {
     SELECT p.id, p.inventario_id, p.quantita, p.chi,
            p.data_uscita, p.data_rientro, p.note,
            p.created_at, p.updated_at, p.unita,
+           p.prestato_nome, p.prestato_cognome, p.prestato_telefono, p.prestato_email, p.prestato_matricola,
            COALESCE(i.nome, (SELECT nome FROM inventario WHERE id=p.inventario_id)) AS inventario_nome
     FROM prestiti p
     LEFT JOIN inventario i ON i.id = p.inventario_id
@@ -205,6 +206,7 @@ export function getPrestito(id) {
     SELECT p.id, p.inventario_id, p.quantita, p.chi,
            p.data_uscita, p.data_rientro, p.note,
            p.created_at, p.updated_at, p.unita,
+           p.prestato_nome, p.prestato_cognome, p.prestato_telefono, p.prestato_email, p.prestato_matricola,
            COALESCE(i.nome, (SELECT nome FROM inventario WHERE id=p.inventario_id)) AS inventario_nome
     FROM prestiti p
     LEFT JOIN inventario i ON i.id = p.inventario_id
@@ -222,22 +224,52 @@ export function getPrestito(id) {
 }
 
 // create/update/delete ------------------------------------------------
-export function addPrestito({ inventario_id, quantita=1, chi, data_uscita, note, unita=[], data_rientro, riconsegna }) {
+export function addPrestito({
+  inventario_id, quantita = 1, chi, data_uscita, note, unita = [], data_rientro, riconsegna,
+  prestato_nome, prestato_cognome, prestato_telefono, prestato_email, prestato_matricola
+}) {
   const out = none(data_uscita);
   const back = none(data_rientro ?? riconsegna);
-  assertAvailability({ inventario_id, dal: out, al: back, quantita, unita, chi });
+
+  // calcola chi per retrocompatibilità (preferisce chi, altrimenti Nome+Cognome)
+  const chiValue = none(chi) ?? `${(prestato_nome || "").trim()} ${(prestato_cognome || "").trim()}`.trim();
+
+  // validazione: accetta o i 3 campi (nome/cognome/telefono) oppure un chi non vuoto (legacy)
+  const hasTrio = !!(none(prestato_nome) && none(prestato_cognome) && none(prestato_telefono));
+  if (!chiValue && !hasTrio) {
+    throw new Error("Parametri mancanti: nome, cognome, telefono dello studente (oppure 'chi')");
+  }
+
+  assertAvailability({ inventario_id, dal: out, al: back, quantita, unita, chi: chiValue });
 
   const info = db.prepare(`
-    INSERT INTO prestiti (inventario_id, quantita, chi, data_uscita, data_rientro, note, unita)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(Number(inventario_id), Number(quantita)||1, none(chi), out, back, none(note), jsonUnita(unita));
+    INSERT INTO prestiti (inventario_id, quantita, chi, data_uscita, data_rientro, note, unita,
+                          prestato_nome, prestato_cognome, prestato_telefono, prestato_email, prestato_matricola)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    Number(inventario_id),
+    Number(quantita) || 1,
+    chiValue,
+    out,
+    back,
+    none(note),
+    jsonUnita(unita),
+    none(prestato_nome),
+    none(prestato_cognome),
+    none(prestato_telefono),
+    none(prestato_email),
+    none(prestato_matricola)
+  );
   return getPrestito(info.lastInsertRowid);
 }
 
-export function updatePrestito(id, { quantita, chi, data_uscita, data_rientro, riconsegna, uscita, note, unita }) {
+export function updatePrestito(id, {
+  quantita, chi, data_uscita, data_rientro, riconsegna, uscita, note, unita,
+  prestato_nome, prestato_cognome, prestato_telefono, prestato_email, prestato_matricola
+}) {
   const out = none(data_uscita ?? uscita);
   const back = none(data_rientro ?? riconsegna);
-  const q = quantita == null ? undefined : (Number(quantita)||1);
+  const q = quantita == null ? undefined : (Number(quantita) || 1);
   const u = unita === undefined ? undefined : parseUnita(unita);
 
   // rileggo record per avere valori correnti se alcuni campi non vengono passati
@@ -249,6 +281,22 @@ export function updatePrestito(id, { quantita, chi, data_uscita, data_rientro, r
   const newQty = q ?? curr.quantita;
   const newUnita = u ?? curr.unita;
 
+  // calcola nuovi valori anagrafica (fallback ai correnti)
+  const newNome      = prestato_nome      === undefined ? curr.prestato_nome      : prestato_nome;
+  const newCognome   = prestato_cognome   === undefined ? curr.prestato_cognome   : prestato_cognome;
+  const newTelefono  = prestato_telefono  === undefined ? curr.prestato_telefono  : prestato_telefono;
+  const newEmail     = prestato_email     === undefined ? curr.prestato_email     : prestato_email;
+  const newMatricola = prestato_matricola === undefined ? curr.prestato_matricola : prestato_matricola;
+
+  // chi calcolato se non fornito
+  const chiValue = none(chi) ?? `${(newNome || "").trim()} ${(newCognome || "").trim()}`.trim();
+
+  // validazione: accetta o i 3 campi (nome/cognome/telefono) oppure un chi non vuoto (legacy)
+  const hasTrio = !!(none(newNome) && none(newCognome) && none(newTelefono));
+  if (!chiValue && !hasTrio) {
+    throw new Error("Parametri mancanti: nome, cognome, telefono dello studente (oppure 'chi')");
+  }
+
   assertAvailability({
     inventario_id: curr.inventario_id,
     dal: newOut,
@@ -256,7 +304,7 @@ export function updatePrestito(id, { quantita, chi, data_uscita, data_rientro, r
     quantita: newQty,
     unita: newUnita,
     exclude_id: id,
-    chi: chi ?? curr.chi,
+    chi: chiValue,
   });
 
   db.prepare(`
@@ -267,9 +315,27 @@ export function updatePrestito(id, { quantita, chi, data_uscita, data_rientro, r
       data_rientro = COALESCE(?, data_rientro),
       note         = COALESCE(?, note),
       unita        = COALESCE(?, unita),
+      prestato_nome      = COALESCE(?, prestato_nome),
+      prestato_cognome   = COALESCE(?, prestato_cognome),
+      prestato_telefono  = COALESCE(?, prestato_telefono),
+      prestato_email     = COALESCE(?, prestato_email),
+      prestato_matricola = COALESCE(?, prestato_matricola),
       updated_at   = CURRENT_TIMESTAMP
     WHERE id = ?
-  `).run(q ?? null, none(chi), out ?? null, back ?? null, none(note), (unita===undefined ? null : jsonUnita(unita)), id);
+  `).run(
+    q ?? null,
+    chiValue,
+    out ?? null,
+    back ?? null,
+    none(note),
+    (unita === undefined ? null : jsonUnita(unita)),
+    none(newNome),
+    none(newCognome),
+    none(newTelefono),
+    none(newEmail),
+    none(newMatricola),
+    id
+  );
 
   return getPrestito(id);
 }
