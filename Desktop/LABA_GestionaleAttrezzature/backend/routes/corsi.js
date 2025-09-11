@@ -6,11 +6,17 @@ const r = Router();
 // GET /api/corsi - Get all courses
 r.get('/', (req, res) => {
   try {
-    const courses = db.prepare('SELECT corso FROM corsi ORDER BY corso').all();
+    // Prima controlla se la tabella esiste
+    const tableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='corsi'").get();
+    if (!tableExists) {
+      return res.status(500).json({ error: 'Tabella corsi non esiste' });
+    }
+    
+    const courses = db.prepare('SELECT corso FROM corsi').all();
     res.json(courses);
   } catch (error) {
     console.error('Error fetching courses:', error);
-    res.status(500).json({ error: 'Errore nel caricamento dei corsi' });
+    res.status(500).json({ error: 'Errore nel caricamento dei corsi: ' + error.message });
   }
 });
 
