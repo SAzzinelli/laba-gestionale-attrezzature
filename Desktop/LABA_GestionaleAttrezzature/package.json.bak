@@ -1,0 +1,21 @@
+{
+  "name": "laba-gestione",
+  "private": true,
+  "version": "4.1.0",
+  "description": "LABA Gestionale – inventario & prestiti & riparazioni (v4.1.0, light-only)",
+  "scripts": {
+    "postinstall": "npm --prefix backend install && npm --prefix frontend install",
+    "build": "npm --prefix frontend run build",
+    "start": "node backend/server.js",
+    "dev": "concurrently -n api,web -c auto,auto \"npm --prefix backend start\" \"npm --prefix frontend run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  },
+  "dependencies": {
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/timegrid": "^6.1.19"
+  }
+}

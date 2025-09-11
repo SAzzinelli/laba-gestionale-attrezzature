@@ -1,0 +1,494 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../auth/AuthContext';
+
+const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) => {
+ const [step, setStep] = useState(1); // 1: Basic Info, 2: Course & Category, 3: Unit Codes
+ const [courses, setCourses] = useState([]);
+ const [categories, setCategories] = useState([]);
+ const [loading, setLoading] = useState(false);
+ const [error, setError] = useState(null);
+ 
+ const [formData, setFormData] = useState({
+ nome: '',
+ quantita_totale: 1,
+ scaffale: '',
+ note: '',
+ corsi_assegnati: [],
+ categoria_id: '',
+ unita: []
+ });
+ 
+ const { token } = useAuth();
+
+ // Fetch data when modal opens
+ useEffect(() => {
+ if (isOpen) {
+ fetchCourses();
+ fetchCategories();
+ if (editingItem) {
+ setFormData({
+ nome: editingItem.nome || '',
+ quantita_totale: editingItem.quantita_totale || 1,
+ scaffale: editingItem.scaffale || '',
+ note: editingItem.note || '',
+ corsi_assegnati: [],
+ categoria_id: editingItem.categoria_id || '',
+ unita: []
+ });
+ }
+ }
+ }, [isOpen, editingItem]);
+
+ const fetchCourses = async () => {
+ try {
+ const response = await fetch('/api/corsi', {
+ headers: { 'Authorization': `Bearer ${token}` }
+ });
+ if (response.ok) {
+ const data = await response.json();
+ setCourses(data);
+ }
+ } catch (err) {
+ console.error('Errore caricamento corsi:', err);
+ }
+ };
+
+ const fetchCategories = async () => {
+ try {
+ const response = await fetch('/api/categorie', {
+ headers: { 'Authorization': `Bearer ${token}` }
+ });
+ if (response.ok) {
+ const data = await response.json();
+ setCategories(data);
+ }
+ } catch (err) {
+ console.error('Errore caricamento categorie:', err);
+ }
+ };
+
+ // Generate unit codes automatically
+ const generateUnitCodes = (quantity, baseName) => {
+ const units = [];
+ for (let i = 1; i <= quantity; i++) {
+ const code = `${baseName.toUpperCase().replace(/\s+/g, '')}_${String(i).padStart(3, '0')}`;
+ units.push({
+ codice_univoco: code,
+ note: ''
+ });
+ }
+ return units;
+ };
+
+ // Handle quantity change
+ const handleQuantityChange = (quantity) => {
+ const newQuantity = Math.max(1, parseInt(quantity) || 1);
+ const units = generateUnitCodes(newQuantity, formData.nome || 'ITEM');
+ setFormData(prev => ({
+ ...prev,
+ quantita_totale: newQuantity,
+ unita: units
+ }));
+ };
+
+ // Handle unit code change
+ const handleUnitCodeChange = (index, newCode) => {
+ const updatedUnits = [...formData.unita];
+ updatedUnits[index].codice_univoco = newCode;
+ setFormData(prev => ({
+ ...prev,
+ unita: updatedUnits
+ }));
+ };
+
+ const handleSubmit = async () => {
+ if (!formData.nome || !formData.quantita_totale || formData.unita.length === 0) {
+ setError('Compila tutti i campi obbligatori');
+ return;
+ }
+
+ try {
+ setLoading(true);
+ const method = editingItem ? 'PUT' : 'POST';
+ const url = editingItem ? `/api/inventario/${editingItem.id}` : '/api/inventario';
+ 
+ const response = await fetch(url, {
+ method,
+ headers: {
+ 'Content-Type': 'application/json',
+ 'Authorization': `Bearer ${token}`
+ },
+ body: JSON.stringify(formData)
+ });
+
+ if (!response.ok) {
+ const errorData = await response.json();
+ throw new Error(errorData.error || 'Errore nel salvataggio');
+ }
+
+ onSuccess && onSuccess();
+ handleClose();
+ } catch (err) {
+ setError(err.message);
+ } finally {
+ setLoading(false);
+ }
+ };
+
+ const handleClose = () => {
+ setStep(1);
+ setFormData({
+ nome: '',
+ quantita_totale: 1,
+ scaffale: '',
+ note: '',
+ corso_accademico: '',
+ categoria_id: '',
+ unita: []
+ });
+ setError(null);
+ onClose();
+ };
+
+ const getStepTitle = () => {
+ switch (step) {
+ case 1: return 'Informazioni Base';
+ case 2: return 'Corso e Categoria';
+ case 3: return 'Codici Univoci';
+ default: return 'Nuovo Elemento';
+ }
+ };
+
+ const canProceed = () => {
+ switch (step) {
+ case 1: return formData.nome && formData.quantita_totale;
+ case 2: return formData.corsi_assegnati.length > 0;
+ case 3: return formData.unita.length > 0;
+ default: return false;
+ }
+ };
+
+ if (!isOpen) return null;
+
+ return (
+ <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && handleClose()}>
+ <div className="modal-content max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+ <div className="modal-header">
+ <div>
+ <h2 className="text-lg font-semibold text-primary">
+ {editingItem ? 'Modifica Elemento' : 'Nuovo Elemento'}
+ </h2>
+ <p className="text-xs text-secondary mt-1">
+ {getStepTitle()} (Passo {step} di 3)
+ </p>
+ </div>
+ <button
+ onClick={handleClose}
+ className="text-muted hover:text-primary"
+ >
+ <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+ </svg>
+ </button>
+ </div>
+ 
+ {/* Progress Bar */}
+ <div className="px-6 py-4 border-b border-gray-200">
+ <div className="flex items-center justify-center">
+ <div className="flex items-center space-x-4">
+ {[
+ { num: 1, label: 'Info Base', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+ { num: 2, label: 'Corsi & Categoria', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
+ { num: 3, label: 'Codici Unità', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg> }
+ ].map((stepData, index) => (
+ <React.Fragment key={stepData.num}>
+ <div className="flex flex-col items-center">
+ <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+ stepData.num <= step 
+ ? 'bg-blue-600 text-white shadow-lg scale-110' 
+ : 'bg-gray-200 text-gray-500'
+ }`}>
+ {stepData.num <= step ? stepData.icon : stepData.num}
+ </div>
+ <span className={`text-xs mt-2 font-medium ${
+ stepData.num <= step ? 'text-blue-600' : 'text-gray-500'
+ }`}>
+ {stepData.label}
+ </span>
+ </div>
+ {index < 2 && (
+ <div className={`w-16 h-1 mx-2 rounded transition-all duration-300 ${
+ stepData.num < step 
+ ? 'bg-blue-600' 
+ : 'bg-gray-200'
+ }`} />
+ )}
+ </React.Fragment>
+ ))}
+ </div>
+ </div>
+ </div>
+
+ <div className="modal-body">
+ {/* Step 1: Basic Info */}
+ {step === 1 && (
+ <div className="space-y-4">
+ <h3 className="text-lg font-semibold text-primary mb-4">
+ Informazioni Base dell'Elemento
+ </h3>
+ 
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div className="form-group">
+ <label className="form-label">Nome Elemento *</label>
+ <input
+ type="text"
+ required
+ value={formData.nome}
+ onChange={(e) => {
+ const newName = e.target.value;
+ setFormData(prev => ({ ...prev, nome: newName }));
+ if (newName && formData.quantita_totale) {
+ const units = generateUnitCodes(formData.quantita_totale, newName);
+ setFormData(prev => ({ ...prev, unita: units }));
+ }
+ }}
+ className="input-field"
+ placeholder="Nome dell'elemento"
+ />
+ </div>
+
+ <div className="form-group">
+ <label className="form-label">Quantità *</label>
+ <input
+ type="number"
+ min="1"
+ required
+ value={formData.quantita_totale}
+ onChange={(e) => handleQuantityChange(e.target.value)}
+ className="input-field"
+ />
+ </div>
+
+ <div className="form-group">
+ <label className="form-label">Scaffale</label>
+ <input
+ type="text"
+ value={formData.scaffale}
+ onChange={(e) => setFormData(prev => ({ ...prev, scaffale: e.target.value }))}
+ className="input-field"
+ placeholder="Es. A1, B2, C3"
+ />
+ </div>
+
+ <div className="form-group md:col-span-2">
+ <label className="form-label">Note</label>
+ <textarea
+ value={formData.note}
+ onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
+ rows={3}
+ className="input-field"
+ placeholder="Note aggiuntive"
+ />
+ </div>
+ </div>
+ </div>
+ )}
+
+ {/* Step 2: Course & Category */}
+ {step === 2 && (
+ <div className="space-y-6">
+ <h3 className="text-lg font-semibold text-primary mb-4">
+ Assegnazione Corsi e Categoria
+ </h3>
+ 
+ {/* Multiple Course Selection */}
+ <div className="form-group">
+ <label className="form-label">Corsi Accademici *</label>
+ <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+ {courses.map(course => (
+ <label key={course.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 cursor-pointer rounded">
+ <input
+ type="checkbox"
+ checked={formData.corsi_assegnati.includes(course.nome)}
+ onChange={(e) => {
+ if (e.target.checked) {
+ setFormData(prev => ({
+ ...prev,
+ corsi_assegnati: [...prev.corsi_assegnati, course.nome]
+ }));
+ } else {
+ setFormData(prev => ({
+ ...prev,
+ corsi_assegnati: prev.corsi_assegnati.filter(c => c !== course.nome)
+ }));
+ }
+ }}
+ className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+ />
+ <span className="text-sm text-gray-700">{course.nome}</span>
+ </label>
+ ))}
+ </div>
+ {formData.corsi_assegnati.length > 0 && (
+ <div className="mt-3">
+ <p className="text-xs text-gray-500 mb-2">Corsi Selezionati ({formData.corsi_assegnati.length}):</p>
+ <div className="flex flex-wrap gap-2">
+ {formData.corsi_assegnati.map(courseName => (
+ <span key={courseName} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+ {courseName}
+ <button
+ type="button"
+ onClick={() => {
+ setFormData(prev => ({
+ ...prev,
+ corsi_assegnati: prev.corsi_assegnati.filter(c => c !== courseName)
+ }));
+ }}
+ className="ml-1 text-blue-600 hover:text-blue-800"
+ >
+ ×
+ </button>
+ </span>
+ ))}
+ </div>
+ </div>
+ )}
+ </div>
+
+ {/* Category Selection */}
+ <div className="form-group">
+ <label className="form-label">Categoria</label>
+ <select
+ value={formData.categoria_id}
+ onChange={(e) => setFormData(prev => ({ ...prev, categoria_id: e.target.value }))}
+ className="select-field"
+ >
+ <option value="">Seleziona categoria</option>
+ {categories.map(category => (
+ <option key={category.id} value={category.id}>
+ {category.nome || `${category.madre} - ${category.figlia}`}
+ </option>
+ ))}
+ </select>
+ </div>
+
+ {formData.corsi_assegnati.length > 0 && (
+ <div className="card bg-tertiary">
+ <h4 className="font-medium text-primary mb-2">Corsi Selezionati ({formData.corsi_assegnati.length})</h4>
+ <div className="flex flex-wrap gap-2">
+ {formData.corsi_assegnati.map(corso => (
+ <span key={corso} className="status-badge alert-info">
+ {corso}
+ </span>
+ ))}
+ </div>
+ <p className="text-xs text-tertiary mt-2">
+ Gli oggetti saranno visibili agli studenti di questi corsi
+ </p>
+ </div>
+ )}
+ </div>
+ )}
+
+ {/* Step 3: Unit Codes */}
+ {step === 3 && (
+ <div className="space-y-4">
+ <h3 className="text-lg font-semibold text-primary mb-4">
+ Codici Univoci per: <span className="text-brand-primary">{formData.nome}</span>
+ </h3>
+ 
+ <div className="card bg-tertiary mb-4">
+ <h4 className="font-medium text-primary mb-2">Riepilogo</h4>
+ <div className="grid grid-cols-2 gap-4 text-sm">
+ <div><strong>Nome:</strong> {formData.nome}</div>
+ <div><strong>Quantità:</strong> {formData.quantita_totale}</div>
+ <div><strong>Corsi:</strong> {formData.corsi_assegnati.join(', ')}</div>
+ <div><strong>Scaffale:</strong> {formData.scaffale || 'Non specificato'}</div>
+ </div>
+ </div>
+
+ <div className="form-group">
+ <label className="form-label">Codici Univoci ({formData.unita.length})</label>
+ <div className="bg-gray-50 rounded-lg p-4 max-h-80 overflow-y-auto">
+ <div className="space-y-3">
+ {formData.unita.map((unit, index) => (
+ <div key={index} className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+ <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
+ {index + 1}
+ </div>
+ <div className="flex-1">
+ <input
+ type="text"
+ value={unit.codice_univoco}
+ onChange={(e) => handleUnitCodeChange(index, e.target.value)}
+ className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+ placeholder={`Codice ${index + 1}`}
+ />
+ </div>
+ <div className="flex-shrink-0">
+ <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+ {unit.codice_univoco.length} caratteri
+ </span>
+ </div>
+ </div>
+ ))}
+ </div>
+ </div>
+ </div>
+ </div>
+ )}
+
+ {error && (
+ <div className="alert-card alert-danger mt-4">
+ <div className="flex items-center">
+ <svg className="icon text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+ </svg>
+ <p className="text-red-800 ">{error}</p>
+ </div>
+ </div>
+ )}
+ </div>
+
+ <div className="modal-footer">
+ <button
+ onClick={() => step > 1 ? setStep(step - 1) : handleClose()}
+ className="btn-secondary"
+ >
+ {step > 1 ? 'Indietro' : 'Annulla'}
+ </button>
+ 
+ <div className="flex space-x-3">
+ {step < 3 ? (
+ <button
+ onClick={() => {
+ if (canProceed()) {
+ if (step === 1 && formData.nome) {
+ const units = generateUnitCodes(formData.quantita_totale, formData.nome);
+ setFormData(prev => ({ ...prev, unita: units }));
+ }
+ setStep(step + 1);
+ }
+ }}
+ disabled={!canProceed()}
+ className="btn-primary"
+ >
+ Avanti
+ </button>
+ ) : (
+ <button
+ onClick={handleSubmit}
+ disabled={loading || !canProceed()}
+ className="btn-success"
+ >
+ {loading ? 'Creazione...' : (editingItem ? 'Aggiorna Elemento' : 'Crea Elemento')}
+ </button>
+ )}
+ </div>
+ </div>
+ </div>
+ </div>
+ );
+};
+
+export default StepInventoryModal;
