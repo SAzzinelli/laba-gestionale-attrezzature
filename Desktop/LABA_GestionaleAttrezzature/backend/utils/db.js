@@ -147,19 +147,22 @@ export async function initDatabase() {
     console.log('Admin user creato: admin / laba2025');
   }
 
-  // Inserisci corsi di esempio
-  const corsi = [
-    ['Fotografia', 'Corso di Fotografia Digitale'],
-    ['Graphic Design', 'Design Grafico e Comunicazione Visiva'],
-    ['Web Design', 'Progettazione e Sviluppo Web'],
-    ['Video Making', 'Produzione Video e Montaggio'],
-    ['Illustrazione', 'Illustrazione Digitale e Tradizionale']
+  // Inserisci corsi accademici LABA
+  const corsiLABA = [
+    'Regia e Videomaking',
+    'Graphic Design & Multimedia', 
+    'Fashion Design',
+    'Pittura',
+    'Fotografia',
+    'Interior Design',
+    'Cinema e Audiovisivi',
+    'Design'
   ];
 
-  const insertCorso = db.prepare('INSERT OR IGNORE INTO corsi (nome, descrizione) VALUES (?, ?)');
-  corsi.forEach(([nome, descrizione]) => {
+  const insertCorso = db.prepare('INSERT OR IGNORE INTO corsi (nome) VALUES (?)');
+  corsiLABA.forEach((nome) => {
     try {
-      insertCorso.run(nome, descrizione);
+      insertCorso.run(nome);
     } catch (e) {
       // Ignora se già esiste
     }
@@ -168,7 +171,7 @@ export async function initDatabase() {
   console.log('Database inizializzato con successo!');
   console.log('Tabelle create: users, corsi, categorie, inventario, inventario_unita, richieste, prestiti, riparazioni, segnalazioni, password_reset_requests');
   console.log('Admin user: admin / laba2025');
-  console.log('Corsi inseriti:', corsi.length);
+  console.log('Corsi inseriti:', corsiLABA.length);
 }
 
 export default db;

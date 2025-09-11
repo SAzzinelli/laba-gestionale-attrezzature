@@ -17,3 +17,6 @@ INSERT INTO corsi (corso) VALUES ('Graphic Design & Multimedia') ON CONFLICT DO 
 INSERT INTO corsi (corso) VALUES ('Fashion Design') ON CONFLICT DO NOTHING;
 INSERT INTO corsi (corso) VALUES ('Pittura') ON CONFLICT DO NOTHING;
 INSERT INTO corsi (corso) VALUES ('Fotografia') ON CONFLICT DO NOTHING;
+INSERT INTO corsi (corso) VALUES ('Interior Design') ON CONFLICT DO NOTHING;
+INSERT INTO corsi (corso) VALUES ('Cinema e Audiovisivi') ON CONFLICT DO NOTHING;
+INSERT INTO corsi (corso) VALUES ('Design') ON CONFLICT DO NOTHING;
