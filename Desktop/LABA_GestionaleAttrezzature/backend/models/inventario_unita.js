@@ -83,15 +83,12 @@ export function getOverdueLoans() {
     SELECT 
       p.*,
       i.nome as oggetto_nome,
-      u.name as utente_nome,
-      u.surname as utente_cognome,
-      u.email as utente_email,
-      JULIANDAY('now') - JULIANDAY(p.al) as giorni_ritardo
+      p.chi as utente_nome,
+      JULIANDAY('now') - JULIANDAY(p.data_rientro) as giorni_ritardo
     FROM prestiti p
     JOIN inventario i ON p.inventario_id = i.id
-    JOIN users u ON p.utente_id = u.id
-    WHERE p.stato = 'attivo' 
-    AND DATE(p.al) < DATE('now')
+    WHERE p.data_rientro IS NOT NULL
+    AND DATE(p.data_rientro) < DATE('now')
     ORDER BY giorni_ritardo DESC
   `).all();
 }
@@ -102,15 +99,12 @@ export function getLoansDueToday() {
     SELECT 
       p.*,
       i.nome as oggetto_nome,
-      u.name as utente_nome,
-      u.surname as utente_cognome,
-      u.email as utente_email
+      p.chi as utente_nome
     FROM prestiti p
     JOIN inventario i ON p.inventario_id = i.id
-    JOIN users u ON p.utente_id = u.id
-    WHERE p.stato = 'attivo' 
-    AND DATE(p.al) = DATE('now')
-    ORDER BY p.al
+    WHERE p.data_rientro IS NOT NULL
+    AND DATE(p.data_rientro) = DATE('now')
+    ORDER BY p.data_rientro
   `).all();
 }
 
@@ -120,15 +114,12 @@ export function getLoansDueTomorrow() {
     SELECT 
       p.*,
       i.nome as oggetto_nome,
-      u.name as utente_nome,
-      u.surname as utente_cognome,
-      u.email as utente_email
+      p.chi as utente_nome
     FROM prestiti p
     JOIN inventario i ON p.inventario_id = i.id
-    JOIN users u ON p.utente_id = u.id
-    WHERE p.stato = 'attivo' 
-    AND DATE(p.al) = DATE('now', '+1 day')
-    ORDER BY p.al
+    WHERE p.data_rientro IS NOT NULL
+    AND DATE(p.data_rientro) = DATE('now', '+1 day')
+    ORDER BY p.data_rientro
   `).all();
 }
 
