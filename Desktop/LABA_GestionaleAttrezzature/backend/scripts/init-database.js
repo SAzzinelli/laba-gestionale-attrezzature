@@ -3,7 +3,7 @@ const path = require('path');
 
 // Crea la directory data se non esiste
 const fs = require('fs');
-const dataDir = path.join(__dirname, '..', 'data');
+const dataDir = path.join(process.cwd(), 'backend', 'data');
 if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
 }
@@ -190,7 +190,7 @@ corsi.forEach(([nome, descrizione]) => {
 
 console.log('Database inizializzato con successo!');
 console.log('Tabelle create: users, corsi, categorie, inventario, inventario_unita, richieste, prestiti, riparazioni, segnalazioni, password_reset_requests');
-console.log('Admin user: admin@laba.it / admin123');
+console.log('Admin user: admin / laba2025');
 console.log('Corsi inseriti:', corsi.length);
 
 db.close();

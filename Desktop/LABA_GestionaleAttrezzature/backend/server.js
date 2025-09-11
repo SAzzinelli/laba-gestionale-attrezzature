@@ -22,7 +22,7 @@ const HOST = process.env.HOST || "0.0.0.0";
 // Inizializza il database all'avvio
 try {
   console.log('Inizializzazione database...');
-  execSync('node scripts/init-database.js', { cwd: __dirname, stdio: 'inherit' });
+  execSync('node scripts/init-database.js', { cwd: process.cwd() + '/backend', stdio: 'inherit' });
   console.log('Database inizializzato con successo!');
 } catch (error) {
   console.error('Errore durante l\'inizializzazione del database:', error.message);
