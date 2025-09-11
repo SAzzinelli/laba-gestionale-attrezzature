@@ -23,6 +23,8 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  // Fetch data when modal opens
  useEffect(() => {
  if (isOpen) {
+ setLoading(true);
+ setError(null);
  fetchCourses();
  fetchCategories();
  if (editingItem) {
@@ -41,29 +43,49 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 
  const fetchCourses = async () => {
  try {
+ console.log('Fetching courses with token:', token ? 'present' : 'missing');
  const response = await fetch('/api/corsi', {
  headers: { 'Authorization': `Bearer ${token}` }
  });
+ console.log('Courses response status:', response.status);
  if (response.ok) {
  const data = await response.json();
+ console.log('Courses data loaded:', data);
  setCourses(data);
+ } else {
+ const errorText = await response.text();
+ console.error('Error loading courses:', response.status, errorText);
+ setError(`Errore nel caricamento corsi: ${response.status}`);
  }
  } catch (err) {
  console.error('Errore caricamento corsi:', err);
+ setError(`Errore nel caricamento corsi: ${err.message}`);
+ } finally {
+ setLoading(false);
  }
  };
 
  const fetchCategories = async () => {
  try {
+ console.log('Fetching categories with token:', token ? 'present' : 'missing');
  const response = await fetch('/api/categorie', {
  headers: { 'Authorization': `Bearer ${token}` }
  });
+ console.log('Categories response status:', response.status);
  if (response.ok) {
  const data = await response.json();
+ console.log('Categories data loaded:', data);
  setCategories(data);
+ } else {
+ const errorText = await response.text();
+ console.error('Error loading categories:', response.status, errorText);
+ setError(`Errore nel caricamento categorie: ${response.status}`);
  }
  } catch (err) {
  console.error('Errore caricamento categorie:', err);
+ setError(`Errore nel caricamento categorie: ${err.message}`);
+ } finally {
+ setLoading(false);
  }
  };
 
@@ -304,30 +326,36 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  {/* Multiple Course Selection */}
  <div className="form-group">
  <label className="form-label">Corsi Accademici *</label>
+ {loading && <div className="text-sm text-gray-500 mb-2">Caricamento corsi...</div>}
+ {error && <div className="text-sm text-red-500 mb-2">{error}</div>}
  <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
- {courses.map(course => (
- <label key={course.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 cursor-pointer rounded">
+ {courses.length === 0 && !loading ? (
+ <div className="text-sm text-gray-500 text-center py-4">Nessun corso disponibile</div>
+ ) : (
+ courses.map(course => (
+ <label key={course.corso} className="flex items-center space-x-3 p-2 hover:bg-gray-50 cursor-pointer rounded">
  <input
  type="checkbox"
- checked={formData.corsi_assegnati.includes(course.nome)}
+ checked={formData.corsi_assegnati.includes(course.corso)}
  onChange={(e) => {
  if (e.target.checked) {
  setFormData(prev => ({
  ...prev,
- corsi_assegnati: [...prev.corsi_assegnati, course.nome]
+ corsi_assegnati: [...prev.corsi_assegnati, course.corso]
  }));
  } else {
  setFormData(prev => ({
  ...prev,
- corsi_assegnati: prev.corsi_assegnati.filter(c => c !== course.nome)
+ corsi_assegnati: prev.corsi_assegnati.filter(c => c !== course.corso)
  }));
  }
  }}
  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
  />
- <span className="text-sm text-gray-700">{course.nome}</span>
+ <span className="text-sm text-gray-700">{course.corso}</span>
  </label>
- ))}
+ ))
+ )}
  </div>
  {formData.corsi_assegnati.length > 0 && (
  <div className="mt-3">
