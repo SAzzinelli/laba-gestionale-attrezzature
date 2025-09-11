@@ -6,7 +6,7 @@ const r = Router();
 // GET /api/corsi - Get all courses
 r.get('/', (req, res) => {
   try {
-    const courses = db.prepare('SELECT corso as nome FROM corsi ORDER BY corso').all();
+    const courses = db.prepare('SELECT corso FROM corsi ORDER BY corso').all();
     res.json(courses);
   } catch (error) {
     console.error('Error fetching courses:', error);
