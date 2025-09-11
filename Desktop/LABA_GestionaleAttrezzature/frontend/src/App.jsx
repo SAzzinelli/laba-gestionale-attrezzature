@@ -257,9 +257,11 @@ function AppInner() {
  </div>
 
  {/* Main Content */}
- <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
+ <div className="flex-1 flex flex-col min-h-screen">
  {/* Top Bar Mobile */}
- <div className="lg:hidden header px-4 py-3 flex items-center justify-between">
+ <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center space-x-3">
  <button 
  onClick={() => setSidebarOpen(true)}
  className="p-2 rounded-lg hover:bg-gray-100"
@@ -268,23 +270,25 @@ function AppInner() {
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
  </svg>
  </button>
- <h1 className="text-lg font-semibold text-gray-800">LABA Gestione</h1>
+ <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
+ <h1 className="text-lg font-semibold text-gray-800">LABA</h1>
+ </div>
  <div className="flex items-center space-x-2">
- {/* Global Search */}
+ {/* Global Search Mobile */}
  <div className="relative">
  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
- <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
  </svg>
  </div>
  <input
  type="text"
- placeholder="Cerca in tutto il sistema..."
- className="block w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+ placeholder="Cerca..."
+ className="block w-48 pl-9 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
  onChange={(e) => handleGlobalSearch(e.target.value)}
  />
  </div>
- <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
+ </div>
  </div>
  </div>
 
