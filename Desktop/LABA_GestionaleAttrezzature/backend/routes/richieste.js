@@ -85,7 +85,7 @@ r.post('/', requireAuth, (req, res) => {
              CASE 
                WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') 
                THEN 'in_riparazione'
-               WHEN i.disponibile = 0 
+               WHEN i.in_manutenzione = 1 OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0
                THEN 'non_disponibile'
                ELSE 'disponibile'
              END as stato_effettivo
