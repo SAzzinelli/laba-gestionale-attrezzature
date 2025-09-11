@@ -101,7 +101,7 @@ r.post('/', requireAuth, requireRole('admin'), (req, res) => {
   
   if (!nome) return res.status(400).json({ error: 'nome richiesto' });
   
-  // Se categoria_madre non è fornita ma ci sono corsi_assegnati, usa il primo corso
+  // I corsi accademici sono la categoria_madre
   let finalCategoriaMadre = categoria_madre;
   if (!finalCategoriaMadre && corsi_assegnati && Array.isArray(corsi_assegnati) && corsi_assegnati.length > 0) {
     finalCategoriaMadre = corsi_assegnati[0];
@@ -109,7 +109,7 @@ r.post('/', requireAuth, requireRole('admin'), (req, res) => {
   
   console.log('Debug inventario:', { categoria_madre, corsi_assegnati, finalCategoriaMadre });
   
-  if (!finalCategoriaMadre) return res.status(400).json({ error: 'categoria_madre richiesta' });
+  if (!finalCategoriaMadre) return res.status(400).json({ error: 'categoria_madre richiesta (corso accademico)' });
   if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
   
   try {
