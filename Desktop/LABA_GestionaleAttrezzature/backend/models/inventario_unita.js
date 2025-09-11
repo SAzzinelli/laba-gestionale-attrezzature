@@ -68,12 +68,11 @@ export function getLowStockItems() {
       i.*,
       COUNT(iu.id) as unita_disponibili,
       i.quantita_totale,
-      i.soglia_minima,
       ROUND((COUNT(iu.id) * 100.0 / i.quantita_totale), 2) as percentuale_disponibile
     FROM inventario i
     LEFT JOIN inventario_unita iu ON iu.inventario_id = i.id AND iu.stato = 'disponibile'
     GROUP BY i.id
-    HAVING COUNT(iu.id) <= i.soglia_minima
+    HAVING COUNT(iu.id) < 1
     ORDER BY percentuale_disponibile ASC
   `).all();
 }

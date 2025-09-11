@@ -307,7 +307,7 @@ r.get('/password-reset-requests', requireAuth, requireRole('admin'), (req, res) 
       FROM password_reset_requests prr
       LEFT JOIN users u ON u.email = prr.email
       WHERE prr.status = 'pending'
-      ORDER BY prr.requested_at DESC
+      ORDER BY prr.created_at DESC
     `).all();
     
     res.json(requests);
