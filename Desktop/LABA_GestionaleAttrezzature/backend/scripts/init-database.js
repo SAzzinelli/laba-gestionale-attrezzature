@@ -157,17 +157,17 @@ CREATE TABLE IF NOT EXISTS password_reset_requests (
 `);
 
 // Inserisci admin user
-const adminExists = db.prepare('SELECT id FROM users WHERE email = ?').get('admin@laba.it');
+const adminExists = db.prepare('SELECT id FROM users WHERE email = ?').get('admin');
 if (!adminExists) {
     const bcrypt = require('bcryptjs');
-    const hashedPassword = bcrypt.hashSync('admin123', 10);
+    const hashedPassword = bcrypt.hashSync('laba2025', 10);
     
     db.prepare(`
         INSERT INTO users (email, password, name, surname, role, corso_accademico)
         VALUES (?, ?, ?, ?, ?, ?)
-    `).run('admin@laba.it', hashedPassword, 'Admin', 'Sistema', 'admin', 'Tutti');
+    `).run('admin', hashedPassword, 'Admin', 'Sistema', 'admin', 'Tutti');
     
-    console.log('Admin user creato: admin@laba.it / admin123');
+    console.log('Admin user creato: admin / laba2025');
 }
 
 // Inserisci corsi di esempio
