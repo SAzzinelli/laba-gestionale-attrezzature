@@ -100,7 +100,14 @@ r.post('/', requireAuth, requireRole('admin'), (req, res) => {
   } = req.body || {};
   
   if (!nome) return res.status(400).json({ error: 'nome richiesto' });
-  if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre richiesta' });
+  
+  // Se categoria_madre non è fornita ma ci sono corsi_assegnati, usa il primo corso
+  let finalCategoriaMadre = categoria_madre;
+  if (!finalCategoriaMadre && corsi_assegnati && corsi_assegnati.length > 0) {
+    finalCategoriaMadre = corsi_assegnati[0];
+  }
+  
+  if (!finalCategoriaMadre) return res.status(400).json({ error: 'categoria_madre richiesta' });
   if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
   
   try {
@@ -132,7 +139,7 @@ r.post('/', requireAuth, requireRole('admin'), (req, res) => {
       INSERT INTO inventario (nome, categoria_madre, categoria_figlia, posizione, note, quantita_totale, quantita, in_manutenzione)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    const info = stmt.run(nome, categoria_madre, categoria_figlia, posizione, note, quantita_totale, quantita_totale, 0);
+    const info = stmt.run(nome, finalCategoriaMadre, categoria_figlia, posizione, note, quantita_totale, quantita_totale, 0);
     
     // Create units if provided
     if (unita && unita.length > 0) {
