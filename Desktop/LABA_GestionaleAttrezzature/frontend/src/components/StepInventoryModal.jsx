@@ -430,7 +430,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  <div className="grid grid-cols-2 gap-4 text-sm">
  <div><strong>Nome:</strong> {formData.nome}</div>
  <div><strong>Quantità:</strong> {formData.quantita_totale}</div>
- <div><strong>Corsi:</strong> {formData.corsi_assegnati.join(', ')}</div>
+ <div><strong>Corsi:</strong> {Array.isArray(formData.corsi_assegnati) ? formData.corsi_assegnati.join(', ') : formData.corsi_assegnati || 'Nessuno'}</div>
  <div><strong>Scaffale:</strong> {formData.scaffale || 'Non specificato'}</div>
  </div>
  </div>

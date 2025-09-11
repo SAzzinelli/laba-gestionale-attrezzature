@@ -531,7 +531,7 @@ const Inventory = () => {
  {item.categoria_madre} - {item.categoria_figlia}
  </td>
  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
- {item.corsi_assegnati ? item.corsi_assegnati.join(', ') : '-'}
+ {item.corsi_assegnati ? (Array.isArray(item.corsi_assegnati) ? item.corsi_assegnati.join(', ') : item.corsi_assegnati) : '-'}
  </td>
  <td className="px-6 py-4 whitespace-nowrap">
  <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.stato_effettivo)}`}>
@@ -597,7 +597,7 @@ const Inventory = () => {
  {unit.categoria_madre} - {unit.categoria_figlia}
  </td>
  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-600">
- {unit.corsi_assegnati ? unit.corsi_assegnati.join(', ') : '-'}
+ {unit.corsi_assegnati ? (Array.isArray(unit.corsi_assegnati) ? unit.corsi_assegnati.join(', ') : unit.corsi_assegnati) : '-'}
  </td>
  <td className="px-6 py-3 whitespace-nowrap">
  <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(unit.stato_effettivo)}`}>
