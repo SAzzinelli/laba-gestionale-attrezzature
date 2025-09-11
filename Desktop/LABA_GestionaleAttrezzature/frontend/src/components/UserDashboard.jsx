@@ -212,10 +212,10 @@ const UserDashboard = ({ onNavigate }) => {
  {/* Header */}
  <div className="bg-white shadow-sm border-b border-gray-200">
  <div className="px-4 sm:px-6 lg:px-8">
- <div className="flex justify-between items-center py-6">
- <div className="flex-1">
- <h1 className="text-2xl font-bold text-gray-900 mb-1">Dashboard Studente</h1>
- <p className="text-lg text-gray-600">Benvenuto, {user?.name} {user?.surname}</p>
+ <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 sm:py-6">
+ <div className="flex-1 mb-4 sm:mb-0">
+ <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Dashboard Studente</h1>
+ <p className="text-base sm:text-lg text-gray-600">Benvenuto, {user?.name} {user?.surname}</p>
  </div>
  <div className="flex items-center space-x-3">
  {/* Notifications */}
@@ -263,13 +263,13 @@ const UserDashboard = ({ onNavigate }) => {
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
  {/* Main Content */}
- <div className="lg:col-span-3">
+ <div className="lg:col-span-3 order-2 lg:order-1">
  {/* Navigation Tabs */}
  <div className="mb-4">
- <nav className="flex space-x-6">
+ <nav className="flex space-x-2 sm:space-x-6 overflow-x-auto">
  <button
  onClick={() => setActiveSection('overview')}
- className={`py-2 px-1 border-b-2 font-medium text-sm ${
+ className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
  activeSection === 'overview'
  ? 'border-blue-500 text-blue-600'
  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -279,7 +279,7 @@ const UserDashboard = ({ onNavigate }) => {
  </button>
  <button
  onClick={() => setActiveSection('available')}
- className={`py-2 px-1 border-b-2 font-medium text-sm ${
+ className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
  activeSection === 'available'
  ? 'border-blue-500 text-blue-600'
  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -294,7 +294,7 @@ const UserDashboard = ({ onNavigate }) => {
  {activeSection === 'overview' && (
  <div className="space-y-4">
  {/* Stats Cards */}
- <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
  <StatCard
  title="Articoli Disponibili"
  value={stats.availableItems}
@@ -384,7 +384,7 @@ const UserDashboard = ({ onNavigate }) => {
  </div>
 
  {/* Sidebar */}
- <div className="space-y-4">
+ <div className="space-y-4 order-1 lg:order-2">
  {/* Categorie */}
  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
  <h3 className="text-sm font-medium text-gray-900 mb-2">Categorie</h3>
