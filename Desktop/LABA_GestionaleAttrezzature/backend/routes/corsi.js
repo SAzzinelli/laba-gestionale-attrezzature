@@ -6,6 +6,11 @@ const r = Router();
 // GET /api/corsi - Get all courses
 r.get('/', (req, res) => {
   try {
+    // Controlla se il database è inizializzato
+    if (!db) {
+      return res.status(500).json({ error: 'Database non inizializzato' });
+    }
+    
     // Prima controlla se la tabella esiste
     const tableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='corsi'").get();
     if (!tableExists) {
