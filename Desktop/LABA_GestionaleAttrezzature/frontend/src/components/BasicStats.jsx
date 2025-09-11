@@ -20,16 +20,16 @@ const BasicStats = () => {
  setLoading(true);
  
  const [inventoryRes, usersRes, requestsRes, loansRes] = await Promise.all([
- fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario`, {
+      fetch('/api/inventario', {
  headers: { 'Authorization': `Bearer ${token}` }
  }),
- fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/users`, {
+ fetch('/api/auth/users', {
  headers: { 'Authorization': `Bearer ${token}` }
  }),
- fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste?all=1`, {
+ fetch('/api/richieste?all=1', {
  headers: { 'Authorization': `Bearer ${token}` }
  }),
- fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti?all=1`, {
+ fetch('/api/prestiti?all=1', {
  headers: { 'Authorization': `Bearer ${token}` }
  })
  ]);
