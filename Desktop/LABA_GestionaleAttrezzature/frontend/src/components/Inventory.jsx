@@ -146,6 +146,60 @@ const Inventory = () => {
  localStorage.setItem('inventory-saved-filters', JSON.stringify(updated));
  };
 
+ // Gestione categorie
+ const handleAddCategory = async () => {
+ if (!newCategory.madre || !newCategory.figlia) {
+ setError('Inserisci sia corso che sottocategoria');
+ return;
+ }
+
+ try {
+ const response = await fetch('/api/categorie', {
+ method: 'POST',
+ headers: {
+ 'Authorization': `Bearer ${token}`,
+ 'Content-Type': 'application/json'
+ },
+ body: JSON.stringify(newCategory)
+ });
+
+ if (!response.ok) {
+ const errorData = await response.json();
+ throw new Error(errorData.error || 'Errore nell\'aggiunta della categoria');
+ }
+
+ setNewCategory({ madre: '', figlia: '' });
+ setShowCategoryManager(false);
+ await fetchCategories(); // Ricarica le categorie
+ } catch (err) {
+ setError(err.message);
+ }
+ };
+
+ const handleDeleteCategory = async (madre, figlia) => {
+ if (!confirm(`Sei sicuro di voler eliminare la categoria "${madre} - ${figlia}"?`)) {
+ return;
+ }
+
+ try {
+ const response = await fetch(`/api/categorie/${encodeURIComponent(madre)}/${encodeURIComponent(figlia)}`, {
+ method: 'DELETE',
+ headers: {
+ 'Authorization': `Bearer ${token}`
+ }
+ });
+
+ if (!response.ok) {
+ const errorData = await response.json();
+ throw new Error(errorData.error || 'Errore nell\'eliminazione della categoria');
+ }
+
+ await fetchCategories(); // Ricarica le categorie
+ } catch (err) {
+ setError(err.message);
+ }
+ };
+
  // Applica filtri
  const applyFilters = (filters) => {
  setCurrentFilters(filters);
@@ -439,7 +493,17 @@ const Inventory = () => {
  </svg>
  <span>Nuovo Articolo</span>
  </button>
- 
+
+ <button
+ onClick={() => setShowCategoryManager(true)}
+ className="btn-secondary"
+ >
+ <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+ </svg>
+ <span>Gestisci Categorie</span>
+ </button>
+
  <OperationsDropdown 
  onExport={handleExport}
  onImport={handleImportExcel}
@@ -664,6 +728,103 @@ const Inventory = () => {
  categories={categories}
  courses={courses}
  />
+ )}
+
+ {/* Category Manager Modal */}
+ {showCategoryManager && (
+ <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+ <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+ <div className="flex items-center justify-between p-6 border-b border-gray-200">
+ <h3 className="text-lg font-semibold text-gray-900">Gestisci Categorie</h3>
+ <button
+ onClick={() => setShowCategoryManager(false)}
+ className="text-gray-400 hover:text-gray-600"
+ >
+ <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+ </svg>
+ </button>
+ </div>
+
+ <div className="p-6">
+ {/* Aggiungi nuova categoria */}
+ <div className="mb-6">
+ <h4 className="text-md font-medium text-gray-900 mb-4">Aggiungi Nuova Sottocategoria</h4>
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div>
+ <label className="block text-sm font-medium text-gray-700 mb-2">Corso Accademico *</label>
+ <select
+ value={newCategory.madre}
+ onChange={(e) => setNewCategory(prev => ({ ...prev, madre: e.target.value }))}
+ className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+ >
+ <option value="">Seleziona corso</option>
+ {courses.map(course => (
+ <option key={course.corso} value={course.corso}>{course.corso}</option>
+ ))}
+ </select>
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-gray-700 mb-2">Sottocategoria *</label>
+ <input
+ type="text"
+ value={newCategory.figlia}
+ onChange={(e) => setNewCategory(prev => ({ ...prev, figlia: e.target.value }))}
+ placeholder="Es. Macchine Fotografiche"
+ className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+ />
+ </div>
+ </div>
+ <button
+ onClick={handleAddCategory}
+ className="mt-4 btn-primary"
+ >
+ <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+ </svg>
+ Aggiungi Categoria
+ </button>
+ </div>
+
+ {/* Lista categorie esistenti */}
+ <div>
+ <h4 className="text-md font-medium text-gray-900 mb-4">Categorie Esistenti</h4>
+ <div className="space-y-2 max-h-60 overflow-y-auto">
+ {categories.map((category, index) => (
+ <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+ <div>
+ <span className="font-medium text-gray-900">{category.madre}</span>
+ <span className="text-gray-500 mx-2">-</span>
+ <span className="text-gray-700">{category.figlia}</span>
+ </div>
+ <button
+ onClick={() => handleDeleteCategory(category.madre, category.figlia)}
+ className="text-red-600 hover:text-red-800 p-1"
+ title="Elimina categoria"
+ >
+ <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+ </svg>
+ </button>
+ </div>
+ ))}
+ {categories.length === 0 && (
+ <p className="text-gray-500 text-center py-4">Nessuna categoria disponibile</p>
+ )}
+ </div>
+ </div>
+ </div>
+
+ <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+ <button
+ onClick={() => setShowCategoryManager(false)}
+ className="btn-secondary"
+ >
+ Chiudi
+ </button>
+ </div>
+ </div>
+ </div>
  )}
 
  {qrCodeItem && (
