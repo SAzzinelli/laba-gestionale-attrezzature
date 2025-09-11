@@ -6,7 +6,7 @@ const r = Router();
 // GET /api/corsi - Get all courses
 r.get('/', (req, res) => {
   try {
-    const courses = db.prepare('SELECT * FROM corsi ORDER BY nome').all();
+    const courses = db.prepare('SELECT corso as nome FROM corsi ORDER BY corso').all();
     res.json(courses);
   } catch (error) {
     console.error('Error fetching courses:', error);
@@ -23,7 +23,7 @@ r.post('/', (req, res) => {
       return res.status(400).json({ error: 'Il nome del corso è obbligatorio' });
     }
 
-    const result = db.prepare('INSERT INTO corsi (nome, descrizione) VALUES (?, ?)').run(nome, descrizione || '');
+    const result = db.prepare('INSERT INTO corsi (corso) VALUES (?)').run(nome);
     
     res.status(201).json({ 
       id: result.lastInsertRowid, 
@@ -46,7 +46,7 @@ r.put('/:id', (req, res) => {
       return res.status(400).json({ error: 'Il nome del corso è obbligatorio' });
     }
 
-    const result = db.prepare('UPDATE corsi SET nome = ?, descrizione = ? WHERE id = ?').run(nome, descrizione || '', id);
+    const result = db.prepare('UPDATE corsi SET corso = ? WHERE corso = (SELECT corso FROM corsi LIMIT 1 OFFSET ?)').run(nome, id-1);
     
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Corso non trovato' });
@@ -64,7 +64,7 @@ r.delete('/:id', (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = db.prepare('DELETE FROM corsi WHERE id = ?').run(id);
+    const result = db.prepare('DELETE FROM corsi WHERE corso = (SELECT corso FROM corsi LIMIT 1 OFFSET ?)').run(id-1);
     
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Corso non trovato' });
