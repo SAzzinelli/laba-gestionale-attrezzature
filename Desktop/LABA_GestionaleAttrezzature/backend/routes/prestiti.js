@@ -19,22 +19,20 @@ r.get('/', requireAuth, (req, res) => {
     if (!isAdminUser(req.user)) return res.status(403).json({ error: 'Solo admin' });
     rows = db.prepare(`
       SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione, 
-             u.email AS utente_email, u.name AS utente_nome, u.surname AS utente_cognome
+             p.chi AS utente_nome
       FROM prestiti p
       LEFT JOIN inventario i ON i.id = p.inventario_id
-      LEFT JOIN users u ON u.id = p.utente_id
       ORDER BY p.id DESC
     `).all();
   } else {
     rows = db.prepare(`
       SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
-             c.madre AS categoria_madre, c.figlia AS categoria_figlia
+             i.categoria_madre, i.categoria_figlia
       FROM prestiti p
       LEFT JOIN inventario i ON i.id = p.inventario_id
-      LEFT JOIN categorie c ON c.id = i.categoria_id
-      WHERE p.utente_id = ?
+      WHERE p.chi LIKE ? OR p.chi = ?
       ORDER BY p.id DESC
-    `).all(req.user.id);
+    `).all(`%${req.user.email}%`, req.user.email);
   }
   return res.json(rows || []);
 });
@@ -43,25 +41,24 @@ r.get('/', requireAuth, (req, res) => {
 r.get('/mie', requireAuth, (req, res) => {
   const rows = db.prepare(`
     SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
-           c.madre AS categoria_madre, c.figlia AS categoria_figlia,
-           p.dal AS data_inizio, p.al AS data_fine
+           i.categoria_madre, i.categoria_figlia,
+           p.data_uscita AS data_inizio, p.data_rientro AS data_fine
     FROM prestiti p
     LEFT JOIN inventario i ON i.id = p.inventario_id
-    LEFT JOIN categorie c ON c.id = i.categoria_id
-    WHERE p.utente_id = ?
+    WHERE p.chi LIKE ? OR p.chi = ?
     ORDER BY p.id DESC
-  `).all(req.user.id);
+  `).all(`%${req.user.email}%`, req.user.email);
   return res.json(rows || []);
 });
 
 // (eventuale) POST per creare un prestito — admin only
 r.post('/', requireAuth, requireRole('admin'), (req, res) => {
-  const { inventario_id, utente_id, dal, al, note=null } = req.body || {};
-  if (!inventario_id || !utente_id || !dal || !al) return res.status(400).json({ error: 'campi mancanti' });
+  const { inventario_id, chi, data_uscita, data_rientro, note=null } = req.body || {};
+  if (!inventario_id || !chi || !data_uscita || !data_rientro) return res.status(400).json({ error: 'campi mancanti' });
   const info = db.prepare(`
-    INSERT INTO prestiti (inventario_id, utente_id, dal, al, stato, note)
-    VALUES (?, ?, ?, ?, 'attivo', ?)
-  `).run(inventario_id, utente_id, dal, al, note);
+    INSERT INTO prestiti (inventario_id, chi, data_uscita, data_rientro, note)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(inventario_id, chi, data_uscita, data_rientro, note);
   const row = db.prepare('SELECT * FROM prestiti WHERE id = ?').get(info.lastInsertRowid);
   res.status(201).json(row);
 });
@@ -79,11 +76,11 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), (req, res) => {
     // Get request details
     const request = db.prepare('SELECT * FROM richieste WHERE id = ?').get(id);
     
-    // Create loan record
+    // Create loan record using original schema
     const loanResult = db.prepare(`
-      INSERT INTO prestiti (inventario_id, utente_id, dal, al, stato, note)
-      VALUES (?, ?, ?, ?, 'attivo', ?)
-    `).run(request.inventario_id, request.utente_id, request.dal, request.al, request.note);
+      INSERT INTO prestiti (inventario_id, chi, data_uscita, data_rientro, note)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(request.inventario_id, `User ${request.utente_id}`, request.dal, request.al, request.note);
     
     res.json({ 
       message: 'Richiesta approvata e prestito creato',

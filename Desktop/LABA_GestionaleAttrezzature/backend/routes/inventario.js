@@ -32,7 +32,7 @@ r.get('/', requireAuth, (req, res) => {
              CASE 
                WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') 
                THEN 'in_riparazione'
-               WHEN i.disponibile = 0 OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0
+               WHEN i.in_manutenzione = 1 OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0
                THEN 'non_disponibile'
                ELSE 'disponibile'
              END as stato_effettivo
@@ -50,7 +50,7 @@ r.get('/', requireAuth, (req, res) => {
              CASE 
                WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') 
                THEN 'in_riparazione'
-               WHEN i.disponibile = 0 OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0
+               WHEN i.in_manutenzione = 1 OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0
                THEN 'non_disponibile'
                ELSE 'disponibile'
              END as stato_effettivo
@@ -73,7 +73,7 @@ r.get('/:id', (req, res) => {
            CASE 
              WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') 
              THEN 'in_riparazione'
-             WHEN i.disponibile = 0 OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0
+             WHEN i.in_manutenzione = 1 OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0
              THEN 'non_disponibile'
              ELSE 'disponibile'
            END as stato_effettivo
@@ -90,20 +90,18 @@ r.get('/:id', (req, res) => {
 r.post('/', requireAuth, requireRole('admin'), (req, res) => {
   const { 
     nome, 
-    categoria_id=null, 
-    seriale=null, 
+    categoria_madre, 
+    categoria_figlia=null,
+    posizione=null, 
     note=null, 
-    disponibile=1, 
     quantita_totale=1, 
-    scaffale=null,
-    soglia_minima=1,
     corsi_assegnati=[],
     unita=[] 
   } = req.body || {};
   
   if (!nome) return res.status(400).json({ error: 'nome richiesto' });
+  if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre richiesta' });
   if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
-  if (unita.length !== quantita_totale) return res.status(400).json({ error: 'Numero di unità non corrisponde alla quantità totale' });
   
   try {
     // Check if nome already exists
@@ -112,45 +110,40 @@ r.post('/', requireAuth, requireRole('admin'), (req, res) => {
       return res.status(400).json({ error: 'Un elemento con questo nome esiste già' });
     }
     
-    // Check if seriale already exists (if provided)
-    if (seriale) {
-      const existingSeriale = db.prepare('SELECT id FROM inventario WHERE seriale = ?').get(seriale);
-      if (existingSeriale) {
-        return res.status(400).json({ error: 'Un elemento con questo numero seriale esiste già' });
+    // Check for duplicate unit codes if provided
+    if (unita && unita.length > 0) {
+      const unitCodes = unita.map(u => u.codice_univoco);
+      const duplicates = unitCodes.filter((code, index) => unitCodes.indexOf(code) !== index);
+      if (duplicates.length > 0) {
+        return res.status(400).json({ error: `Codici duplicati: ${duplicates.join(', ')}` });
+      }
+      
+      // Check if unit codes already exist
+      for (const unit of unita) {
+        const existingUnit = db.prepare('SELECT id FROM inventario_unita WHERE codice_univoco = ?').get(unit.codice_univoco);
+        if (existingUnit) {
+          return res.status(400).json({ error: `Codice univoco già esistente: ${unit.codice_univoco}` });
+        }
       }
     }
     
-    // Check for duplicate unit codes
-    const unitCodes = unita.map(u => u.codice_univoco);
-    const duplicates = unitCodes.filter((code, index) => unitCodes.indexOf(code) !== index);
-    if (duplicates.length > 0) {
-      return res.status(400).json({ error: `Codici duplicati: ${duplicates.join(', ')}` });
-    }
-    
-    // Check if unit codes already exist
-    for (const unit of unita) {
-      const existingUnit = db.prepare('SELECT id FROM inventario_unita WHERE codice_univoco = ?').get(unit.codice_univoco);
-      if (existingUnit) {
-        return res.status(400).json({ error: `Codice univoco già esistente: ${unit.codice_univoco}` });
-      }
-    }
-    
-    // Create inventory item with automatic threshold (10% of total)
-    const soglia_automatica = Math.max(1, Math.ceil(quantita_totale * 0.1));
+    // Create inventory item
     const stmt = db.prepare(`
-      INSERT INTO inventario (nome, categoria_id, note, disponibile, quantita_totale, quantita_disponibile, scaffale, soglia_minima)
+      INSERT INTO inventario (nome, categoria_madre, categoria_figlia, posizione, note, quantita_totale, quantita, in_manutenzione)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    const info = stmt.run(nome, categoria_id, note, disponibile ? 1 : 0, quantita_totale, quantita_totale, scaffale, soglia_automatica);
+    const info = stmt.run(nome, categoria_madre, categoria_figlia, posizione, note, quantita_totale, quantita_totale, 0);
     
-    // Create units
-    const unitStmt = db.prepare(`
-      INSERT INTO inventario_unita (inventario_id, codice_univoco, note)
-      VALUES (?, ?, ?)
-    `);
-    
-    for (const unit of unita) {
-      unitStmt.run(info.lastInsertRowid, unit.codice_univoco, unit.note || null);
+    // Create units if provided
+    if (unita && unita.length > 0) {
+      const unitStmt = db.prepare(`
+        INSERT INTO inventario_unita (inventario_id, codice_univoco, note)
+        VALUES (?, ?, ?)
+      `);
+      
+      for (const unit of unita) {
+        unitStmt.run(info.lastInsertRowid, unit.codice_univoco, unit.note || null);
+      }
     }
     
     // Assign to courses if specified
