@@ -20,12 +20,8 @@ import UserArea from "./user/UserArea.jsx";
 
 // App principale con design moderno
 function AppInner() {
- const [tab, setTab] = useState("dashboard");
+  const [tab, setTab] = useState("dashboard");
  const [sidebarOpen, setSidebarOpen] = useState(false);
- const [searchQuery, setSearchQuery] = useState("");
- const [searchResults, setSearchResults] = useState([]);
- const [showSearchResults, setShowSearchResults] = useState(false);
- const [isSearching, setIsSearching] = useState(false);
  const [isMobile, setIsMobile] = useState(false);
  const { isAdmin, user } = useAuth();
  // const { isDark, toggleTheme } = useTheme();
@@ -50,98 +46,9 @@ function AppInner() {
  return () => window.removeEventListener('resize', handleResize);
  }, []);
 
- // Global search function
- const handleGlobalSearch = async (query) => {
- setSearchQuery(query);
- if (query.length < 2) {
- setSearchResults([]);
- setShowSearchResults(false);
- setIsSearching(false);
- return;
- }
 
- setIsSearching(true);
- try {
- const token = localStorage.getItem('token');
- if (!token) {
- setSearchResults([]);
- setShowSearchResults(false);
- setIsSearching(false);
- return;
- }
-
- const searchPromises = [
- fetch(`/api/inventario?search=${encodeURIComponent(query)}`, {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch(`/api/richieste?search=${encodeURIComponent(query)}`, {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch(`/api/riparazioni?search=${encodeURIComponent(query)}`, {
- headers: { 'Authorization': `Bearer ${token}` }
- })
- ];
-
- const responses = await Promise.all(searchPromises);
- const results = [];
-
- // Process inventory results
- if (responses[0].ok) {
- const inventory = await responses[0].json();
- inventory.forEach(item => {
- results.push({
- type: 'inventario',
- title: item.nome,
- subtitle: `Seriale: ${item.seriale || 'N/A'}`,
- description: item.descrizione || 'Nessuna descrizione',
- id: item.id,
- category: 'Inventario'
- });
- });
- }
-
- // Process requests results
- if (responses[1].ok) {
- const requests = await responses[1].json();
- requests.forEach(request => {
- results.push({
- type: 'richieste',
- title: `Richiesta per ${request.oggetto_nome}`,
- subtitle: `Utente: ${request.utente_nome} ${request.utente_cognome}`,
- description: `Stato: ${request.stato}`,
- id: request.id,
- category: 'Richieste'
- });
- });
- }
-
- // Process repairs results
- if (responses[2].ok) {
- const repairs = await responses[2].json();
- repairs.forEach(repair => {
- results.push({
- type: 'riparazioni',
- title: `Riparazione ${repair.oggetto_nome}`,
- subtitle: `Stato: ${repair.stato}`,
- description: repair.descrizione || 'Nessuna descrizione',
- id: repair.id,
- category: 'Riparazioni'
- });
- });
- }
-
- setSearchResults(results);
- setShowSearchResults(true);
- } catch (error) {
- console.error('Errore nella ricerca:', error);
- setSearchResults([]);
- } finally {
- setIsSearching(false);
- }
- };
-
- return (
- <div className="min-h-screen bg-gray-50 flex" onClick={() => setShowSearchResults(false)}>
+  return (
+ <div className="min-h-screen bg-gray-50 flex">
  {/* Sidebar Mobile */}
  <div className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
  <div className={`fixed inset-0 bg-black transition-opacity duration-300 ${sidebarOpen ? 'bg-opacity-50' : 'bg-opacity-0'}`} onClick={() => setSidebarOpen(false)}></div>
@@ -161,8 +68,8 @@ function AppInner() {
  </button>
  </div>
  <nav className="flex-1 p-4 space-y-2">
- {isAdmin ? (
- <>
+  {isAdmin ? (
+    <>
  <NavButton icon="📊" label="Dashboard" tab="dashboard" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
  <NavButton icon="📦" label="Inventario" tab="inventario" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
  <NavButton icon="📝" label="Prestiti" tab="prestiti" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
@@ -180,8 +87,8 @@ function AppInner() {
  onClose={() => setSidebarOpen(false)}
  />
  <NavButton icon="📈" label="Statistiche" tab="statistiche" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
- </>
- ) : (
+    </>
+  ) : (
  <NavButton icon="👤" label="Area Utente" tab="utente" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
  )}
  </nav>
@@ -191,7 +98,7 @@ function AppInner() {
 
  {/* Sidebar Desktop */}
  {!isMobile && (
- <div className="flex flex-col w-64 bg-white sidebar border-r border-gray-200">
+ <div className="fixed left-0 top-0 h-full w-64 bg-white sidebar border-r border-gray-200 z-30">
  <div className="flex items-center justify-between p-6 border-b border-gray-200">
  <div className="flex items-center">
  <img src="/logoSito.svg" alt="LABA Logo" className="h-12 w-auto" />
@@ -202,26 +109,6 @@ function AppInner() {
  {/* Theme toggle removed */}
  </div>
  
- {/* Global Search in Sidebar */}
- <div className="p-4 border-b border-gray-200">
- <div className="relative">
- <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
- {isSearching ? (
- <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
- ) : (
- <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
- </svg>
- )}
- </div>
- <input
- type="text"
- placeholder="Cerca inventario, richieste, riparazioni..."
- className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
- onChange={(e) => handleGlobalSearch(e.target.value)}
- />
- </div>
- </div>
  <nav className="flex-1 p-4 space-y-2">
  {isAdmin ? (
  <>
@@ -276,7 +163,7 @@ function AppInner() {
  currentTab={tab} 
  onClick={setTab} 
  />
- )}
+  )}
 </nav>
  <UserBadge />
  </div>
@@ -301,97 +188,37 @@ function AppInner() {
  <h1 className="text-lg font-semibold text-gray-800">LABA</h1>
  </div>
  <div className="flex items-center space-x-2">
- {/* Global Search Mobile */}
- <div className="relative">
- <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
- {isSearching ? (
- <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
- ) : (
- <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
- </svg>
- )}
- </div>
- <input
- type="text"
- placeholder="Cerca inventario, richieste, riparazioni..."
- className="block w-48 pl-9 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
- onChange={(e) => handleGlobalSearch(e.target.value)}
- />
- </div>
+ {/* User Badge Mobile */}
+ <UserBadge />
  </div>
  </div>
  </div>
  )}
 
- {/* Search Results Dropdown */}
- {showSearchResults && searchResults.length > 0 && (
- <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
- <div className="p-4 border-b border-gray-200">
- <h3 className="text-sm font-medium text-gray-900">
- Risultati per "{searchQuery}" ({searchResults.length})
- </h3>
- </div>
- <div className="divide-y divide-gray-200">
- {searchResults.map((result, index) => (
- <div
- key={`${result.type}-${result.id}-${index}`}
- className="p-4 hover:bg-gray-50 cursor-pointer"
- onClick={() => {
- setTab(result.type);
- setShowSearchResults(false);
- setSearchQuery("");
- }}
- >
- <div className="flex items-start">
- <div className="flex-shrink-0">
- <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
- result.type === 'inventario' ? 'bg-blue-100 text-blue-600' :
- result.type === 'richieste' ? 'bg-green-100 text-green-600' :
- 'bg-orange-100 text-orange-600'
- }`}>
- {result.type === 'inventario' ? '📦' : 
- result.type === 'richieste' ? '📝' : '🔧'}
- </div>
- </div>
- <div className="ml-3 flex-1">
- <p className="text-sm font-medium text-gray-900">{result.title}</p>
- <p className="text-sm text-gray-500">{result.subtitle}</p>
- <p className="text-xs text-gray-400 mt-1">{result.description}</p>
- <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mt-1">
- {result.category}
- </span>
- </div>
- </div>
- </div>
- ))}
- </div>
- </div>
- )}
 
  {/* Content */}
- <main className="flex-1 p-4 lg:p-6 main-content">
+ <main className={`flex-1 p-4 lg:p-6 main-content ${!isMobile ? 'ml-64' : ''}`}>
  <div className="max-w-7xl mx-auto">
- {isAdmin ? (
- <>
+        {isAdmin ? (
+          <>
  {tab === 'dashboard' && <Dashboard onNavigate={setTab} />}
  {tab === 'inventario' && <Inventory />}
  {tab === 'prestiti' && <Loans />}
  {tab === 'riparazioni' && <Repairs />}
  {tab === 'utenti' && <UserManagement />}
  {tab === 'statistiche' && <Statistics />}
- </>
- ) : (
+          </>
+        ) : (
  <UserDashboard onNavigate={setTab} />
- )}
- </div>
- </main>
+        )}
+              </div>
+      </main>
 
- <Footer />
+      <Footer />
  {/* <NotificationManager /> */}
  </div>
- </div>
- );
+    </div>
+  );
 }
 
 // Componente per i pulsanti di navigazione
@@ -416,12 +243,12 @@ function NavButton({ icon, label, tab, currentTab, onClick, onClose }) {
 
 // Badge utente
 function UserBadge() {
- const { user, logout, isAdmin } = useAuth();
- if (!user) return null;
+  const { user, logout, isAdmin } = useAuth();
+  if (!user) return null;
  
- const initials = (user.name?.[0] || "?") + (user.surname?.[0] || "");
+  const initials = (user.name?.[0] || "?") + (user.surname?.[0] || "");
  
- return (
+  return (
  <div className="p-4 border-t border-gray-200">
  <div className="flex items-center space-x-3 mb-3">
  <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
@@ -435,7 +262,7 @@ function UserBadge() {
  {isAdmin ? "Amministratore" : "Utente"} • {user.email}
  </p>
  </div>
- </div>
+      </div>
  <button 
  onClick={logout}
  className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200 border border-gray-200 "
@@ -445,20 +272,20 @@ function UserBadge() {
  </svg>
  Esci
  </button>
- </div>
- );
+    </div>
+  );
 }
 
 function Gate() {
- const { isAuthenticated } = useAuth();
- if (!isAuthenticated) return <Login branding="LABA – Gestione Attrezzature" />;
- return <AppInner />;
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) return <Login branding="LABA – Gestione Attrezzature" />;
+  return <AppInner />;
 }
 
 export default function App() {
- return (
- <AuthProvider>
- <Gate />
- </AuthProvider>
- );
+  return (
+    <AuthProvider>
+      <Gate />
+    </AuthProvider>
+  );
 }
