@@ -25,6 +25,7 @@ function AppInner() {
  const [searchQuery, setSearchQuery] = useState("");
  const [searchResults, setSearchResults] = useState([]);
  const [showSearchResults, setShowSearchResults] = useState(false);
+ const [isSearching, setIsSearching] = useState(false);
  const [isMobile, setIsMobile] = useState(false);
  const { isAdmin, user } = useAuth();
  // const { isDark, toggleTheme } = useTheme();
@@ -55,11 +56,20 @@ function AppInner() {
  if (query.length < 2) {
  setSearchResults([]);
  setShowSearchResults(false);
+ setIsSearching(false);
  return;
  }
 
+ setIsSearching(true);
  try {
- const { token } = useAuth();
+ const token = localStorage.getItem('token');
+ if (!token) {
+ setSearchResults([]);
+ setShowSearchResults(false);
+ setIsSearching(false);
+ return;
+ }
+
  const searchPromises = [
  fetch(`/api/inventario?search=${encodeURIComponent(query)}`, {
  headers: { 'Authorization': `Bearer ${token}` }
@@ -125,15 +135,17 @@ function AppInner() {
  } catch (error) {
  console.error('Errore nella ricerca:', error);
  setSearchResults([]);
+ } finally {
+ setIsSearching(false);
  }
  };
 
  return (
  <div className="min-h-screen bg-gray-50 flex" onClick={() => setShowSearchResults(false)}>
  {/* Sidebar Mobile */}
- <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
- <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)}></div>
- <div className="relative flex flex-col w-64 h-full bg-white shadow-xl border-r border-gray-200">
+ <div className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+ <div className={`fixed inset-0 bg-black transition-opacity duration-300 ${sidebarOpen ? 'bg-opacity-50' : 'bg-opacity-0'}`} onClick={() => setSidebarOpen(false)}></div>
+ <div className={`relative flex flex-col w-64 h-full bg-white shadow-xl border-r border-gray-200 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
  <div className="flex items-center justify-between p-4 border-b">
  <div className="flex items-center">
  <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
@@ -151,10 +163,10 @@ function AppInner() {
  <nav className="flex-1 p-4 space-y-2">
  {isAdmin ? (
  <>
- <NavButton icon="📊" label="Dashboard" tab="dashboard" currentTab={tab} onClick={setTab} />
- <NavButton icon="📦" label="Inventario" tab="inventario" currentTab={tab} onClick={setTab} />
- <NavButton icon="📝" label="Prestiti" tab="prestiti" currentTab={tab} onClick={setTab} />
- <NavButton icon="🛠️" label="Riparazioni" tab="riparazioni" currentTab={tab} onClick={setTab} />
+ <NavButton icon="📊" label="Dashboard" tab="dashboard" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
+ <NavButton icon="📦" label="Inventario" tab="inventario" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
+ <NavButton icon="📝" label="Prestiti" tab="prestiti" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
+ <NavButton icon="🛠️" label="Riparazioni" tab="riparazioni" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
  <NavButton 
  icon={
  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,11 +177,12 @@ function AppInner() {
  tab="utenti" 
  currentTab={tab} 
  onClick={setTab} 
+ onClose={() => setSidebarOpen(false)}
  />
- <NavButton icon="📈" label="Statistiche" tab="statistiche" currentTab={tab} onClick={setTab} />
+ <NavButton icon="📈" label="Statistiche" tab="statistiche" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
  </>
  ) : (
- <NavButton icon="👤" label="Area Utente" tab="utente" currentTab={tab} onClick={setTab} />
+ <NavButton icon="👤" label="Area Utente" tab="utente" currentTab={tab} onClick={setTab} onClose={() => setSidebarOpen(false)} />
  )}
  </nav>
  <UserBadge />
@@ -193,13 +206,17 @@ function AppInner() {
  <div className="p-4 border-b border-gray-200">
  <div className="relative">
  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+ {isSearching ? (
+ <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+ ) : (
  <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
  </svg>
+ )}
  </div>
  <input
  type="text"
- placeholder="Cerca..."
+ placeholder="Cerca inventario, richieste, riparazioni..."
  className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
  onChange={(e) => handleGlobalSearch(e.target.value)}
  />
@@ -269,7 +286,7 @@ function AppInner() {
  <div className="flex-1 flex flex-col min-h-screen">
  {/* Top Bar Mobile */}
  {isMobile && (
- <div className="bg-white border-b border-gray-200 px-4 py-3">
+ <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
  <div className="flex items-center justify-between">
  <div className="flex items-center space-x-3">
  <button 
@@ -287,13 +304,17 @@ function AppInner() {
  {/* Global Search Mobile */}
  <div className="relative">
  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+ {isSearching ? (
+ <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+ ) : (
  <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
  </svg>
+ )}
  </div>
  <input
  type="text"
- placeholder="Cerca..."
+ placeholder="Cerca inventario, richieste, riparazioni..."
  className="block w-48 pl-9 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
  onChange={(e) => handleGlobalSearch(e.target.value)}
  />
@@ -374,18 +395,15 @@ function AppInner() {
 }
 
 // Componente per i pulsanti di navigazione
-function NavButton({ icon, label, tab, currentTab, onClick }) {
+function NavButton({ icon, label, tab, currentTab, onClick, onClose }) {
  const isActive = currentTab === tab;
  return (
  <button
  onClick={() => {
  onClick(tab);
  // Chiudi sidebar mobile dopo la selezione
- if (window.innerWidth < 1024) {
- setTimeout(() => {
- const event = new Event('resize');
- window.dispatchEvent(event);
- }, 100);
+ if (onClose) {
+ onClose();
  }
  }}
  className={`nav-button ${isActive ? 'active' : ''}`}
