@@ -25,19 +25,26 @@ function AppInner() {
  const [searchQuery, setSearchQuery] = useState("");
  const [searchResults, setSearchResults] = useState([]);
  const [showSearchResults, setShowSearchResults] = useState(false);
+ const [isMobile, setIsMobile] = useState(false);
  const { isAdmin, user } = useAuth();
  // const { isDark, toggleTheme } = useTheme();
  
  // Hook per notifiche in tempo reale
  useRealtimeNotifications();
 
- // Chiudi sidebar su resize
+ // Gestione responsive
  useEffect(() => {
  const handleResize = () => {
- if (window.innerWidth >= 1024) {
+ const mobile = window.innerWidth < 1024;
+ setIsMobile(mobile);
+ if (!mobile) {
  setSidebarOpen(false);
  }
  };
+ 
+ // Imposta lo stato iniziale
+ handleResize();
+ 
  window.addEventListener('resize', handleResize);
  return () => window.removeEventListener('resize', handleResize);
  }, []);
@@ -170,7 +177,8 @@ function AppInner() {
  </div>
 
  {/* Sidebar Desktop */}
- <div className="hidden lg:flex lg:flex-col lg:w-64 bg-white sidebar border-r border-gray-200">
+ {!isMobile && (
+ <div className="flex flex-col w-64 bg-white sidebar border-r border-gray-200">
  <div className="flex items-center justify-between p-6 border-b border-gray-200">
  <div className="flex items-center">
  <img src="/logoSito.svg" alt="LABA Logo" className="h-12 w-auto" />
@@ -255,11 +263,13 @@ function AppInner() {
 </nav>
  <UserBadge />
  </div>
+ )}
 
  {/* Main Content */}
  <div className="flex-1 flex flex-col min-h-screen">
  {/* Top Bar Mobile */}
- <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+ {isMobile && (
+ <div className="bg-white border-b border-gray-200 px-4 py-3">
  <div className="flex items-center justify-between">
  <div className="flex items-center space-x-3">
  <button 
@@ -291,6 +301,7 @@ function AppInner() {
  </div>
  </div>
  </div>
+ )}
 
  {/* Search Results Dropdown */}
  {showSearchResults && searchResults.length > 0 && (
