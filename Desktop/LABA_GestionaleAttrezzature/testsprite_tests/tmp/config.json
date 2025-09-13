@@ -1,8 +1,9 @@
 {
-  "status": "commited",
-  "type": "backend",
+  "status": "init",
+  "type": "frontend",
   "scope": "codebase",
-  "localEndpoint": "http://localhost:3001",
+  "localEndpoint": "http://localhost:3000",
   "backendAuthType": "Bearer token",
-  "backendCredential": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6LTEsImVtYWlsIjoiYWRtaW4iLCJydW9sbyI6ImFkbWluIiwiY29yc29fYWNjYWRlbWljbyI6bnVsbCwiaWF0IjoxNzU3NTMzMDgxLCJleHAiOjE3NTgxMzc4ODF9.Xx5LkpSmUzsVvbzQDTBrZdkPuqVmZM3MhCd8XOndpaE"
+  "backendCredential": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6LTEsImVtYWlsIjoiYWRtaW4iLCJydW9sbyI6ImFkbWluIiwiY29yc29fYWNjYWRlbWljbyI6bnVsbCwiaWF0IjoxNzU3NTMzMDgxLCJleHAiOjE3NTgxMzc4ODF9.Xx5LkpSmUzsVvbzQDTBrZdkPuqVmZM3MhCd8XOndpaE",
+  "serverPort": 53577
 }
