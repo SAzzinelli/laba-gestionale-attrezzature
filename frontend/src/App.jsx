@@ -14,18 +14,41 @@ import Loans from "./components/Loans.jsx";
 import Repairs from "./components/Repairs.jsx";
 import Statistics from "./components/Statistics.jsx";
 import AdvancedStats from "./components/AdvancedStats.jsx";
+import SystemStatus from "./components/SystemStatus.jsx";
 import UserManagement from "./components/UserManagement.jsx";
+import NotificationsPanel from "./components/NotificationsPanel.jsx";
 import Footer from "./components/Footer.jsx";
 import UserArea from "./user/UserArea.jsx";
 
 // App principale con design moderno
 function AppInner() {
- const [sidebarOpen, setSidebarOpen] = useState(false);
- const { isAdmin, user } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Sistema Online', message: 'Tutti i servizi operativi', time: '2 min fa', isRead: false, type: 'success' },
+    { id: 2, title: 'Nuova Richiesta', message: 'Simone ha richiesto un prestito', time: '15 min fa', isRead: false, type: 'info' },
+    { id: 3, title: 'Manutenzione', message: 'Manutenzione programmata per domani', time: '1 ora fa', isRead: true, type: 'warning' }
+  ]);
+  const { isAdmin, user } = useAuth();
  // const { isDark, toggleTheme } = useTheme();
  
  // Hook per notifiche in tempo reale
  useRealtimeNotifications();
+
+ // Funzioni per gestire le notifiche
+ const unreadCount = notifications.filter(n => !n.isRead).length;
+
+ const handleMarkAsRead = (id) => {
+   setNotifications(prev => 
+     prev.map(notif => 
+       notif.id === id ? { ...notif, isRead: true } : notif
+     )
+   );
+ };
+
+ const handleDeleteNotification = (id) => {
+   setNotifications(prev => prev.filter(notif => notif.id !== id));
+ };
 
  // Gestione URL per la navigazione
  const getCurrentTab = () => {
@@ -177,6 +200,13 @@ function AppInner() {
  currentTab={tab} 
  onClick={handleTabChange} 
  />
+ <NavButton 
+ icon={<svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>} 
+ label="Sistema Online" 
+ tab="sistema" 
+ currentTab={tab} 
+ onClick={handleTabChange} 
+ />
 </nav>
  <UserBadge />
  </div>
@@ -209,14 +239,19 @@ function AppInner() {
             </div>
             <div className="flex items-center space-x-4">
               {/* Notifications Bell */}
-              <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <button 
+                onClick={() => setNotificationsOpen(true)}
+                className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
                 {/* Notification Badge */}
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                  0
-                </span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -234,6 +269,7 @@ function AppInner() {
  {tab === 'riparazioni' && <Repairs />}
  {tab === 'utenti' && <UserManagement />}
  {tab === 'statistiche' && <Statistics />}
+ {tab === 'sistema' && <SystemStatus />}
  </>
  ) : (
  <UserArea />
@@ -242,6 +278,16 @@ function AppInner() {
  </main>
 
  <Footer />
+ 
+ {/* Notifications Panel */}
+ <NotificationsPanel
+   isOpen={notificationsOpen}
+   onClose={() => setNotificationsOpen(false)}
+   notifications={notifications}
+   onMarkAsRead={handleMarkAsRead}
+   onDelete={handleDeleteNotification}
+ />
+ 
  {/* <NotificationManager /> */}
  </div>
  </div>
