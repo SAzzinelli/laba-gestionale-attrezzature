@@ -1,0 +1,851 @@
+{
+  "tech_stack": ["JavaScript", "Node.js", "Express.js", "SQLite", "React", "Vite", "JWT", "CORS"],
+  "features": [
+    {
+      "name": "Authentication API",
+      "description": "User authentication and authorization system with JWT tokens, supporting both regular users and special admin account",
+      "files": ["backend/routes/auth.js", "backend/middleware/auth.js", "backend/models/users.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Authentication API",
+          "version": "4.1.0"
+        },
+        "paths": {
+          "/api/auth/login": {
+            "post": {
+              "summary": "User login",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "email": {"type": "string"},
+                        "username": {"type": "string"},
+                        "password": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "Login successful",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "token": {"type": "string"},
+                          "user": {"type": "object"}
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {"description": "Missing credentials"},
+                "401": {"description": "Invalid credentials"}
+              }
+            }
+          },
+          "/api/auth/register": {
+            "post": {
+              "summary": "User registration",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "email": {"type": "string"},
+                        "password": {"type": "string"},
+                        "nome": {"type": "string"},
+                        "cognome": {"type": "string"},
+                        "ruolo": {"type": "string", "default": "user"},
+                        "phone": {"type": "string"},
+                        "matricola": {"type": "string"},
+                        "corso_accademico": {"type": "string"}
+                      },
+                      "required": ["email", "password"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "Registration successful",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "token": {"type": "string"},
+                          "user": {"type": "object"}
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {"description": "Registration error"}
+              }
+            }
+          },
+          "/api/auth/me": {
+            "get": {
+              "summary": "Get current user info",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {
+                  "description": "User info",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "id": {"type": "integer"},
+                          "email": {"type": "string"},
+                          "ruolo": {"type": "string"},
+                          "corso_accademico": {"type": "string"},
+                          "user": {"type": "object"}
+                        }
+                      }
+                    }
+                  }
+                },
+                "401": {"description": "Unauthorized"}
+              }
+            }
+          }
+        },
+        "components": {
+          "securitySchemes": {
+            "bearerAuth": {
+              "type": "http",
+              "scheme": "bearer",
+              "bearerFormat": "JWT"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Inventory Management API",
+      "description": "CRUD operations for equipment inventory management with category filtering and course assignments",
+      "files": ["backend/routes/inventario.js", "backend/models/inventario.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Inventory Management API",
+          "version": "4.1.0"
+        },
+        "paths": {
+          "/api/inventario": {
+            "get": {
+              "summary": "Get inventory items",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {
+                  "description": "List of inventory items",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {"type": "integer"},
+                            "nome": {"type": "string"},
+                            "categoria_id": {"type": "integer"},
+                            "seriale": {"type": "string"},
+                            "note": {"type": "string"},
+                            "disponibile": {"type": "integer"},
+                            "corsi_assegnati": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "post": {
+              "summary": "Create inventory item",
+              "security": [{"bearerAuth": []}],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "nome": {"type": "string"},
+                        "categoria_id": {"type": "integer"},
+                        "seriale": {"type": "string"},
+                        "note": {"type": "string"},
+                        "disponibile": {"type": "boolean", "default": true}
+                      },
+                      "required": ["nome"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {"description": "Item created"},
+                "400": {"description": "Validation error"},
+                "403": {"description": "Admin required"}
+              }
+            }
+          },
+          "/api/inventario/{id}": {
+            "get": {
+              "summary": "Get inventory item by ID",
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Inventory item"},
+                "404": {"description": "Not found"}
+              }
+            },
+            "put": {
+              "summary": "Update inventory item",
+              "security": [{"bearerAuth": []}],
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "nome": {"type": "string"},
+                        "categoria_id": {"type": "integer"},
+                        "seriale": {"type": "string"},
+                        "note": {"type": "string"},
+                        "disponibile": {"type": "boolean"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Item updated"},
+                "400": {"description": "Validation error"},
+                "403": {"description": "Admin required"}
+              }
+            },
+            "delete": {
+              "summary": "Delete inventory item",
+              "security": [{"bearerAuth": []}],
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Item deleted"},
+                "403": {"description": "Admin required"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Loans Management API",
+      "description": "Equipment loan management system for tracking active loans and loan history",
+      "files": ["backend/routes/prestiti.js", "backend/models/prestiti.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Loans Management API",
+          "version": "4.1.0"
+        },
+        "paths": {
+          "/api/prestiti": {
+            "get": {
+              "summary": "Get loans",
+              "security": [{"bearerAuth": []}],
+              "parameters": [
+                {
+                  "name": "all",
+                  "in": "query",
+                  "schema": {"type": "string"},
+                  "description": "Set to '1' or 'true' to get all loans (admin only)"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "List of loans",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {"type": "integer"},
+                            "inventario_id": {"type": "integer"},
+                            "utente_id": {"type": "integer"},
+                            "dal": {"type": "string"},
+                            "al": {"type": "string"},
+                            "stato": {"type": "string"},
+                            "note": {"type": "string"},
+                            "oggetto_nome": {"type": "string"},
+                            "utente_email": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "403": {"description": "Admin required for all loans"}
+              }
+            },
+            "post": {
+              "summary": "Create loan",
+              "security": [{"bearerAuth": []}],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "inventario_id": {"type": "integer"},
+                        "utente_id": {"type": "integer"},
+                        "dal": {"type": "string"},
+                        "al": {"type": "string"},
+                        "note": {"type": "string"}
+                      },
+                      "required": ["inventario_id", "utente_id", "dal", "al"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {"description": "Loan created"},
+                "400": {"description": "Missing fields"},
+                "403": {"description": "Admin required"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Repairs Management API",
+      "description": "Equipment repair tracking system for managing repair requests and status updates",
+      "files": ["backend/routes/riparazioni.js", "backend/models/riparazioni.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Repairs Management API",
+          "version": "4.1.0"
+        },
+        "paths": {
+          "/api/riparazioni": {
+            "get": {
+              "summary": "Get repairs list",
+              "responses": {
+                "200": {
+                  "description": "List of repairs",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {"type": "integer"},
+                            "tipo": {"type": "string"},
+                            "inventario_id": {"type": "integer"},
+                            "data_inizio": {"type": "string"},
+                            "data_fine": {"type": "string"},
+                            "stato": {"type": "string"},
+                            "note": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "post": {
+              "summary": "Create repair",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "tipo": {"type": "string", "enum": ["GUASTO", "RIPARAZIONE"]},
+                        "inventario_id": {"type": "integer"},
+                        "data_inizio": {"type": "string"},
+                        "data_fine": {"type": "string"},
+                        "note": {"type": "string"},
+                        "unit_ids": {"type": "array", "items": {"type": "string"}}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {"description": "Repair created"},
+                "400": {"description": "Validation error"}
+              }
+            }
+          },
+          "/api/riparazioni/{id}": {
+            "get": {
+              "summary": "Get repair by ID",
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Repair details"},
+                "404": {"description": "Not found"}
+              }
+            },
+            "put": {
+              "summary": "Update repair",
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "tipo": {"type": "string"},
+                        "inventario_id": {"type": "integer"},
+                        "data_inizio": {"type": "string"},
+                        "data_fine": {"type": "string"},
+                        "note": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Repair updated"},
+                "400": {"description": "Validation error"}
+              }
+            },
+            "delete": {
+              "summary": "Delete repair",
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Repair deleted"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Categories Management API",
+      "description": "Hierarchical category management system for organizing inventory items",
+      "files": ["backend/routes/categorie.js", "backend/models/categorie.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Categories Management API",
+          "version": "4.1.0"
+        },
+        "paths": {
+          "/api/categorie": {
+            "get": {
+              "summary": "Get categories list",
+              "responses": {
+                "200": {
+                  "description": "List of categories",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "madre": {"type": "string"},
+                            "figlia": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "post": {
+              "summary": "Create category",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "madre": {"type": "string"},
+                        "figlia": {"type": "string"}
+                      },
+                      "required": ["madre", "figlia"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Category created"},
+                "400": {"description": "Validation error"}
+              }
+            },
+            "put": {
+              "summary": "Rename category",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "madre": {"type": "string"},
+                        "figlia": {"type": "string"},
+                        "new_figlia": {"type": "string"}
+                      },
+                      "required": ["madre", "figlia", "new_figlia"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Category renamed"},
+                "400": {"description": "Validation error"}
+              }
+            },
+            "delete": {
+              "summary": "Delete category",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "madre": {"type": "string"},
+                        "figlia": {"type": "string"}
+                      },
+                      "required": ["madre", "figlia"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Category deleted"},
+                "400": {"description": "Validation error"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Requests Management API",
+      "description": "Equipment request system for users to request equipment loans",
+      "files": ["backend/routes/richieste.js", "backend/models/richieste.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Requests Management API",
+          "version": "4.1.0"
+        },
+        "paths": {
+          "/api/richieste": {
+            "get": {
+              "summary": "Get requests",
+              "security": [{"bearerAuth": []}],
+              "parameters": [
+                {
+                  "name": "all",
+                  "in": "query",
+                  "schema": {"type": "string"},
+                  "description": "Set to '1' or 'true' to get all requests (admin only)"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "List of requests",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {"type": "integer"},
+                            "inventario_id": {"type": "integer"},
+                            "utente_id": {"type": "integer"},
+                            "dal": {"type": "string"},
+                            "al": {"type": "string"},
+                            "stato": {"type": "string"},
+                            "note": {"type": "string"},
+                            "created_at": {"type": "string"},
+                            "oggetto_nome": {"type": "string"},
+                            "utente_email": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "403": {"description": "Admin required for all requests"}
+              }
+            },
+            "post": {
+              "summary": "Create request",
+              "security": [{"bearerAuth": []}],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "inventario_id": {"type": "integer"},
+                        "dal": {"type": "string"},
+                        "al": {"type": "string"},
+                        "note": {"type": "string"}
+                      },
+                      "required": ["inventario_id", "dal", "al"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Request created"},
+                "400": {"description": "Missing required fields"},
+                "500": {"description": "Server error"}
+              }
+            }
+          },
+          "/api/richieste/mie": {
+            "get": {
+              "summary": "Get my requests",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {
+                  "description": "User's requests",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {"type": "integer"},
+                            "inventario_id": {"type": "integer"},
+                            "utente_id": {"type": "integer"},
+                            "dal": {"type": "string"},
+                            "al": {"type": "string"},
+                            "stato": {"type": "string"},
+                            "note": {"type": "string"},
+                            "created_at": {"type": "string"},
+                            "oggetto_nome": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Reports Management API",
+      "description": "Issue reporting system for equipment problems and maintenance requests",
+      "files": ["backend/routes/segnalazioni.js", "backend/models/segnalazioni.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Reports Management API",
+          "version": "4.1.0"
+        },
+        "paths": {
+          "/api/segnalazioni": {
+            "get": {
+              "summary": "Get all reports (admin only)",
+              "security": [{"bearerAuth": []}],
+              "parameters": [
+                {
+                  "name": "stato",
+                  "in": "query",
+                  "schema": {"type": "string"},
+                  "description": "Filter by status"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "List of reports",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {"type": "integer"},
+                            "user_id": {"type": "integer"},
+                            "prestito_id": {"type": "integer"},
+                            "inventario_id": {"type": "integer"},
+                            "tipo": {"type": "string"},
+                            "messaggio": {"type": "string"},
+                            "stato": {"type": "string"},
+                            "created_at": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "403": {"description": "Admin required"}
+              }
+            },
+            "post": {
+              "summary": "Create report",
+              "security": [{"bearerAuth": []}],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "prestito_id": {"type": "integer"},
+                        "inventario_id": {"type": "integer"},
+                        "tipo": {"type": "string"},
+                        "messaggio": {"type": "string"}
+                      },
+                      "required": ["tipo"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Report created"},
+                "400": {"description": "Validation error"}
+              }
+            }
+          },
+          "/api/segnalazioni/mie": {
+            "get": {
+              "summary": "Get my reports",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {
+                  "description": "User's reports",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {"type": "integer"},
+                            "user_id": {"type": "integer"},
+                            "prestito_id": {"type": "integer"},
+                            "inventario_id": {"type": "integer"},
+                            "tipo": {"type": "string"},
+                            "messaggio": {"type": "string"},
+                            "stato": {"type": "string"},
+                            "created_at": {"type": "string"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/segnalazioni/{id}/chiudi": {
+            "post": {
+              "summary": "Close report (admin only)",
+              "security": [{"bearerAuth": []}],
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Report closed"},
+                "403": {"description": "Admin required"}
+              }
+            }
+          },
+          "/api/segnalazioni/{id}": {
+            "delete": {
+              "summary": "Delete report (admin only)",
+              "security": [{"bearerAuth": []}],
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {"type": "integer"}
+                }
+              ],
+              "responses": {
+                "200": {"description": "Report deleted"},
+                "403": {"description": "Admin required"}
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
