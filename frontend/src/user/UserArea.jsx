@@ -5,6 +5,7 @@ import MyLoans from '../components/MyLoans';
 import AvailableItems from '../components/AvailableItems';
 import ReportFault from '../components/ReportFault';
 import SystemStatus from '../components/SystemStatus.jsx';
+import Footer from '../components/Footer';
 
 // UserBadge Component (simplified to avoid overlap)
 function UserBadge() {
@@ -148,9 +149,13 @@ const UserArea = () => {
           <UserBadge />
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 lg:ml-64">
-          {renderActiveView()}
+        {/* Main Content Area with Footer */}
+        <div className="flex-1 lg:ml-64 flex flex-col">
+          <main className="flex-1">
+            {renderActiveView()}
+          </main>
+          
+          <Footer />
         </div>
     </div>
   );

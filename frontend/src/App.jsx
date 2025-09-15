@@ -264,28 +264,26 @@ function AppInner() {
         </div>
       )}
 
- {/* Content Area with Footer */}
- <div className="flex-1 flex flex-col">
-   <main className="flex-1 p-4 lg:p-6 main-content">
-     <div className="max-w-7xl mx-auto">
-       {isAdmin ? (
-         <>
-           {tab === 'dashboard' && <Dashboard onNavigate={handleTabChange} />}
-           {tab === 'inventario' && <Inventory />}
-           {tab === 'prestiti' && <Loans />}
-           {tab === 'riparazioni' && <Repairs />}
-           {tab === 'utenti' && <UserManagement />}
-           {tab === 'statistiche' && <Statistics />}
-           {tab === 'sistema' && <SystemStatus />}
-         </>
-       ) : (
-         <UserArea />
-       )}
-     </div>
-   </main>
-   
-   <Footer />
- </div>
+ {/* Content Area */}
+ {isAdmin ? (
+   <div className="flex-1 flex flex-col">
+     <main className="flex-1 p-4 lg:p-6 main-content">
+       <div className="max-w-7xl mx-auto">
+         {tab === 'dashboard' && <Dashboard onNavigate={handleTabChange} />}
+         {tab === 'inventario' && <Inventory />}
+         {tab === 'prestiti' && <Loans />}
+         {tab === 'riparazioni' && <Repairs />}
+         {tab === 'utenti' && <UserManagement />}
+         {tab === 'statistiche' && <Statistics />}
+         {tab === 'sistema' && <SystemStatus />}
+       </div>
+     </main>
+     
+     <Footer />
+   </div>
+ ) : (
+   <UserArea />
+ )}
  
  {/* Notifications Panel */}
  <NotificationsPanel
