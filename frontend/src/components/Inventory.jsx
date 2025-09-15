@@ -158,7 +158,7 @@ const Inventory = () => {
  
  inventory.forEach(item => {
  const totalQuantity = item.quantita_totale || 0;
- const availableQuantity = item.quantita_disponibile || 0;
+ const availableQuantity = item.unita_disponibili || 0;
  
  // Only if there's at least 1 item in inventory
  if (totalQuantity > 0) {

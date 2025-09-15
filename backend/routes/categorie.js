@@ -22,4 +22,88 @@ r.get('/', async (req, res) => {
   }
 });
 
+// POST /api/categorie
+r.post('/', async (req, res) => {
+  try {
+    const { madre, figlia } = req.body;
+    
+    if (!madre || !figlia) {
+      return res.status(400).json({ error: 'Categoria madre e figlia sono obbligatorie' });
+    }
+
+    // Verifica se la categoria esiste già
+    const existing = await query(
+      'SELECT id FROM categorie WHERE madre = $1 AND figlia = $2',
+      [madre, figlia]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'Categoria già esistente' });
+    }
+
+    // Inserisci la nuova categoria
+    const result = await query(
+      'INSERT INTO categorie (madre, figlia) VALUES ($1, $2) RETURNING *',
+      [madre, figlia]
+    );
+
+    res.status(201).json({
+      id: `${result[0].madre}-${result[0].figlia}`,
+      madre: result[0].madre,
+      figlia: result[0].figlia,
+      nome: `${result[0].madre} - ${result[0].figlia}`
+    });
+  } catch (error) {
+    console.error('Errore POST categorie:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// DELETE /api/categorie/:id
+r.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // L'id è nel formato "madre-figlia"
+    const [madre, figlia] = id.split('-');
+    
+    if (!madre || !figlia) {
+      return res.status(400).json({ error: 'ID categoria non valido' });
+    }
+
+    // Verifica se la categoria esiste
+    const existing = await query(
+      'SELECT id FROM categorie WHERE madre = $1 AND figlia = $2',
+      [madre, figlia]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Categoria non trovata' });
+    }
+
+    // Verifica se ci sono articoli che usano questa categoria
+    const itemsUsingCategory = await query(
+      'SELECT COUNT(*) as count FROM inventario WHERE categoria_madre = $1 AND categoria_figlia = $2',
+      [madre, figlia]
+    );
+
+    if (itemsUsingCategory[0].count > 0) {
+      return res.status(409).json({ 
+        error: `Impossibile eliminare: ci sono ${itemsUsingCategory[0].count} articoli che usano questa categoria` 
+      });
+    }
+
+    // Elimina la categoria
+    await query(
+      'DELETE FROM categorie WHERE madre = $1 AND figlia = $2',
+      [madre, figlia]
+    );
+
+    res.json({ message: 'Categoria eliminata con successo' });
+  } catch (error) {
+    console.error('Errore DELETE categorie:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
 export default r;
