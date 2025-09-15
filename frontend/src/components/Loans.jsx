@@ -297,9 +297,9 @@ const Loans = () => {
  </div>
 
  {/* Content */}
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
  {filteredData.length === 0 ? (
- <div className="lg:col-span-2">
+      <div className="md:col-span-2 lg:col-span-3 xl:col-span-4">
  <div className="card text-center py-12">
  <div className="text-muted text-lg mb-2">
  <svg className="icon-lg mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

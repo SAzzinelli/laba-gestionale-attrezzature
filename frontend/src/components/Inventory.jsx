@@ -535,10 +535,11 @@ const Inventory = () => {
  </div>
  </div>
 
- {/* Inventory List */}
- <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
- <div className="overflow-x-auto">
- <table className="min-w-full divide-y divide-gray-200">
+    {/* Inventory List */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Desktop Table View */}
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
  <thead className="bg-gray-50">
  <tr>
  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Articolo</th>
@@ -689,9 +690,120 @@ const Inventory = () => {
  </React.Fragment>
  ))}
  </tbody>
- </table>
- </div>
- </div>
+        </table>
+      </div>
+      
+      {/* Mobile Card View */}
+      <div className="lg:hidden">
+        {groupedInventory.map((item) => (
+          <div key={item.id} className="border-b border-gray-200 p-4">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-medium text-gray-900 truncate">{item.nome}</h3>
+                <div className="mt-1 space-y-1">
+                  <p className="text-xs text-gray-500">
+                    <span className="font-medium">Categoria:</span> {item.categoria_nome || 'N/A'}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    <span className="font-medium">Corso:</span> {item.categoria_madre || 'N/A'}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    <span className="font-medium">Stato:</span> 
+                    <span className={`ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      item.stato_effettivo === 'disponibile' 
+                        ? 'bg-green-100 text-green-800' 
+                        : item.stato_effettivo === 'in_prestito' 
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-orange-100 text-orange-800'
+                    }`}>
+                      {item.stato_effettivo === 'disponibile' ? 'Disponibile' : 
+                       item.stato_effettivo === 'in_prestito' ? 'In Prestito' : 'In Riparazione'}
+                    </span>
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    <span className="font-medium">Quantità:</span> {item.quantita_totale}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    <span className="font-medium">Scaffale:</span> {item.scaffale || 'N/A'}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Actions */}
+              <div className="flex flex-col space-y-2 ml-4">
+                <button
+                  onClick={() => setQrCodeItem(item)}
+                  className="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50 transition-colors"
+                  title="Genera QR Code"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => handleEditItem(item)}
+                  className="text-yellow-600 hover:text-yellow-900 p-2 rounded hover:bg-yellow-50 transition-colors"
+                  title="Modifica articolo"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => handleDeleteItem(item.id)}
+                  className="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition-colors"
+                  title="Elimina articolo"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* Expandable Units for Mobile */}
+            {item.hasMultipleUnits && (
+              <div className="mt-3">
+                <button
+                  onClick={() => toggleExpanded(item.id)}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {expandedItems.has(item.id) ? 'Nascondi' : 'Mostra'} unità ({item.units.length})
+                </button>
+                {expandedItems.has(item.id) && (
+                  <div className="mt-2 space-y-2">
+                    {item.units.map((unit) => (
+                      <div key={unit.unitId} className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">
+                              {unit.nome} - Unità {unit.unitNumber}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              ID: {unit.codice_univoco || `Unit_${unit.unitNumber}`}
+                            </p>
+                          </div>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            unit.stato === 'disponibile' 
+                              ? 'bg-green-100 text-green-800' 
+                              : unit.stato === 'in_prestito' 
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-orange-100 text-orange-800'
+                          }`}>
+                            {unit.stato === 'disponibile' ? 'Disponibile' : 
+                             unit.stato === 'in_prestito' ? 'In Prestito' : 'In Riparazione'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
 
  {/* Empty State */}
  {filteredInventory.length === 0 && (
