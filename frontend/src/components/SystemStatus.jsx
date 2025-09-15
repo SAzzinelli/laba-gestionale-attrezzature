@@ -155,11 +155,11 @@ const SystemStatus = () => {
               <div className="text-sm text-gray-600">Utenti Attivi</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-1">{systemData.metrics.memoryUsage}%</div>
+              <div className="text-3xl font-bold text-purple-600 mb-1">{Math.round(systemData.metrics.memoryUsage)}%</div>
               <div className="text-sm text-gray-600">Utilizzo Memoria</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 mb-1">{systemData.metrics.cpuUsage}%</div>
+              <div className="text-3xl font-bold text-orange-600 mb-1">{Math.round(systemData.metrics.cpuUsage)}%</div>
               <div className="text-sm text-gray-600">Utilizzo CPU</div>
             </div>
           </div>
