@@ -1,36 +1,18 @@
 import React from 'react';
-import { Transition } from '@headlessui/react';
 
 const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, user, logout }) => {
+  if (!isOpen) return null;
+
   return (
-    <>
-      {/* Overlay - Completely separate, fades from center */}
-      <Transition
-        show={isOpen}
-        enter="ease-out duration-200"
-        enterFrom="opacity-0 scale-95 backdrop-blur-none"
-        enterTo="opacity-100 scale-100 backdrop-blur-md"
-        leave="ease-in duration-150"
-        leaveFrom="opacity-100 scale-100 backdrop-blur-md"
-        leaveTo="opacity-0 scale-95 backdrop-blur-none"
-      >
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-40 z-40 lg:hidden"
-          onClick={onClose}
-        />
-      </Transition>
+    <div className="fixed inset-0 z-40 lg:hidden">
+      {/* Overlay - Simple fade */}
+      <div 
+        className="absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
+        onClick={onClose}
+      />
       
-      {/* Mobile Menu - Completely separate, slides from bottom */}
-      <Transition
-        show={isOpen}
-        enter="ease-out duration-200 delay-100"
-        enterFrom="translate-y-full"
-        enterTo="translate-y-0"
-        leave="ease-in duration-150"
-        leaveFrom="translate-y-0"
-        leaveTo="translate-y-full"
-      >
-        <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl z-50 lg:hidden">
+      {/* Mobile Menu - Simple slide up */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transform transition-transform duration-300 ease-out">
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
@@ -111,9 +93,8 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
             Esci
           </button>
         </div>
-        </div>
-      </Transition>
-    </>
+      </div>
+    </div>
   );
 };
 
