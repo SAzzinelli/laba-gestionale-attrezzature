@@ -29,7 +29,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  setFormData({
  nome: editingItem.nome || '',
  quantita_totale: editingItem.quantita_totale || 1,
- scaffale: editingItem.scaffale || '',
+ scaffale: editingItem.posizione || '',
  note: editingItem.note || '',
  corsi_assegnati: editingItem.corsi_assegnati || [],
  categoria_id: editingItem.categoria_madre && editingItem.categoria_figlia 
@@ -37,9 +37,46 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  : '',
  unita: []
  });
+ // Carica le unità esistenti per la modifica
+ fetchExistingUnits(editingItem.id);
  }
+ } else {
+ // Reset form when modal closes
+ setFormData({
+ nome: '',
+ quantita_totale: 1,
+ scaffale: '',
+ note: '',
+ corsi_assegnati: [],
+ categoria_id: '',
+ unita: []
+ });
+ setStep(1);
+ setError(null);
  }
  }, [isOpen, editingItem]);
+
+ // Fetch existing units for editing
+ const fetchExistingUnits = async (itemId) => {
+ try {
+ const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario/${itemId}/units`, {
+ headers: { 'Authorization': `Bearer ${token}` }
+ });
+ if (response.ok) {
+ const units = await response.json();
+ setFormData(prev => ({
+ ...prev,
+ unita: units.map(unit => ({
+ codice_univoco: unit.codice_univoco,
+ stato: unit.stato,
+ prestito_corrente_id: unit.prestito_corrente_id
+ }))
+ }));
+ }
+ } catch (err) {
+ console.error('Errore caricamento unità:', err);
+ }
+ };
 
  const fetchCourses = async () => {
  try {
@@ -85,12 +122,22 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  // Handle quantity change
  const handleQuantityChange = (quantity) => {
  const newQuantity = Math.max(1, parseInt(quantity) || 1);
+ 
+ // Se stiamo modificando un articolo esistente, non rigenerare i codici
+ if (editingItem) {
+ setFormData(prev => ({
+ ...prev,
+ quantita_totale: newQuantity
+ }));
+ } else {
+ // Solo per nuovi articoli, genera i codici
  const units = generateUnitCodes(newQuantity, formData.nome || 'ITEM');
  setFormData(prev => ({
  ...prev,
  quantita_totale: newQuantity,
  unita: units
  }));
+ }
  };
 
  // Handle unit code change
@@ -114,13 +161,25 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  const method = editingItem ? 'PUT' : 'POST';
  const url = editingItem ? `${import.meta.env.VITE_API_BASE_URL}/api/inventario/${editingItem.id}` : `${import.meta.env.VITE_API_BASE_URL}/api/inventario`;
  
+ // Prepara i dati per l'invio
+ const submitData = {
+ ...formData,
+ posizione: formData.scaffale, // Mappa scaffale a posizione per il backend
+ categoria_madre: formData.categoria_id ? formData.categoria_id.split('-')[0] : null,
+ categoria_figlia: formData.categoria_id ? formData.categoria_id.split('-')[1] : null
+ };
+ 
+ // Rimuovi i campi che non servono al backend
+ delete submitData.scaffale;
+ delete submitData.categoria_id;
+
  const response = await fetch(url, {
  method,
  headers: {
  'Content-Type': 'application/json',
  'Authorization': `Bearer ${token}`
  },
- body: JSON.stringify(formData)
+ body: JSON.stringify(submitData)
  });
 
  if (!response.ok) {
@@ -412,7 +471,17 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  placeholder={`Codice ${index + 1}`}
  />
  </div>
- <div className="flex-shrink-0">
+ <div className="flex-shrink-0 flex items-center space-x-2">
+ {editingItem && unit.stato && (
+ <span className={`text-xs px-2 py-1 rounded ${
+ unit.stato === 'disponibile' ? 'bg-green-100 text-green-800' :
+ unit.stato === 'in_prestito' ? 'bg-blue-100 text-blue-800' :
+ unit.stato === 'in_riparazione' ? 'bg-orange-100 text-orange-800' :
+ 'bg-gray-100 text-gray-800'
+ }`}>
+ {unit.stato}
+ </span>
+ )}
  <span className="text-xs text-gray-500 bg-gray-100 px-1 py-0.5 rounded">
  {unit.codice_univoco.length}
  </span>
