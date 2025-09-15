@@ -17,12 +17,12 @@ const Loans = () => {
  try {
  setLoading(true);
  const [requestsRes, loansRes] = await Promise.all([
- fetch('/api/richieste?all=1', {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch('/api/prestiti?all=1', {
- headers: { 'Authorization': `Bearer ${token}` }
- })
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste?all=1`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti?all=1`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
  ]);
 
  if (!requestsRes.ok) throw new Error('Errore nel caricamento richieste');

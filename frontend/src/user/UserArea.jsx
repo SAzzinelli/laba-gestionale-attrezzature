@@ -25,18 +25,18 @@ const UserArea = () => {
  try {
  setLoading(true);
  const [inventoryRes, requestsRes, reportsRes, alertsRes] = await Promise.all([
- fetch('/api/inventario', {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch('/api/richieste/mie', {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch('/api/segnalazioni/mie', {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch('/api/avvisi/utente', {
- headers: { 'Authorization': `Bearer ${token}` }
- })
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste/mie`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/segnalazioni/mie`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/avvisi/utente`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
  ]);
 
  if (!inventoryRes.ok) throw new Error('Errore nel caricamento inventario');
@@ -412,7 +412,7 @@ function RequestModal({ item, onClose, onSuccess, token }) {
  setError(null);
 
  try {
- const response = await fetch('/api/richieste', {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',
@@ -550,7 +550,7 @@ function ReportModal({ item, onClose, onSuccess, token }) {
  setError(null);
 
  try {
- const response = await fetch('/api/segnalazioni', {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/segnalazioni`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',

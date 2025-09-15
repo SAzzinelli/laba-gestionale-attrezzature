@@ -107,38 +107,38 @@ const Dashboard = ({ onNavigate }) => {
  const fetchDashboardData = async () => {
  try {
  setLoading(true);
- const requests = [
- fetch('/api/inventario', {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch('/api/richieste?all=1', {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch('/api/riparazioni', {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch('/api/segnalazioni', {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch('/api/prestiti?all=1', {
- headers: { 'Authorization': `Bearer ${token}` }
- })
- ];
+    const requests = [
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste?all=1`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/riparazioni`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/segnalazioni`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti?all=1`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+    ];
 
- // Add alerts endpoint for admin or user-specific alerts
- if (isAdmin) {
- requests.push(fetch('/api/avvisi', {
- headers: { 'Authorization': `Bearer ${token}` }
- }));
- // Add password reset requests for admin
- requests.push(fetch('/api/auth/password-reset-requests', {
- headers: { 'Authorization': `Bearer ${token}` }
- }));
- } else {
- requests.push(fetch('/api/avvisi/utente', {
- headers: { 'Authorization': `Bearer ${token}` }
- }));
- }
+    // Add alerts endpoint for admin or user-specific alerts
+    if (isAdmin) {
+      requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/avvisi`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }));
+      // Add password reset requests for admin
+      requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/password-reset-requests`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }));
+    } else {
+      requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/avvisi/utente`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }));
+    }
 
  const responses = await Promise.all(requests);
  const [inventoryRes, requestsRes, repairsRes, reportsRes, prestitiRes, alertsRes, passwordResetRes] = responses;

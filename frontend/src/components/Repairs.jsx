@@ -59,12 +59,12 @@ const Repairs = () => {
  try {
  setLoading(true);
  const [repairsRes, inventoryRes] = await Promise.all([
- fetch('/api/riparazioni', {
- headers: { 'Authorization': `Bearer ${token}` }
- }),
- fetch('/api/inventario', {
- headers: { 'Authorization': `Bearer ${token}` }
- })
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/riparazioni`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
  ]);
 
  if (!repairsRes.ok) throw new Error('Errore nel caricamento riparazioni');
