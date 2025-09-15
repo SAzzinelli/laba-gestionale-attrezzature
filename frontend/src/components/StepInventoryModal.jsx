@@ -31,8 +31,10 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  quantita_totale: editingItem.quantita_totale || 1,
  scaffale: editingItem.scaffale || '',
  note: editingItem.note || '',
- corsi_assegnati: [],
- categoria_id: editingItem.categoria_id || '',
+ corsi_assegnati: editingItem.corsi_assegnati || [],
+ categoria_id: editingItem.categoria_madre && editingItem.categoria_figlia 
+ ? `${editingItem.categoria_madre}-${editingItem.categoria_figlia}` 
+ : '',
  unita: []
  });
  }
@@ -110,7 +112,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  try {
  setLoading(true);
  const method = editingItem ? 'PUT' : 'POST';
- const url = editingItem ? `/api/inventario/${editingItem.id}` : '/api/inventario';
+ const url = editingItem ? `${import.meta.env.VITE_API_BASE_URL}/api/inventario/${editingItem.id}` : `${import.meta.env.VITE_API_BASE_URL}/api/inventario`;
  
  const response = await fetch(url, {
  method,

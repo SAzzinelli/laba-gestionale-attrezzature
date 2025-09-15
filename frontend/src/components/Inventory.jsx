@@ -295,6 +295,7 @@ const Inventory = () => {
  // Handle edit item
  const handleEditItem = (item) => {
  setEditingItem(item);
+ setShowAddModal(true);
  };
 
  // Handle add category
@@ -718,8 +719,14 @@ const Inventory = () => {
  {showAddModal && (
  <StepInventoryModal
  isOpen={showAddModal}
- onClose={() => setShowAddModal(false)}
- onSuccess={fetchInventory}
+ onClose={() => {
+ setShowAddModal(false);
+ setEditingItem(null);
+ }}
+ onSuccess={() => {
+ fetchInventory();
+ setEditingItem(null);
+ }}
  item={editingItem}
  categories={categories}
  courses={courses}
