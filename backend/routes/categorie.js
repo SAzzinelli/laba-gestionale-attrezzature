@@ -102,7 +102,7 @@ r.delete('/:id', async (req, res) => {
 
     // Verifica se ci sono articoli che usano questa categoria
     const itemsUsingCategory = await query(
-      'SELECT COUNT(*) as count FROM inventario WHERE categoria_madre = $1 AND categoria_figlia = $2',
+      'SELECT COUNT(*) as count FROM inventario WHERE categoria_madre = $1 AND categoria_id = (SELECT id FROM categorie_semplici WHERE nome = $2)',
       [madre, figlia]
     );
 

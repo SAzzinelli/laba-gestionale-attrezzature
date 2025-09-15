@@ -46,12 +46,10 @@ export async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Tabella categorie
-      CREATE TABLE IF NOT EXISTS categorie (
+      -- Tabella categorie_semplici
+      CREATE TABLE IF NOT EXISTS categorie_semplici (
         id SERIAL PRIMARY KEY,
-        madre VARCHAR(255) NOT NULL,
-        figlia VARCHAR(255) NOT NULL,
-        UNIQUE(madre, figlia)
+        nome VARCHAR(255) NOT NULL UNIQUE
       );
 
       -- Tabella inventario
@@ -60,7 +58,7 @@ export async function initDatabase() {
         nome VARCHAR(255) NOT NULL,
         quantita_totale INTEGER NOT NULL DEFAULT 0,
         categoria_madre VARCHAR(255) NOT NULL,
-        categoria_figlia VARCHAR(255),
+        categoria_id INTEGER REFERENCES categorie_semplici(id),
         posizione VARCHAR(255),
         note TEXT,
         in_manutenzione BOOLEAN NOT NULL DEFAULT FALSE,
@@ -208,17 +206,20 @@ export async function initDatabase() {
       await client.query('INSERT INTO corsi (corso) VALUES ($1) ON CONFLICT (corso) DO NOTHING', [nome]);
     }
 
-    // Inserisci categorie di esempio
-    const categorie = [
-      ['Regia e Videomaking', 'Attrezzature Video'],
-      ['Graphic Design & Multimedia', 'Computer e Software'],
-      ['Fashion Design', 'Macchine da Cucire'],
-      ['Pittura', 'Pennelli e Colori'],
-      ['Fotografia', 'Macchine Fotografiche']
+    // Inserisci categorie semplici di esempio
+    const categorieSemplici = [
+      'Attrezzature Video',
+      'Computer e Software', 
+      'Macchine da Cucire',
+      'Pennelli e Colori',
+      'Macchine Fotografiche',
+      'Obiettivi',
+      'Tavoli da Disegno',
+      'Software Design'
     ];
 
-    for (const [madre, figlia] of categorie) {
-      await client.query('INSERT INTO categorie (madre, figlia) VALUES ($1, $2) ON CONFLICT (madre, figlia) DO NOTHING', [madre, figlia]);
+    for (const nome of categorieSemplici) {
+      await client.query('INSERT INTO categorie_semplici (nome) VALUES ($1) ON CONFLICT (nome) DO NOTHING', [nome]);
     }
 
     client.release();
@@ -227,7 +228,7 @@ export async function initDatabase() {
     console.log('✅ Schema unificato creato con tutte le tabelle');
     console.log('✅ Admin user: admin / laba2025');
     console.log(`✅ Corsi inseriti: ${corsiLABA.length}`);
-    console.log(`✅ Categorie inserite: ${categorie.length}`);
+    console.log(`✅ Categorie semplici inserite: ${categorieSemplici.length}`);
     
   } catch (error) {
     console.error('❌ Errore durante l\'inizializzazione del database:', error);
