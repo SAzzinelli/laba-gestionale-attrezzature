@@ -174,7 +174,8 @@ const UserArea = () => {
             {renderActiveView()}
           </main>
           
-          <Footer onSystemClick={() => setActiveView('sistema')} />
+          {/* Footer - Hidden when mobile menu is open */}
+          {!mobileMenuOpen && <Footer onSystemClick={() => setActiveView('sistema')} />}
         </div>
 
         {/* Mobile Menu */}
