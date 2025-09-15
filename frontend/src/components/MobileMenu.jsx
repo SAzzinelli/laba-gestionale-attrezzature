@@ -7,15 +7,15 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
       {/* Overlay - Completely separate, fades from center */}
       <Transition
         show={isOpen}
-        enter="ease-out duration-500"
+        enter="ease-out duration-200"
         enterFrom="opacity-0 scale-95 backdrop-blur-none"
-        enterTo="opacity-100 scale-100 backdrop-blur-sm"
-        leave="ease-in duration-300"
-        leaveFrom="opacity-100 scale-100 backdrop-blur-sm"
+        enterTo="opacity-100 scale-100 backdrop-blur-md"
+        leave="ease-in duration-150"
+        leaveFrom="opacity-100 scale-100 backdrop-blur-md"
         leaveTo="opacity-0 scale-95 backdrop-blur-none"
       >
         <div 
-          className="fixed inset-0 bg-black bg-opacity-30 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-40 z-40 lg:hidden"
           onClick={onClose}
         />
       </Transition>
@@ -23,10 +23,10 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
       {/* Mobile Menu - Completely separate, slides from bottom */}
       <Transition
         show={isOpen}
-        enter="ease-out duration-300 delay-200"
+        enter="ease-out duration-200 delay-100"
         enterFrom="translate-y-full"
         enterTo="translate-y-0"
-        leave="ease-in duration-250"
+        leave="ease-in duration-150"
         leaveFrom="translate-y-0"
         leaveTo="translate-y-full"
       >
