@@ -90,61 +90,10 @@ const UserDashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Articoli Disponibili</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.availableItems}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Le Mie Richieste</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.myRequests}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Le Mie Segnalazioni</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.myReports}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">I Miei Prestiti</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.myLoans}</p>
-            </div>
-          </div>
-        </div>
+        <StatCard title="Articoli Disponibili" value={stats.availableItems} description="Articoli disponibili per il tuo corso" />
+        <StatCard title="Le Mie Richieste" value={stats.myRequests} description="Richieste di prestito inviate" />
+        <StatCard title="Le Mie Segnalazioni" value={stats.myReports} description="Segnalazioni di guasti inviate" />
+        <StatCard title="I Miei Prestiti" value={stats.myLoans} description="Prestiti attivi" />
       </div>
 
       {/* Quick Actions */}
@@ -186,5 +135,58 @@ const UserDashboard = () => {
     </div>
   );
 };
+
+// Stat Card Component (same as admin dashboard)
+function StatCard({ title, value, description }) {
+  const iconMap = {
+    'Articoli Disponibili': (
+      <svg className="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+    ),
+    'Le Mie Richieste': (
+      <svg className="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    'Le Mie Segnalazioni': (
+      <svg className="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+      </svg>
+    ),
+    'I Miei Prestiti': (
+      <svg className="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    )
+  };
+
+  const colorMap = {
+    'Articoli Disponibili': 'bg-blue-100',
+    'Le Mie Richieste': 'bg-green-100',
+    'Le Mie Segnalazioni': 'bg-red-100',
+    'I Miei Prestiti': 'bg-yellow-100'
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:scale-105 transition-transform p-6">
+      <div className="flex items-center">
+        <div className={`w-12 h-12 ${colorMap[title]} rounded-lg flex items-center justify-center ${
+          title === 'Articoli Disponibili' ? 'text-blue-600' :
+          title === 'Le Mie Richieste' ? 'text-green-600' :
+          title === 'Le Mie Segnalazioni' ? 'text-red-600' :
+          title === 'I Miei Prestiti' ? 'text-yellow-600' : 'text-gray-600'
+        }`}>
+          {iconMap[title]}
+        </div>
+        <div className="ml-4">
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-xs text-gray-500 mt-1">{description}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default UserDashboard;

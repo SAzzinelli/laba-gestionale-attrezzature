@@ -7,7 +7,7 @@ import ReportFault from '../components/ReportFault';
 
 const UserArea = () => {
   const [activeView, setActiveView] = useState('dashboard');
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const sidebarItems = [
     {
@@ -83,10 +83,7 @@ const UserArea = () => {
                 <p className="text-xs text-gray-500">{user?.email}</p>
               </div>
               <button
-                onClick={() => {
-                  localStorage.removeItem('token');
-                  window.location.href = '/login';
-                }}
+                onClick={logout}
                 className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded-md hover:bg-gray-100"
               >
                 Esci
