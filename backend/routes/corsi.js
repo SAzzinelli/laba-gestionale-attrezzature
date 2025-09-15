@@ -8,7 +8,14 @@ const r = Router();
 r.get('/', async (req, res) => {
   try {
     const result = await query('SELECT corso FROM corsi ORDER BY corso');
-    res.json(result.rows);
+    
+    // Trasforma i dati per il frontend
+    const courses = result.map(row => ({
+      id: row.corso, // Usa il nome del corso come ID
+      nome: row.corso
+    }));
+    
+    res.json(courses);
   } catch (error) {
     console.error('Errore GET corsi:', error);
     res.status(500).json({ error: 'Errore interno del server' });
