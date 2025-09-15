@@ -26,6 +26,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  fetchCourses();
  fetchCategories();
  if (editingItem) {
+ // Carica dati per la modifica
  setFormData({
  nome: editingItem.nome || '',
  quantita_totale: editingItem.quantita_totale || 1,
@@ -40,7 +41,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  // Carica le unità esistenti per la modifica
  fetchExistingUnits(editingItem.id);
  } else {
- // Reset form for new item
+ // Solo per nuovo oggetto, resetta il form
  setFormData({
  nome: '',
  quantita_totale: 1,
@@ -53,17 +54,8 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  setStep(1);
  setError(null);
  }
- } else if (!isOpen && !editingItem) {
- // Reset form only when modal closes and we're not editing
- setFormData({
- nome: '',
- quantita_totale: 1,
- scaffale: '',
- note: '',
- corsi_assegnati: [],
- categoria_id: '',
- unita: []
- });
+ } else if (!isOpen) {
+ // Solo reset step e error quando si chiude
  setStep(1);
  setError(null);
  }

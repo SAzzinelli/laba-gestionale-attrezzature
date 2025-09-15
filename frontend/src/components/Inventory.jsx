@@ -727,7 +727,7 @@ const Inventory = () => {
  fetchInventory();
  setEditingItem(null);
  }}
- item={editingItem}
+ editingItem={editingItem}
  categories={categories}
  courses={courses}
  />
