@@ -141,7 +141,7 @@ const UserArea = () => {
           </div>
         </div>
 
-        {/* Sidebar Desktop */}
+        {/* Sidebar Desktop - Completely hidden on mobile */}
         <div className="hidden lg:flex lg:flex-col lg:w-64 bg-white sidebar border-r border-gray-200">
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex items-center">
@@ -169,7 +169,7 @@ const UserArea = () => {
         </div>
 
         {/* Main Content Area with Footer */}
-        <div className="flex-1 lg:ml-64 flex flex-col">
+        <div className="flex-1 flex flex-col">
           <main className="flex-1 pt-16 lg:pt-0">
             {renderActiveView()}
           </main>
