@@ -3,41 +3,34 @@ import { Transition } from '@headlessui/react';
 
 const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, user, logout }) => {
   return (
-    <Transition
-      show={isOpen}
-      enter="transition-all duration-300 ease-out"
-      enterFrom="translate-y-full"
-      enterTo="translate-y-0"
-      leave="transition-all duration-250 ease-in"
-      leaveFrom="translate-y-0"
-      leaveTo="translate-y-full"
-    >
-      <div className="fixed inset-0 z-40 lg:hidden">
-        {/* Overlay - Fade from center */}
-        <Transition.Child
-          enter="ease-out duration-400"
-          enterFrom="opacity-0 scale-95 backdrop-blur-none"
-          enterTo="opacity-100 scale-100 backdrop-blur-sm"
-          leave="ease-in duration-300"
-          leaveFrom="opacity-100 scale-100 backdrop-blur-sm"
-          leaveTo="opacity-0 scale-95 backdrop-blur-none"
-        >
-          <div 
-            className="absolute inset-0 bg-black bg-opacity-30"
-            onClick={onClose}
-          />
-        </Transition.Child>
-        
-        {/* Mobile Menu - Appears after overlay */}
-        <Transition.Child
-          enter="ease-out duration-300 delay-150"
-          enterFrom="translate-y-full"
-          enterTo="translate-y-0"
-          leave="ease-in duration-250"
-          leaveFrom="translate-y-0"
-          leaveTo="translate-y-full"
-        >
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl">
+    <>
+      {/* Overlay - Completely separate, fades from center */}
+      <Transition
+        show={isOpen}
+        enter="ease-out duration-500"
+        enterFrom="opacity-0 scale-95 backdrop-blur-none"
+        enterTo="opacity-100 scale-100 backdrop-blur-sm"
+        leave="ease-in duration-300"
+        leaveFrom="opacity-100 scale-100 backdrop-blur-sm"
+        leaveTo="opacity-0 scale-95 backdrop-blur-none"
+      >
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-30 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      </Transition>
+      
+      {/* Mobile Menu - Completely separate, slides from bottom */}
+      <Transition
+        show={isOpen}
+        enter="ease-out duration-300 delay-200"
+        enterFrom="translate-y-full"
+        enterTo="translate-y-0"
+        leave="ease-in duration-250"
+        leaveFrom="translate-y-0"
+        leaveTo="translate-y-full"
+      >
+        <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl z-50 lg:hidden">
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
@@ -118,10 +111,9 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
             Esci
           </button>
         </div>
-          </div>
-        </Transition.Child>
-      </div>
-    </Transition>
+        </div>
+      </Transition>
+    </>
   );
 };
 
