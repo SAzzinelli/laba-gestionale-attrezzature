@@ -32,7 +32,7 @@ const AvailableItems = () => {
     }
   };
 
-  // Fetch categories
+  // Fetch categories - filter by user's course
   const fetchCategories = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie`, {
@@ -41,7 +41,12 @@ const AvailableItems = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setCategories(data);
+        // Filter categories by user's course
+        const userCourse = user?.corso_accademico;
+        const filteredCategories = userCourse
+          ? data.filter(cat => cat.madre && cat.madre.toLowerCase().includes(userCourse.toLowerCase()))
+          : [];
+        setCategories(filteredCategories);
       }
     } catch (err) {
       console.error('Errore caricamento categorie:', err);
@@ -51,7 +56,7 @@ const AvailableItems = () => {
   useEffect(() => {
     fetchItems();
     fetchCategories();
-  }, []);
+  }, [user?.corso_accademico]);
 
   // Filter items
   const filteredItems = items.filter(item => {
