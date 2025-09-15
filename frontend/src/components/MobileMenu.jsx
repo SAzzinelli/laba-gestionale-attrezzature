@@ -1,18 +1,35 @@
 import React from 'react';
+import { Transition } from '@headlessui/react';
 
 const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, user, logout }) => {
-  if (!isOpen) return null;
-
   return (
-    <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-        onClick={onClose}
-      />
-      
-      {/* Mobile Menu */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl z-50 lg:hidden transform transition-transform duration-300 ease-out">
+    <Transition
+      show={isOpen}
+      enter="transition-all duration-300 ease-out"
+      enterFrom="translate-y-full opacity-0"
+      enterTo="translate-y-0 opacity-100"
+      leave="transition-all duration-200 ease-in"
+      leaveFrom="translate-y-0 opacity-100"
+      leaveTo="translate-y-full opacity-0"
+    >
+      <div className="fixed inset-0 z-40 lg:hidden">
+        {/* Overlay */}
+        <Transition.Child
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={onClose}
+          />
+        </Transition.Child>
+        
+        {/* Mobile Menu */}
+        <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl">
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
@@ -29,9 +46,9 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100"
+              className="p-2 rounded-full hover:bg-gray-100 transition-all duration-200 ease-in-out hover:scale-105"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 transition-transform duration-200 ease-in-out" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -93,8 +110,9 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
             Esci
           </button>
         </div>
+        </div>
       </div>
-    </>
+    </Transition>
   );
 };
 

@@ -153,7 +153,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
   value={formData.unit_id}
   onChange={handleInputChange}
   required
-  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  className="select-field"
  >
  <option value="">Seleziona un ID univoco</option>
  {availableUnits.map((unit) => (
@@ -176,7 +176,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
   value={formData.data_inizio}
   onChange={handleInputChange}
   required
-  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  className="input-field"
  />
  </div>
  <div>

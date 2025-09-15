@@ -764,6 +764,17 @@ footer {
   border-top: 1px solid #e5e7eb;
 }
 
+/* Sidebar desktop - completely hidden on mobile */
+.sidebar-desktop {
+  display: none !important;
+}
+
+@media (min-width: 1024px) {
+  .sidebar-desktop {
+    display: flex !important;
+  }
+}
+
 /* Header */
 .header {
   background-color: var(--bg-primary);

@@ -157,7 +157,7 @@ function AppInner() {
 
         {/* Sidebar Desktop - Only for Admin, Completely hidden on mobile */}
         {isAdmin && (
-          <div className="hidden lg:flex lg:flex-col lg:w-64 bg-white sidebar border-r border-gray-200">
+          <div className="sidebar-desktop hidden lg:flex lg:flex-col lg:w-64 bg-white sidebar border-r border-gray-200">
  <div className="flex items-center justify-between p-6 border-b border-gray-200">
  <div className="flex items-center">
  <img src="/logoSito.svg" alt="LABA Logo" className="h-12 w-auto" />
