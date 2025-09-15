@@ -102,4 +102,39 @@ r.post('/setup-categories', async (req, res) => {
   }
 });
 
+// POST /api/migration/remove-categoria-figlia - Rimuove colonna categoria_figlia
+r.post('/remove-categoria-figlia', async (req, res) => {
+  try {
+    console.log('🔄 Rimuovendo colonna categoria_figlia...');
+    
+    // Verifica se la colonna esiste prima di rimuoverla
+    const columnExists = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'inventario' 
+      AND column_name = 'categoria_figlia'
+    `);
+    
+    if (columnExists.length > 0) {
+      // Rimuovi la colonna categoria_figlia
+      await query('ALTER TABLE inventario DROP COLUMN categoria_figlia');
+      console.log('✅ Rimossa colonna categoria_figlia');
+    } else {
+      console.log('✅ Colonna categoria_figlia già rimossa');
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Colonna categoria_figlia rimossa con successo!'
+    });
+  } catch (error) {
+    console.error('❌ Errore durante la rimozione della colonna:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      details: 'Errore durante la rimozione della colonna categoria_figlia'
+    });
+  }
+});
+
 export default r;
