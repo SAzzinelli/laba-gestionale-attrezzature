@@ -4,7 +4,7 @@ import UserDashboard from '../components/UserDashboard';
 import MyLoans from '../components/MyLoans';
 import AvailableItems from '../components/AvailableItems';
 import ReportFault from '../components/ReportFault';
-import SystemStatus from '../components/SystemStatus';
+import SystemStatus from '../components/SystemStatus.jsx';
 
 // UserBadge Component (simplified to avoid overlap)
 function UserBadge() {
