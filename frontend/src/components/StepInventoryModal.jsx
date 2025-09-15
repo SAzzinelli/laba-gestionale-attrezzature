@@ -34,7 +34,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
           scaffale: editingItem.posizione || '',
           note: editingItem.note || '',
           corsi_assegnati: editingItem.corsi_assegnati || [],
-          categoria_madre: editingItem.categoria_madre || '',
+          categoria_madre: '', // Non serve, viene derivato automaticamente
           categoria_figlia: editingItem.categoria_figlia || '',
           unita: []
         });
@@ -48,7 +48,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
         scaffale: '',
         note: '',
         corsi_assegnati: [],
-        categoria_madre: '',
+        categoria_madre: '', // Non serve, viene derivato automaticamente
         categoria_figlia: '',
         unita: []
       });
@@ -171,7 +171,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
   const submitData = {
     ...formData,
     posizione: formData.scaffale, // Mappa scaffale a posizione per il backend
-    categoria_madre: formData.categoria_madre,
+    categoria_madre: formData.corsi_assegnati[0] || '', // Usa il primo corso selezionato come categoria_madre
     categoria_figlia: formData.categoria_figlia
   };
 
@@ -219,7 +219,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 const canProceed = () => {
   switch (step) {
     case 1: return formData.nome && formData.quantita_totale;
-    case 2: return formData.corsi_assegnati.length > 0 && formData.categoria_madre && formData.categoria_figlia;
+    case 2: return formData.corsi_assegnati.length > 0 && formData.categoria_figlia;
     case 3: return formData.unita.length > 0;
     default: return false;
   }
@@ -412,20 +412,6 @@ const canProceed = () => {
  )}
  </div>
 
-        {/* Corso Accademico (Categoria Madre) */}
-        <div className="form-group">
-          <label className="form-label">Corso Accademico (Categoria Madre) *</label>
-          <select
-            value={formData.categoria_madre}
-            onChange={(e) => setFormData(prev => ({ ...prev, categoria_madre: e.target.value }))}
-            className="select-field"
-          >
-            <option value="">Seleziona corso accademico</option>
-            {courses.map(course => (
-              <option key={course.id} value={course.nome}>{course.nome}</option>
-            ))}
-          </select>
-        </div>
 
         {/* Categoria Semplice (Categoria Figlia) */}
         <div className="form-group">
