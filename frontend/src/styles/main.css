@@ -504,6 +504,25 @@ body {
 
 /* Dark mode styles removed */
 
+/* User Profile Dropdown */
+.user-profile-dropdown {
+  position: relative;
+  z-index: 40;
+}
+
+.user-profile-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--border-primary);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.5rem;
+  z-index: 50;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;

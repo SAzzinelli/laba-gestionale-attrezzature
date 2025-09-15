@@ -5,7 +5,7 @@ import MyLoans from '../components/MyLoans';
 import AvailableItems from '../components/AvailableItems';
 import ReportFault from '../components/ReportFault';
 
-// UserBadge Component (same as admin)
+// UserBadge Component (simplified to avoid overlap)
 function UserBadge() {
   const { user, logout, isAdmin } = useAuth();
   if (!user) return null;
@@ -23,7 +23,7 @@ function UserBadge() {
             {user.name} {user.surname}
           </p>
           <p className="text-xs text-gray-500 truncate">
-            {isAdmin ? "Amministratore" : "Utente"} • {user.email}
+            {isAdmin ? "Amministratore" : "Utente"}
           </p>
         </div>
       </div>
