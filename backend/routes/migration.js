@@ -76,7 +76,7 @@ r.post('/setup-categories', async (req, res) => {
     // 8. Crea utente admin se non esiste
     const adminExists = await query('SELECT id FROM users WHERE email = $1', ['admin@laba.biz']);
     if (adminExists.length === 0) {
-      const bcrypt = await import('bcrypt');
+      const bcrypt = await import('bcryptjs');
       const hashedPassword = await bcrypt.hash('laba2025', 10);
       await query(`
         INSERT INTO users (email, password, name, surname, ruolo, corso_accademico)
