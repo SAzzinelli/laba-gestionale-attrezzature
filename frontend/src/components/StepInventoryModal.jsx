@@ -41,7 +41,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 
  const fetchCourses = async () => {
  try {
- const response = await fetch('/api/corsi', {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/corsi`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  if (response.ok) {
@@ -55,7 +55,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 
  const fetchCategories = async () => {
  try {
- const response = await fetch('/api/categorie', {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  if (response.ok) {

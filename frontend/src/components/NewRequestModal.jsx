@@ -28,7 +28,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
  const fetchInventory = async () => {
    try {
-     const response = await fetch('/api/inventario/disponibili', {
+     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario/disponibili`, {
        headers: {
          'Authorization': `Bearer ${token}`
        }
@@ -74,7 +74,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
    }
 
    try {
-     const response = await fetch('/api/richieste', {
+     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste`, {
        method: 'POST',
        headers: {
          'Content-Type': 'application/json',
