@@ -73,6 +73,20 @@ r.post('/setup-categories', async (req, res) => {
     }
     console.log('✅ Migrate categorie esistenti');
     
+    // 8. Crea utente admin se non esiste
+    const adminExists = await query('SELECT id FROM users WHERE email = $1', ['admin@laba.biz']);
+    if (adminExists.length === 0) {
+      const bcrypt = await import('bcrypt');
+      const hashedPassword = await bcrypt.hash('laba2025', 10);
+      await query(`
+        INSERT INTO users (email, password, name, surname, ruolo, corso_accademico)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `, ['admin@laba.biz', hashedPassword, 'Admin', 'Sistema', 'admin', 'Fotografia']);
+      console.log('✅ Creato utente admin');
+    } else {
+      console.log('✅ Utente admin già esistente');
+    }
+    
     res.json({ 
       success: true, 
       message: 'Migrazione categorie completata con successo!',
