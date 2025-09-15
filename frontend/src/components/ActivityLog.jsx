@@ -109,7 +109,7 @@ const ActivityLog = ({ isOpen, onClose }) => {
  <select
  value={filters.type}
  onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-sm"
  >
  <option value="all">Tutti i tipi</option>
  <option value="create">Creazione</option>
@@ -131,7 +131,7 @@ const ActivityLog = ({ isOpen, onClose }) => {
  <select
  value={filters.user}
  onChange={(e) => setFilters(prev => ({ ...prev, user: e.target.value }))}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-sm"
  >
  <option value="all">Tutti gli utenti</option>
  {/* Qui potresti caricare la lista degli utenti */}
@@ -144,7 +144,7 @@ const ActivityLog = ({ isOpen, onClose }) => {
  type="date"
  value={filters.dateFrom}
  onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-sm"
  />
  </div>
 
@@ -154,7 +154,7 @@ const ActivityLog = ({ isOpen, onClose }) => {
  type="date"
  value={filters.dateTo}
  onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-sm"
  />
  </div>
  </div>

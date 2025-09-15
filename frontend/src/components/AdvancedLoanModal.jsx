@@ -332,40 +332,40 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  placeholder="Nome *"
  value={manualUser.name}
  onChange={(e) => setManualUser(prev => ({ ...prev, name: e.target.value }))}
- className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 "
+ className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  <input
  type="text"
  placeholder="Cognome *"
  value={manualUser.surname}
  onChange={(e) => setManualUser(prev => ({ ...prev, surname: e.target.value }))}
- className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 "
+ className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  <input
  type="email"
  placeholder="Email (nome.cognome@labafirenze.com) *"
  value={manualUser.email}
  onChange={(e) => setManualUser(prev => ({ ...prev, email: e.target.value }))}
- className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 "
+ className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  <input
  type="text"
  placeholder="Matricola *"
  value={manualUser.matricola}
  onChange={(e) => setManualUser(prev => ({ ...prev, matricola: e.target.value }))}
- className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 "
+ className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  <input
  type="tel"
  placeholder="Telefono"
  value={manualUser.phone}
  onChange={(e) => setManualUser(prev => ({ ...prev, phone: e.target.value }))}
- className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 "
+ className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  <select
  value={manualUser.corso_accademico}
  onChange={(e) => setManualUser(prev => ({ ...prev, corso_accademico: e.target.value }))}
- className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 "
+ className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  >
  <option value="">Seleziona corso *</option>
  <option value="Graphic Design & Multimedia">Graphic Design & Multimedia</option>
@@ -461,7 +461,7 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  setDateRange(prev => ({ ...prev, dal: newDal }));
  }}
  min={new Date().toISOString().split('T')[0]}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  </div>
  <div>
@@ -481,7 +481,7 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  setDateRange(prev => ({ ...prev, al: newAl }));
  }}
  min={dateRange.dal || new Date().toISOString().split('T')[0]}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  </div>
  </div>

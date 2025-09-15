@@ -106,7 +106,7 @@ const ForgotPassword = ({ onBack }) => {
  value={email}
  onChange={(e) => setEmail(e.target.value)}
  required
- className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+ className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
  placeholder="Inserisci la tua email"
  />
  </div>

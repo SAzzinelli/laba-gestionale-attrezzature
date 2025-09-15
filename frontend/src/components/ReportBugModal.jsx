@@ -91,7 +91,7 @@ const ReportBugModal = ({ isOpen, onClose, onSuccess, prefillData = {} }) => {
  value={formData.tipo}
  onChange={handleInputChange}
  required
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus-visible transition-all duration-200"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
  >
  <option value="guasto">Guasto</option>
  <option value="ritardo">Ritardo</option>
@@ -110,7 +110,7 @@ const ReportBugModal = ({ isOpen, onClose, onSuccess, prefillData = {} }) => {
  onChange={handleInputChange}
  required
  rows={4}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus-visible transition-all duration-200"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
  placeholder="Descrivi il problema in dettaglio..."
  />
  </div>

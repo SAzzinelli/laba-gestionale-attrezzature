@@ -55,7 +55,7 @@ const UserDashboard = ({ onNavigate }) => {
 
  // Fetch all data in parallel
  const [inventoryRes, requestsRes, reportsRes, loansRes, categoriesRes] = await Promise.all([
- fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario`, {
+     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario/disponibili`, {
  headers: { 'Authorization': `Bearer ${token}` }
  }),
  fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste/mie`, {

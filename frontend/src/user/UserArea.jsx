@@ -480,7 +480,7 @@ function RequestModal({ item, onClose, onSuccess, token }) {
  required
  value={formData.dal}
  onChange={(e) => setFormData({...formData, dal: e.target.value})}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  />
  </div>
  <div>
@@ -490,7 +490,7 @@ function RequestModal({ item, onClose, onSuccess, token }) {
  required
  value={formData.al}
  onChange={(e) => setFormData({...formData, al: e.target.value})}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  />
  </div>
  </div>
@@ -501,7 +501,7 @@ function RequestModal({ item, onClose, onSuccess, token }) {
  value={formData.note}
  onChange={(e) => setFormData({...formData, note: e.target.value})}
  rows={3}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  placeholder="Note aggiuntive per la richiesta"
  />
  </div>
@@ -604,7 +604,7 @@ function ReportModal({ item, onClose, onSuccess, token }) {
  <select
  value={formData.tipo}
  onChange={(e) => setFormData({...formData, tipo: e.target.value})}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  >
  <option value="guasto">Guasto</option>
  <option value="assistenza">Assistenza</option>
@@ -619,7 +619,7 @@ function ReportModal({ item, onClose, onSuccess, token }) {
  value={formData.messaggio}
  onChange={(e) => setFormData({...formData, messaggio: e.target.value})}
  rows={4}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  placeholder="Descrivi il problema in dettaglio"
  />
  </div>

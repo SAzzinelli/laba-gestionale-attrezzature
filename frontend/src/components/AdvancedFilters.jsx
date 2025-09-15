@@ -102,7 +102,7 @@ const AdvancedFilters = ({
  type="text"
  value={filters.search}
  onChange={(e) => handleFilterChange('search', e.target.value)}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  placeholder="Cerca per nome, seriale..."
  />
  </div>
@@ -115,7 +115,7 @@ const AdvancedFilters = ({
  <select
  value={filters.category}
  onChange={(e) => handleFilterChange('category', e.target.value)}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  >
  <option value="">Tutte le categorie</option>
  {categories.map(cat => (
@@ -132,7 +132,7 @@ const AdvancedFilters = ({
  <select
  value={filters.course}
  onChange={(e) => handleFilterChange('course', e.target.value)}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  >
  <option value="">Tutti i corsi</option>
  {courses.map(course => (
@@ -149,7 +149,7 @@ const AdvancedFilters = ({
  <select
  value={filters.status}
  onChange={(e) => handleFilterChange('status', e.target.value)}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  >
  <option value="all">Tutti gli stati</option>
  <option value="disponibile">Disponibile</option>
@@ -168,7 +168,7 @@ const AdvancedFilters = ({
  type="date"
  value={filters.dateFrom}
  onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  />
  </div>
 
@@ -181,7 +181,7 @@ const AdvancedFilters = ({
  type="date"
  value={filters.dateTo}
  onChange={(e) => handleFilterChange('dateTo', e.target.value)}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  />
  </div>
 
@@ -193,7 +193,7 @@ const AdvancedFilters = ({
  <select
  value={filters.sortBy}
  onChange={(e) => handleFilterChange('sortBy', e.target.value)}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  >
  <option value="nome">Nome</option>
  <option value="seriale">Seriale</option>
@@ -210,7 +210,7 @@ const AdvancedFilters = ({
  <select
  value={filters.sortOrder}
  onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
  >
  <option value="asc">Crescente</option>
  <option value="desc">Decrescente</option>
@@ -287,7 +287,7 @@ const AdvancedFilters = ({
  value={filterName}
  onChange={(e) => setFilterName(e.target.value)}
  placeholder="Nome del filtro..."
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 mb-4"
  />
  <div className="flex justify-end space-x-2">
  <button

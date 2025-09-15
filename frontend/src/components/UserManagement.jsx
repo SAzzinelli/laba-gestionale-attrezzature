@@ -387,7 +387,7 @@ const UserManagement = () => {
  required
  value={formData.name}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
  <div>
@@ -400,7 +400,7 @@ const UserManagement = () => {
  required
  value={formData.surname}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
  </div>
@@ -415,7 +415,7 @@ const UserManagement = () => {
  required
  value={formData.email}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
 
@@ -430,7 +430,7 @@ const UserManagement = () => {
  required
  value={formData.matricola}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
  <div>
@@ -442,7 +442,7 @@ const UserManagement = () => {
  name="phone"
  value={formData.phone}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
  </div>
@@ -455,7 +455,7 @@ const UserManagement = () => {
  name="corso_accademico"
  value={formData.corso_accademico}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  >
  <option value="">Seleziona corso</option>
  {corsiAccademici.map(corso => (
@@ -474,7 +474,7 @@ const UserManagement = () => {
  required
  value={formData.password}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
 
@@ -530,7 +530,7 @@ const UserManagement = () => {
  required
  value={formData.name}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
  <div>
@@ -543,7 +543,7 @@ const UserManagement = () => {
  required
  value={formData.surname}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
  </div>
@@ -558,7 +558,7 @@ const UserManagement = () => {
  required
  value={formData.email}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
 
@@ -573,7 +573,7 @@ const UserManagement = () => {
  required
  value={formData.matricola}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
  <div>
@@ -585,7 +585,7 @@ const UserManagement = () => {
  name="phone"
  value={formData.phone}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
  </div>
@@ -598,7 +598,7 @@ const UserManagement = () => {
  name="corso_accademico"
  value={formData.corso_accademico}
  onChange={handleInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  >
  <option value="">Seleziona corso</option>
  {corsiAccademici.map(corso => (
@@ -659,7 +659,7 @@ const UserManagement = () => {
  required
  value={resetData.newPassword}
  onChange={handleResetInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
 
@@ -673,7 +673,7 @@ const UserManagement = () => {
  required
  value={resetData.confirmPassword}
  onChange={handleResetInputChange}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
  />
  </div>
 

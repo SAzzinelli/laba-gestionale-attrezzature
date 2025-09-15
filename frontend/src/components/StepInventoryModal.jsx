@@ -323,7 +323,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  }));
  }
  }}
- className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+ className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-gray-400"
  />
  <span className="text-sm text-gray-700">{course.nome}</span>
  </label>
@@ -406,7 +406,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  type="text"
  value={unit.codice_univoco}
  onChange={(e) => handleUnitCodeChange(index, e.target.value)}
- className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+ className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
  placeholder={`Codice ${index + 1}`}
  />
  </div>

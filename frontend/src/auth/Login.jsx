@@ -93,7 +93,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  required
  value={isLogin ? formData.username : formData.email}
  onChange={handleInputChange}
- className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors duration-200"
+ className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 bg-white text-gray-900 transition-colors duration-200"
  placeholder={isLogin ? "Inserisci username o email" : "Inserisci email"}
  />
  </div>
@@ -113,7 +113,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  required
  value={formData.password}
  onChange={handleInputChange}
- className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors duration-200"
+ className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 bg-white text-gray-900 transition-colors duration-200"
  placeholder="Inserisci la password"
  />
  </div>
@@ -136,7 +136,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  required
  value={formData.name}
  onChange={handleInputChange}
- className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors duration-200"
+ className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 bg-white text-gray-900 transition-colors duration-200"
  placeholder="Nome"
  />
  </div>
@@ -154,7 +154,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  required
  value={formData.surname}
  onChange={handleInputChange}
- className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors duration-200"
+ className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 bg-white text-gray-900 transition-colors duration-200"
  placeholder="Cognome"
  />
  </div>
@@ -173,7 +173,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  required
  value={formData.matricola}
  onChange={handleInputChange}
- className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors duration-200"
+ className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 bg-white text-gray-900 transition-colors duration-200"
  placeholder="Numero di matricola"
  />
  </div>
@@ -190,7 +190,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  required
  value={formData.corso_accademico}
  onChange={handleInputChange}
- className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-colors duration-200"
+ className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 bg-white text-gray-900 transition-colors duration-200"
  >
  <option value="">Seleziona corso</option>
  <option value="Cinema e Audiovisivi">Cinema e Audiovisivi</option>
