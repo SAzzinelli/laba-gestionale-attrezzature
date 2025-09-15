@@ -41,7 +41,7 @@ function AppInner() {
 
 
  return (
- <div className="min-h-screen bg-gray-50 flex" onClick={() => setShowSearchResults(false)}>
+ <div className="min-h-screen bg-gray-50 flex">
  {/* Sidebar Mobile */}
  <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
  <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)}></div>
