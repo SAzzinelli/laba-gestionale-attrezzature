@@ -42,9 +42,21 @@ r.get('/', requireAuth, async (req, res) => {
 // POST /api/richieste
 r.post('/', requireAuth, async (req, res) => {
   try {
-    const { inventario_id, dal, al, motivo, note } = req.body || {};
+    const { unit_id, inventario_id, dal, al, motivo, note } = req.body || {};
     
-    if (!inventario_id || !dal || !al) {
+    // Support both unit_id (new) and inventario_id (legacy)
+    let actualInventarioId = inventario_id;
+    
+    if (unit_id) {
+      // Get inventario_id from unit
+      const unitResult = await query('SELECT inventario_id FROM inventario_unita WHERE id = $1 AND stato = $2 AND prestito_corrente_id IS NULL', [unit_id, 'disponibile']);
+      if (unitResult.length === 0) {
+        return res.status(400).json({ error: 'Unità non disponibile o non trovata' });
+      }
+      actualInventarioId = unitResult[0].inventario_id;
+    }
+    
+    if (!actualInventarioId || !dal || !al) {
       return res.status(400).json({ error: 'Campi mancanti' });
     }
     
@@ -63,7 +75,7 @@ r.post('/', requireAuth, async (req, res) => {
     }
     
     // Verifica che l'oggetto esista
-    const inventarioCheck = await query('SELECT id FROM inventario WHERE id = $1', [inventario_id]);
+    const inventarioCheck = await query('SELECT id FROM inventario WHERE id = $1', [actualInventarioId]);
     if (inventarioCheck.length === 0) {
       return res.status(400).json({ error: 'Oggetto non trovato' });
     }
@@ -72,7 +84,7 @@ r.post('/', requireAuth, async (req, res) => {
       INSERT INTO richieste (utente_id, inventario_id, dal, al, motivo, note)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
-    `, [req.user.id, inventario_id, dal, al, motivo || null, note || null]);
+    `, [req.user.id, actualInventarioId, dal, al, motivo || null, note || null]);
     
     res.status(201).json(result[0]);
   } catch (error) {

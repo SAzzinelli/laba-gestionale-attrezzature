@@ -5,26 +5,27 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState(null);
  const [formData, setFormData] = useState({
- articolo_id: '',
- motivazione: '',
- data_inizio: '',
- data_fine: '',
- note: ''
+  unit_id: '',
+  data_inizio: new Date().toISOString().split('T')[0], // Data di oggi predefinita
+  data_fine: '',
+  note: ''
  });
  const [inventory, setInventory] = useState([]);
+ const [availableUnits, setAvailableUnits] = useState([]);
  const { token, user } = useAuth();
 
  useEffect(() => {
- if (isOpen) {
- fetchInventory();
- if (selectedItem) {
- setFormData(prev => ({
- ...prev,
- articolo_id: selectedItem.id
- }));
- }
- }
- }, [isOpen, selectedItem]);
+  if (isOpen) {
+   fetchInventory();
+   // Reset form data when opening
+   setFormData({
+     unit_id: '',
+     data_inizio: new Date().toISOString().split('T')[0],
+     data_fine: '',
+     note: ''
+   });
+  }
+ }, [isOpen]);
 
  const fetchInventory = async () => {
    try {
@@ -36,6 +37,26 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
      if (response.ok) {
        const data = await response.json();
        setInventory(data);
+       
+       // Fetch available units for each item
+       const unitsPromises = data.map(async (item) => {
+         const unitsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario/${item.id}/units`, {
+           headers: { 'Authorization': `Bearer ${token}` }
+         });
+         if (unitsResponse.ok) {
+           const units = await unitsResponse.json();
+           return units.filter(unit => unit.stato === 'disponibile' && !unit.prestito_corrente_id);
+         }
+         return [];
+       });
+       
+       const allUnits = await Promise.all(unitsPromises);
+       const flatUnits = allUnits.flat().map(unit => ({
+         ...unit,
+         item_name: data.find(item => item.id === unit.inventario_id)?.nome || 'Unknown'
+       }));
+       
+       setAvailableUnits(flatUnits);
      }
    } catch (err) {
      console.error('Error fetching inventory:', err);
@@ -81,10 +102,9 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
          'Authorization': `Bearer ${token}`
        },
        body: JSON.stringify({
-         inventario_id: formData.articolo_id,
+         unit_id: formData.unit_id,
          dal: formData.data_inizio,
          al: formData.data_fine,
-         motivo: formData.motivazione,
          note: formData.note
        })
      });
@@ -123,41 +143,25 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
  {/* Content */}
  <form onSubmit={handleSubmit} className="p-6 space-y-6">
- {/* Articolo */}
+ {/* ID Univoco */}
  <div>
  <label className="block text-sm font-medium text-gray-700 mb-2">
- Articolo *
+  ID Univoco *
  </label>
  <select
- name="articolo_id"
- value={formData.articolo_id}
- onChange={handleInputChange}
- required
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
+  name="unit_id"
+  value={formData.unit_id}
+  onChange={handleInputChange}
+  required
+  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
  >
- <option value="">Seleziona un articolo</option>
- {inventory.map((item) => (
- <option key={item.id} value={item.id}>
- {item.nome} - {item.categoria_madre} {item.categoria_figlia}
- </option>
+ <option value="">Seleziona un ID univoco</option>
+ {availableUnits.map((unit) => (
+  <option key={unit.id} value={unit.id}>
+   {unit.codice_univoco} - {unit.item_name}
+  </option>
  ))}
  </select>
- </div>
-
- {/* Motivazione */}
- <div>
- <label className="block text-sm font-medium text-gray-700 mb-2">
- Motivazione *
- </label>
- <textarea
- name="motivazione"
- value={formData.motivazione}
- onChange={handleInputChange}
- required
- rows={3}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
- placeholder="Descrivi la motivazione della richiesta"
- />
  </div>
 
  {/* Date */}
@@ -167,12 +171,12 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
  Data Inizio *
  </label>
  <input
- type="date"
- name="data_inizio"
- value={formData.data_inizio}
- onChange={handleInputChange}
- required
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
+  type="date"
+  name="data_inizio"
+  value={formData.data_inizio}
+  onChange={handleInputChange}
+  required
+  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
  />
  </div>
  <div>
@@ -180,12 +184,12 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
  Data Fine *
  </label>
  <input
- type="date"
- name="data_fine"
- value={formData.data_fine}
- onChange={handleInputChange}
- required
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
+  type="date"
+  name="data_fine"
+  value={formData.data_fine}
+  onChange={handleInputChange}
+  required
+  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
  />
  </div>
  </div>
@@ -196,12 +200,12 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
  Note Aggiuntive
  </label>
  <textarea
- name="note"
- value={formData.note}
- onChange={handleInputChange}
- rows={2}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
- placeholder="Note aggiuntive (opzionale)"
+  name="note"
+  value={formData.note}
+  onChange={handleInputChange}
+  rows={2}
+  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  placeholder="Note aggiuntive (opzionale)"
  />
  </div>
 
@@ -214,16 +218,16 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
  {/* Actions */}
  <div className="flex justify-end space-x-3">
  <button
- type="button"
- onClick={onClose}
- className="btn-secondary hover-lift focus-visible"
+  type="button"
+  onClick={onClose}
+  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
  >
- Annulla
+  Annulla
  </button>
  <button
- type="submit"
- disabled={loading}
- className="btn-primary hover-lift focus-visible disabled:opacity-50 disabled:cursor-not-allowed"
+  type="submit"
+  disabled={loading}
+  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
  >
  {loading ? (
  <>
