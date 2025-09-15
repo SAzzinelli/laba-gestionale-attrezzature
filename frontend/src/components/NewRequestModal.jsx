@@ -133,7 +133,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
  value={formData.articolo_id}
  onChange={handleInputChange}
  required
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus-visible transition-all duration-200"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
  >
  <option value="">Seleziona un articolo</option>
  {inventory.map((item) => (
@@ -155,7 +155,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
  onChange={handleInputChange}
  required
  rows={3}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus-visible transition-all duration-200"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
  placeholder="Descrivi la motivazione della richiesta"
  />
  </div>
@@ -172,7 +172,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
  value={formData.data_inizio}
  onChange={handleInputChange}
  required
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus-visible transition-all duration-200"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
  />
  </div>
  <div>
@@ -185,7 +185,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
  value={formData.data_fine}
  onChange={handleInputChange}
  required
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus-visible transition-all duration-200"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
  />
  </div>
  </div>
@@ -200,7 +200,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
  value={formData.note}
  onChange={handleInputChange}
  rows={2}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus-visible transition-all duration-200"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus-visible transition-all duration-200"
  placeholder="Note aggiuntive (opzionale)"
  />
  </div>
