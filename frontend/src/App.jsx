@@ -118,7 +118,8 @@ function AppInner() {
  </div>
  </div>
 
- {/* Sidebar Desktop */}
+ {/* Sidebar Desktop - Only for Admin */}
+ {isAdmin && (
  <div className="hidden lg:flex lg:flex-col lg:w-64 bg-white sidebar border-r border-gray-200">
  <div className="flex items-center justify-between p-6 border-b border-gray-200">
  <div className="flex items-center">
@@ -134,8 +135,6 @@ function AppInner() {
  <div className="p-4 border-b border-gray-200">
  </div>
  <nav className="flex-1 p-4 space-y-2">
- {isAdmin ? (
- <>
  <NavButton 
  icon={<svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>} 
  label="Dashboard" 
@@ -178,22 +177,13 @@ function AppInner() {
  currentTab={tab} 
  onClick={handleTabChange} 
  />
- </>
- ) : (
- <NavButton 
- icon={<svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>} 
- label="Area Utente" 
- tab="utente" 
- currentTab={tab} 
- onClick={handleTabChange} 
- />
- )}
 </nav>
  <UserBadge />
  </div>
+ )}
 
  {/* Main Content */}
- <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
+ <div className={`flex-1 flex flex-col min-h-screen ${isAdmin ? 'lg:ml-64' : ''}`}>
  {/* Top Bar Mobile */}
  <div className="lg:hidden header px-4 py-3 flex items-center justify-between">
  <button 
