@@ -182,23 +182,59 @@ function AppInner() {
  </div>
  )}
 
- {/* Main Content */}
- <div className={`flex-1 flex flex-col min-h-screen ${isAdmin ? 'lg:ml-64' : ''}`}>
- {/* Top Bar Mobile */}
- <div className="lg:hidden header px-4 py-3 flex items-center justify-between">
- <button 
- onClick={() => setSidebarOpen(true)}
- className="p-2 rounded-lg hover:bg-gray-100"
- >
- <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
- </svg>
- </button>
- <h1 className="text-lg font-semibold text-gray-800">LABA Gestione</h1>
- <div className="flex items-center space-x-2">
-         <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
-       </div>
-     </div>
+    {/* Main Content */}
+    <div className={`flex-1 flex flex-col min-h-screen ${isAdmin ? 'lg:ml-64' : ''}`}>
+      {/* Top Bar Mobile */}
+      <div className="lg:hidden header px-4 py-3 flex items-center justify-between">
+        <button 
+          onClick={() => setSidebarOpen(true)}
+          className="p-2 rounded-lg hover:bg-gray-100"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h1 className="text-lg font-semibold text-gray-800">LABA Gestione</h1>
+        <div className="flex items-center space-x-2">
+          <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
+        </div>
+      </div>
+
+      {/* Top Bar Desktop - For Users */}
+      {!isAdmin && (
+        <div className="hidden lg:block bg-gray-800 text-white px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-xl font-semibold">Gestione Attrezzature</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              {/* Notifications Bell */}
+              <button className="relative p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {/* Notification Badge */}
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                  0
+                </span>
+              </button>
+              
+              {/* User Profile */}
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-semibold text-sm">
+                    {user?.name?.[0] || '?'}{user?.surname?.[0] || ''}
+                  </span>
+                </div>
+                <div className="text-sm">
+                  <p className="font-medium">{user?.name} {user?.surname}</p>
+                  <p className="text-gray-300">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
  {/* Content */}
  <main className="flex-1 p-4 lg:p-6 main-content">
