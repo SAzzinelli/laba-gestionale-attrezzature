@@ -100,21 +100,18 @@ const UserDashboard = ({ onNavigate }) => {
  setStats(prev => ({ ...prev, myLoans: loansData.length }));
  }
 
- // Process categories data - filter by user's course
- if (categoriesRes.ok) {
- const categoriesData = await categoriesRes.json();
- const userCourse = user?.corso_accademico;
- const filteredCategories = userCourse
- ? categoriesData.filter(cat =>
- cat.madre && cat.figlia &&
- (cat.madre.toLowerCase().includes(userCourse.toLowerCase()) ||
- cat.figlia.toLowerCase().includes(userCourse.toLowerCase()) ||
- userCourse.toLowerCase().includes(cat.madre.toLowerCase()) ||
- userCourse.toLowerCase().includes(cat.figlia.toLowerCase()))
- )
- : [];
- setCategories(filteredCategories);
- }
+// Process categories data - filter by user's course
+if (categoriesRes.ok) {
+  const categoriesData = await categoriesRes.json();
+  const userCourse = user?.corso_accademico;
+  const filteredCategories = userCourse
+    ? categoriesData.filter(cat =>
+      cat.madre && cat.figlia &&
+      cat.madre.toLowerCase().includes(userCourse.toLowerCase())
+    )
+    : [];
+  setCategories(filteredCategories);
+}
 
  } catch (err) {
  console.error('Error fetching data:', err);
@@ -389,15 +386,10 @@ const UserDashboard = ({ onNavigate }) => {
  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
  <h3 className="text-sm font-medium text-gray-900 mb-2">Categorie</h3>
  <div className="space-y-1">
- {categories.map((category) => {
- const totalCount = availableItems.filter(item => 
- item.categoria_madre === category.madre && item.categoria_figlia === category.figlia
- ).length;
- const availableCount = availableItems.filter(item => 
- item.categoria_madre === category.madre && 
- item.categoria_figlia === category.figlia && 
- item.stato_effettivo === 'disponibile'
- ).length;
+{categories.map((category) => {
+  // Usa i conteggi che arrivano dal backend
+  const totalCount = category.count || 0;
+  const availableCount = category.available_count || 0;
  return (
  <CategoryCard 
  key={category.id} 
