@@ -291,13 +291,18 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Prima elimina le unità associate
+    await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
+    
+    // Poi elimina l'articolo principale
     const result = await query('DELETE FROM inventario WHERE id = $1', [id]);
     
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Elemento inventario non trovato' });
     }
     
-    res.json({ message: 'Elemento inventario eliminato' });
+    res.json({ message: 'Elemento inventario eliminato con successo' });
   } catch (error) {
     console.error('Errore DELETE inventario:', error);
     res.status(400).json({ error: error.message || 'Errore eliminazione inventario' });

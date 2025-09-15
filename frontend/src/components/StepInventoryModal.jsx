@@ -40,8 +40,8 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  // Carica le unità esistenti per la modifica
  fetchExistingUnits(editingItem.id);
  }
- } else {
- // Reset form when modal closes
+ } else if (!isOpen && !editingItem) {
+ // Reset form only when modal closes and we're not editing
  setFormData({
  nome: '',
  quantita_totale: 1,
@@ -198,15 +198,6 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 
  const handleClose = () => {
  setStep(1);
- setFormData({
- nome: '',
- quantita_totale: 1,
- scaffale: '',
- note: '',
- corso_accademico: '',
- categoria_id: '',
- unita: []
- });
  setError(null);
  onClose();
  };
