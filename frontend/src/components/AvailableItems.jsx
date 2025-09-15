@@ -128,7 +128,7 @@ const AvailableItems = () => {
               placeholder="Nome, posizione, note..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input-field"
             />
           </div>
           <div>
@@ -136,7 +136,7 @@ const AvailableItems = () => {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="select-field"
             >
               <option value="">Tutte le categorie</option>
               {categories.map(category => (
@@ -207,9 +207,9 @@ const AvailableItems = () => {
                   <button
                     onClick={() => handleRequestItem(item)}
                     disabled={item.stato_effettivo !== 'disponibile'}
-                    className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       item.stato_effettivo === 'disponibile'
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        ? 'btn-primary hover-lift'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   >

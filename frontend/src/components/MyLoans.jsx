@@ -73,7 +73,7 @@ const MyLoans = () => {
           </div>
           <button
             onClick={() => setShowNewRequestModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            className="btn-primary hover-lift flex items-center space-x-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -154,7 +154,7 @@ const MyLoans = () => {
             <div className="mt-6">
               <button
                 onClick={() => setShowNewRequestModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="btn-primary hover-lift"
               >
                 Richiedi il tuo primo articolo
               </button>
