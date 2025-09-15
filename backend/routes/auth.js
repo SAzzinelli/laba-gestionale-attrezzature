@@ -199,14 +199,61 @@ r.post('/reset-password', async (req, res) => {
 r.get('/password-reset-requests', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     const result = await query(`
-      SELECT email, token, status, created_at, expires_at
-      FROM password_reset_requests
-      ORDER BY created_at DESC
+      SELECT 
+        prr.email, 
+        prr.token, 
+        prr.status, 
+        prr.created_at as requested_at, 
+        prr.expires_at,
+        u.name as user_name,
+        u.surname as user_surname,
+        u.email as user_email
+      FROM password_reset_requests prr
+      LEFT JOIN users u ON prr.email = u.email
+      WHERE prr.status = 'pending'
+      ORDER BY prr.created_at DESC
     `);
     
     res.json(result);
   } catch (error) {
     console.error('Errore GET password reset requests:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// POST /api/auth/admin-reset-password (admin only)
+r.post('/admin-reset-password', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    
+    if (!email || !newPassword) {
+      return res.status(400).json({ error: 'Email e nuova password sono obbligatorie' });
+    }
+    
+    // Verifica che l'utente esista
+    const user = await query('SELECT id, email FROM users WHERE email = $1', [email]);
+    if (user.length === 0) {
+      return res.status(404).json({ error: 'Utente non trovato' });
+    }
+    
+    // Hash della nuova password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Aggiorna la password
+    await query(
+      'UPDATE users SET password = $1, updated_at = NOW() WHERE email = $2',
+      [hashedPassword, email]
+    );
+    
+    // Marca la richiesta come completata
+    await query(
+      'UPDATE password_reset_requests SET status = $1 WHERE email = $2',
+      ['completed', email]
+    );
+    
+    res.json({ message: 'Password aggiornata con successo' });
+  } catch (error) {
+    console.error('Errore admin reset password:', error);
     res.status(500).json({ error: 'Errore interno del server' });
   }
 });

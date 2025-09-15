@@ -387,52 +387,6 @@ const Dashboard = ({ onNavigate }) => {
 
 
 
- {/* Password Reset Requests Section */}
- {isAdmin && passwordResetRequests.length > 0 && (
- <div className="card">
- <div className="flex items-center justify-between mb-4">
- <h2 className="text-lg font-semibold text-gray-900 flex items-center">
- <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center mr-3">
- <svg className="icon text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z" />
- </svg>
- </div>
- Richieste Reset Password
- </h2>
- <span className="status-badge bg-orange-100 text-orange-800 ">
- {passwordResetRequests.length} richieste
- </span>
- </div>
- 
- <div className="space-y-3">
- {passwordResetRequests.map((request) => (
- <div key={request.id} className="flex items-center justify-between p-4 bg-orange-50 /20 rounded-lg border border-orange-200 ">
- <div className="flex items-center">
- <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3">
- {request.user_name ? request.user_name.charAt(0) : '?'}
- </div>
- <div>
- <p className="font-medium text-gray-900">{request.user_name || 'Utente sconosciuto'}</p>
- <p className="text-sm text-gray-600">{request.user_email || 'Email non disponibile'}</p>
- <p className="text-xs text-gray-500">
- Richiesto: {new Date(request.requested_at).toLocaleString()}
- </p>
- </div>
- </div>
-    <button
-      onClick={() => {
-        setSelectedPasswordRequest(request);
-        setShowPasswordResetModal(true);
-      }}
-      className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
-    >
-      Gestisci
-    </button>
- </div>
- ))}
- </div>
- </div>
- )}
 
  {/* Alerts Section - Redesigned */}
  {alerts.totale_avvisi > 0 && (
@@ -668,8 +622,60 @@ const Dashboard = ({ onNavigate }) => {
  </div>
  )}
 
- {/* Recent Activity */}
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {/* Password Reset Requests Section - Moved to bottom */}
+    {isAdmin && passwordResetRequests.length > 0 && (
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+            <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+              <svg className="icon text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z" />
+              </svg>
+            </div>
+            Richieste Reset Password
+          </h2>
+          <span className="status-badge bg-orange-100 text-orange-800">
+            {passwordResetRequests.length} richieste
+          </span>
+        </div>
+        
+        <div className="space-y-3">
+          {passwordResetRequests.map((request) => (
+            <div key={request.id} className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3">
+                  {request.user_name ? request.user_name.charAt(0) : '?'}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {request.user_name && request.user_surname 
+                      ? `${request.user_name} ${request.user_surname}` 
+                      : 'Utente sconosciuto'
+                    }
+                  </p>
+                  <p className="text-sm text-gray-600">{request.user_email || request.email || 'Email non disponibile'}</p>
+                  <p className="text-xs text-gray-500">
+                    Richiesto: {new Date(request.requested_at).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedPasswordRequest(request);
+                  setShowPasswordResetModal(true);
+                }}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
+              >
+                Gestisci
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Recent Activity */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
  {/* Recent Requests */}
  <div className="card">
  <div className="flex items-center justify-between mb-4">
@@ -909,9 +915,12 @@ const Dashboard = ({ onNavigate }) => {
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">Utente:</p>
               <p className="font-medium text-gray-900">
-                {selectedPasswordRequest.user_name || 'Nome non disponibile'} {selectedPasswordRequest.user_surname || 'Cognome non disponibile'}
+                {selectedPasswordRequest.user_name && selectedPasswordRequest.user_surname 
+                  ? `${selectedPasswordRequest.user_name} ${selectedPasswordRequest.user_surname}`
+                  : 'Nome non disponibile'
+                }
               </p>
-              <p className="text-sm text-gray-600">{selectedPasswordRequest.email}</p>
+              <p className="text-sm text-gray-600">{selectedPasswordRequest.user_email || selectedPasswordRequest.email}</p>
             </div>
 
             <div className="mb-6">
