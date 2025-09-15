@@ -90,10 +90,10 @@ const UserDashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard title="Articoli Disponibili" value={stats.availableItems} description="Articoli disponibili per il tuo corso" />
-        <StatCard title="Le Mie Richieste" value={stats.myRequests} description="Richieste di prestito inviate" />
-        <StatCard title="Le Mie Segnalazioni" value={stats.myReports} description="Segnalazioni di guasti inviate" />
-        <StatCard title="I Miei Prestiti" value={stats.myLoans} description="Prestiti attivi" />
+        <StatCard title="Articoli Disponibili" value={stats.availableItems} />
+        <StatCard title="Le Mie Richieste" value={stats.myRequests} />
+        <StatCard title="Le Mie Segnalazioni" value={stats.myReports} />
+        <StatCard title="I Miei Prestiti" value={stats.myLoans} />
       </div>
 
       {/* Quick Actions */}
@@ -137,7 +137,7 @@ const UserDashboard = () => {
 };
 
 // Stat Card Component (same as admin dashboard)
-function StatCard({ title, value, description }) {
+function StatCard({ title, value }) {
   const iconMap = {
     'Articoli Disponibili': (
       <svg className="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,9 +180,8 @@ function StatCard({ title, value, description }) {
           {iconMap[title]}
         </div>
         <div className="ml-4 flex-1 min-w-0">
-          <p className="kpi-label text-gray-600">{title}</p>
+          <p className="kpi-label text-gray-600 font-semibold">{title}</p>
           <p className="kpi-value text-gray-900">{value}</p>
-          <p className="text-xs text-gray-500 mt-1 break-words">{description}</p>
         </div>
       </div>
     </div>
