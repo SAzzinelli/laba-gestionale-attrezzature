@@ -8,15 +8,16 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState(null);
  
- const [formData, setFormData] = useState({
- nome: '',
- quantita_totale: 1,
- scaffale: '',
- note: '',
- corsi_assegnati: [],
- categoria_id: '',
- unita: []
- });
+  const [formData, setFormData] = useState({
+    nome: '',
+    quantita_totale: 1,
+    scaffale: '',
+    note: '',
+    corsi_assegnati: [],
+    corso_accademico: '',
+    categoria_id: '',
+    unita: []
+  });
  
  const { token } = useAuth();
 
@@ -27,30 +28,30 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  fetchCategories();
  if (editingItem) {
  // Carica dati per la modifica
- setFormData({
- nome: editingItem.nome || '',
- quantita_totale: editingItem.quantita_totale || 1,
- scaffale: editingItem.posizione || '',
- note: editingItem.note || '',
- corsi_assegnati: editingItem.corsi_assegnati || [],
- categoria_id: editingItem.categoria_madre && editingItem.categoria_figlia 
- ? `${editingItem.categoria_madre}-${editingItem.categoria_figlia}` 
- : '',
- unita: []
- });
+      setFormData({
+        nome: editingItem.nome || '',
+        quantita_totale: editingItem.quantita_totale || 1,
+        scaffale: editingItem.posizione || '',
+        note: editingItem.note || '',
+        corsi_assegnati: editingItem.corsi_assegnati || [],
+        corso_accademico: editingItem.corso_accademico || '',
+        categoria_id: editingItem.categoria_id || '',
+        unita: []
+      });
  // Carica le unità esistenti per la modifica
  fetchExistingUnits(editingItem.id);
  } else {
  // Solo per nuovo oggetto, resetta il form
- setFormData({
- nome: '',
- quantita_totale: 1,
- scaffale: '',
- note: '',
- corsi_assegnati: [],
- categoria_id: '',
- unita: []
- });
+      setFormData({
+        nome: '',
+        quantita_totale: 1,
+        scaffale: '',
+        note: '',
+        corsi_assegnati: [],
+        corso_accademico: '',
+        categoria_id: '',
+        unita: []
+      });
  setStep(1);
  setError(null);
  }
@@ -97,19 +98,19 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  }
  };
 
- const fetchCategories = async () => {
- try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie`, {
- headers: { 'Authorization': `Bearer ${token}` }
- });
- if (response.ok) {
- const data = await response.json();
- setCategories(data);
- }
- } catch (err) {
- console.error('Errore caricamento categorie:', err);
- }
- };
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      }
+    } catch (err) {
+      console.error('Errore caricamento categorie:', err);
+    }
+  };
 
  // Generate unit codes automatically
  const generateUnitCodes = (quantity, baseName) => {
@@ -166,17 +167,16 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  const method = editingItem ? 'PUT' : 'POST';
  const url = editingItem ? `${import.meta.env.VITE_API_BASE_URL}/api/inventario/${editingItem.id}` : `${import.meta.env.VITE_API_BASE_URL}/api/inventario`;
  
- // Prepara i dati per l'invio
- const submitData = {
- ...formData,
- posizione: formData.scaffale, // Mappa scaffale a posizione per il backend
- categoria_madre: formData.categoria_id ? formData.categoria_id.split('-')[0] : null,
- categoria_figlia: formData.categoria_id ? formData.categoria_id.split('-')[1] : null
- };
- 
- // Rimuovi i campi che non servono al backend
- delete submitData.scaffale;
- delete submitData.categoria_id;
+  // Prepara i dati per l'invio
+  const submitData = {
+    ...formData,
+    posizione: formData.scaffale, // Mappa scaffale a posizione per il backend
+    corso_accademico: formData.corso_accademico,
+    categoria_id: formData.categoria_id
+  };
+
+  // Rimuovi i campi che non servono al backend
+  delete submitData.scaffale;
 
  const response = await fetch(url, {
  method,
@@ -412,22 +412,39 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  )}
  </div>
 
- {/* Category Selection */}
- <div className="form-group">
- <label className="form-label">Categoria</label>
- <select
- value={formData.categoria_id}
- onChange={(e) => setFormData(prev => ({ ...prev, categoria_id: e.target.value }))}
- className="select-field"
- >
- <option value="">Seleziona categoria</option>
- {categories.map(category => (
- <option key={category.id} value={category.id}>
- {category.nome || `${category.madre} - ${category.figlia}`}
- </option>
- ))}
- </select>
- </div>
+        {/* Corso Accademico Selection */}
+        <div className="form-group">
+          <label className="form-label">Corso Accademico</label>
+          <select
+            value={formData.corso_accademico}
+            onChange={(e) => setFormData(prev => ({ ...prev, corso_accademico: e.target.value }))}
+            className="select-field"
+          >
+            <option value="">Seleziona corso accademico</option>
+            {courses.map(course => (
+              <option key={course.id} value={course.nome}>
+                {course.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Category Selection */}
+        <div className="form-group">
+          <label className="form-label">Categoria</label>
+          <select
+            value={formData.categoria_id}
+            onChange={(e) => setFormData(prev => ({ ...prev, categoria_id: e.target.value }))}
+            className="select-field"
+          >
+            <option value="">Seleziona categoria</option>
+            {categories.map(category => (
+              <option key={category.id} value={category.id}>
+                {category.nome}
+              </option>
+            ))}
+          </select>
+        </div>
 
  </div>
  )}

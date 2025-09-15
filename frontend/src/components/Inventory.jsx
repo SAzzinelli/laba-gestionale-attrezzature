@@ -24,7 +24,7 @@ const Inventory = () => {
  const [savedFilters, setSavedFilters] = useState([]);
  const [currentFilters, setCurrentFilters] = useState({});
  const [showCategoryManager, setShowCategoryManager] = useState(false);
- const [newCategory, setNewCategory] = useState({ madre: '', figlia: '' });
+  const [newCategory, setNewCategory] = useState({ nome: '' });
  const [expandedItems, setExpandedItems] = useState(new Set());
  const [selectedCourse, setSelectedCourse] = useState('');
  const [viewMode, setViewMode] = useState('list'); // only list view
@@ -75,7 +75,7 @@ const Inventory = () => {
  // Fetch categories
  const fetchCategories = async () => {
  try {
- const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici`, {
  headers: {
  'Authorization': `Bearer ${token}`
  }
@@ -298,55 +298,55 @@ const Inventory = () => {
  setShowAddModal(true);
  };
 
- // Handle add category
- const handleAddCategory = async () => {
- if (!newCategory.madre || !newCategory.figlia) {
- alert('Seleziona un corso accademico e inserisci una sottocategoria');
- return;
- }
+  // Handle add category
+  const handleAddCategory = async () => {
+    if (!newCategory.nome || newCategory.nome.trim() === '') {
+      alert('Nome categoria è obbligatorio');
+      return;
+    }
 
- try {
- const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie`, {
- method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- 'Authorization': `Bearer ${token}`
- },
- body: JSON.stringify(newCategory)
- });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ nome: newCategory.nome.trim() })
+      });
 
- if (!response.ok) throw new Error('Errore nell\'aggiunta categoria');
+      if (!response.ok) throw new Error('Errore nell\'aggiunta categoria');
 
- // Refresh categories
- fetchCategories();
- setNewCategory({ madre: '', figlia: '' });
- } catch (err) {
- setError(err.message);
- }
- };
+      // Refresh categories
+      fetchCategories();
+      setNewCategory({ nome: '' });
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
- // Handle delete category
- const handleDeleteCategory = async (categoryId) => {
- if (!window.confirm('Sei sicuro di voler eliminare questa categoria?')) {
- return;
- }
+  // Handle delete category
+  const handleDeleteCategory = async (categoryId) => {
+    if (!window.confirm('Sei sicuro di voler eliminare questa categoria?')) {
+      return;
+    }
 
- try {
- const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie/${categoryId}`, {
- method: 'DELETE',
- headers: {
- 'Authorization': `Bearer ${token}`
- }
- });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici/${categoryId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
- if (!response.ok) throw new Error('Errore nell\'eliminazione categoria');
+      if (!response.ok) throw new Error('Errore nell\'eliminazione categoria');
 
- // Refresh categories
- fetchCategories();
- } catch (err) {
- setError(err.message);
- }
- };
+      // Refresh categories
+      fetchCategories();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
  // Handle expand/collapse item
  const toggleExpanded = (itemId) => {
@@ -776,83 +776,60 @@ const Inventory = () => {
  </div>
  
  <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
- {/* Add New Category */}
- <div className="mb-6 p-4 bg-gray-50 rounded-lg">
- <h4 className="text-lg font-medium text-gray-900 mb-4">Aggiungi Nuova Categoria</h4>
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Add New Category */}
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Aggiungi Nuova Categoria</h4>
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Corso Accademico</label>
-                      <div className="relative">
-                        <select
-                          value={newCategory.madre}
-                          onChange={(e) => setNewCategory({...newCategory, madre: e.target.value})}
-                          className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 bg-white"
-                        >
-                          <option value="">Seleziona corso...</option>
-                          {courses.map(course => (
-                            <option key={course.id} value={course.nome}>
-                              {course.nome}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Nome Categoria</label>
                       <input
                         type="text"
-                        value={newCategory.figlia}
-                        onChange={(e) => setNewCategory({...newCategory, figlia: e.target.value})}
+                        value={newCategory.nome}
+                        onChange={(e) => setNewCategory({nome: e.target.value})}
                         className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
-                        placeholder="es. Obiettivi, Lenti, Accessori, etc."
+                        placeholder="es. Telecamere, Cavalletti, Obiettivi, Lenti, etc."
                       />
                     </div>
- </div>
- <button
- onClick={handleAddCategory}
- className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
- >
- Aggiungi Categoria
- </button>
- </div>
+                    <div className="text-sm text-gray-600">
+                      <p>💡 <strong>Suggerimento:</strong> Le categorie sono indipendenti dai corsi. Puoi assegnare la stessa categoria a oggetti di corsi diversi durante la creazione.</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleAddCategory}
+                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    Aggiungi Categoria
+                  </button>
+                </div>
 
- {/* Categories List */}
- <div>
- <h4 className="text-lg font-medium text-gray-900 mb-4">Categorie Esistenti</h4>
- <div className="space-y-2">
- {categories.map((category) => (
- <div key={category.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                {/* Categories List */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Categorie Esistenti</h4>
+                  <div className="space-y-2">
+                    {categories.map((category) => (
+                      <div key={category.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-500">Corso:</span>
-                            <span className="font-medium text-blue-600">{category.madre}</span>
-                          </div>
-                          <div className="flex items-center space-x-2 mt-1">
                             <span className="text-sm text-gray-500">Categoria:</span>
-                            <span className="text-gray-700">{category.figlia}</span>
+                            <span className="font-medium text-blue-600">{category.nome}</span>
                           </div>
                         </div>
- <button
- onClick={() => handleDeleteCategory(category.id)}
- className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
- title="Elimina categoria"
- >
- <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
- </svg>
- </button>
- </div>
- ))}
- {categories.length === 0 && (
- <p className="text-gray-500 text-center py-4">Nessuna categoria disponibile</p>
- )}
- </div>
- </div>
+                        <button
+                          onClick={() => handleDeleteCategory(category.id)}
+                          className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
+                          title="Elimina categoria"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                    {categories.length === 0 && (
+                      <p className="text-gray-500 text-center py-4">Nessuna categoria disponibile</p>
+                    )}
+                  </div>
+                </div>
  </div>
  </div>
  </div>

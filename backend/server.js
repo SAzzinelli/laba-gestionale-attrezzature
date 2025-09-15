@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import inventarioRouter from "./routes/inventario.js";
 import prestitiRouter from "./routes/prestiti.js";
 import categorieRouter from "./routes/categorie.js";
+import categorieSempliciRouter from "./routes/categorie_semplici.js";
 import corsiRouter from "./routes/corsi.js";
 import riparazioniRouter from "./routes/riparazioni.js";
 import authRouter from "./routes/auth.js";
@@ -39,6 +40,7 @@ app.get("/api/health", (_, res) => res.json({ ok: true, version: "1.0a", build: 
 app.use("/api/inventario", inventarioRouter);
 app.use("/api/prestiti", prestitiRouter);
 app.use("/api/categorie", categorieRouter);
+app.use("/api/categorie-semplici", categorieSempliciRouter);
 app.use("/api/corsi", corsiRouter);
 app.use("/api/riparazioni", riparazioniRouter);
 app.use("/api/auth", authRouter);
