@@ -223,7 +223,7 @@ function AppInner() {
  {tab === 'statistiche' && <Statistics />}
  </>
  ) : (
- <UserDashboard onNavigate={handleTabChange} />
+ <UserArea />
  )}
  </div>
  </main>
