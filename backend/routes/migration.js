@@ -48,7 +48,12 @@ r.post('/setup-categories', async (req, res) => {
     await query('CREATE INDEX IF NOT EXISTS idx_inventario_categoria_id ON inventario(categoria_id)');
     console.log('✅ Aggiunti indici per performance');
     
-    // 6. Migra le categorie esistenti (categoria_figlia) nella nuova tabella
+    // 6. Rendi nullable le colonne vecchie per evitare errori
+    await query('ALTER TABLE inventario ALTER COLUMN categoria_madre DROP NOT NULL');
+    await query('ALTER TABLE inventario ALTER COLUMN categoria_figlia DROP NOT NULL');
+    console.log('✅ Rese nullable le colonne vecchie');
+    
+    // 7. Migra le categorie esistenti (categoria_figlia) nella nuova tabella
     const existingCategories = await query(`
       SELECT DISTINCT categoria_figlia 
       FROM inventario 

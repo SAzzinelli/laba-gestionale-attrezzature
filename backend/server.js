@@ -16,6 +16,7 @@ import avvisiRouter from "./routes/avvisi.js";
 import statsRouter from "./routes/stats.js";
 import usersRouter from "./routes/users.js";
 import migrationRouter from "./routes/migration.js";
+import debugRouter from "./routes/debug.js";
 import { initDatabase } from './utils/postgres.js'; // PostgreSQL instead of SQLite
 
 const app = express();
