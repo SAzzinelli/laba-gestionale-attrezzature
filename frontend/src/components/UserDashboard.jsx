@@ -9,6 +9,11 @@ const UserDashboard = () => {
     myReports: 0,
     myLoans: 0
   });
+  const [recentData, setRecentData] = useState({
+    activeLoans: [],
+    recentRequests: [],
+    recentReports: []
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showQuickRequestModal, setShowQuickRequestModal] = useState(false);
@@ -46,18 +51,21 @@ const UserDashboard = () => {
       if (requestsRes.ok) {
         const requestsData = await requestsRes.json();
         setStats(prev => ({ ...prev, myRequests: requestsData.length }));
+        setRecentData(prev => ({ ...prev, recentRequests: requestsData.slice(0, 3) }));
       }
 
       // Process reports data
       if (reportsRes.ok) {
         const reportsData = await reportsRes.json();
         setStats(prev => ({ ...prev, myReports: reportsData.length }));
+        setRecentData(prev => ({ ...prev, recentReports: reportsData.slice(0, 3) }));
       }
 
       // Process loans data
       if (loansRes.ok) {
         const loansData = await loansRes.json();
         setStats(prev => ({ ...prev, myLoans: loansData.length }));
+        setRecentData(prev => ({ ...prev, activeLoans: loansData.slice(0, 3) }));
       }
 
     } catch (err) {
@@ -97,7 +105,7 @@ const UserDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Azioni Rapide</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
@@ -119,6 +127,64 @@ const UserDashboard = () => {
             Segnala Guasto
           </button>
         </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Active Loans */}
+        {recentData.activeLoans.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Prestiti Attivi
+            </h3>
+            <div className="space-y-3">
+              {recentData.activeLoans.map((loan, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{loan.nome_oggetto || 'Oggetto'}</p>
+                    <p className="text-sm text-gray-600">Scadenza: {new Date(loan.data_fine).toLocaleDateString('it-IT')}</p>
+                  </div>
+                  <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                    Attivo
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent Requests */}
+        {recentData.recentRequests.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Richieste Recenti
+            </h3>
+            <div className="space-y-3">
+              {recentData.recentRequests.map((request, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{request.nome_oggetto || 'Oggetto'}</p>
+                    <p className="text-sm text-gray-600">{new Date(request.data_richiesta).toLocaleDateString('it-IT')}</p>
+                  </div>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    request.stato === 'approvata' ? 'bg-green-100 text-green-800' :
+                    request.stato === 'in_attesa' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {request.stato === 'approvata' ? 'Approvata' :
+                     request.stato === 'in_attesa' ? 'In Attesa' : 'Rifiutata'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modals */}

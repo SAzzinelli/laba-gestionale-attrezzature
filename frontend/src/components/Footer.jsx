@@ -22,14 +22,19 @@ const Footer = () => {
             <div className="flex items-center space-x-4">
               <button 
                 onClick={() => {
-                  // Navigate to system status in same window
-                  if (window.location.pathname.includes('/user')) {
-                    // User area - switch to sistema view
-                    const event = new CustomEvent('navigateToSystem');
+                  // Check if admin sidebar exists (admin area)
+                  const adminSidebar = document.querySelector('.sidebar');
+                  console.log('Footer click - adminSidebar found:', !!adminSidebar);
+                  
+                  if (adminSidebar) {
+                    // Admin area - switch to sistema tab
+                    console.log('Dispatching navigateToSystemAdmin event');
+                    const event = new CustomEvent('navigateToSystemAdmin');
                     window.dispatchEvent(event);
                   } else {
-                    // Admin area - switch to sistema tab
-                    const event = new CustomEvent('navigateToSystemAdmin');
+                    // User area - switch to sistema view
+                    console.log('Dispatching navigateToSystem event');
+                    const event = new CustomEvent('navigateToSystem');
                     window.dispatchEvent(event);
                   }
                 }}
