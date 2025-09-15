@@ -169,8 +169,8 @@ function StatCard({ title, value, description }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:scale-105 transition-transform p-6">
-      <div className="flex items-center">
+    <div className="kpi-card bg-white rounded-lg shadow-sm border border-gray-200 hover:scale-105 transition-transform">
+      <div className="flex items-center w-full">
         <div className={`w-12 h-12 ${colorMap[title]} rounded-lg flex items-center justify-center ${
           title === 'Articoli Disponibili' ? 'text-blue-600' :
           title === 'Le Mie Richieste' ? 'text-green-600' :
@@ -179,10 +179,10 @@ function StatCard({ title, value, description }) {
         }`}>
           {iconMap[title]}
         </div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          <p className="text-xs text-gray-500 mt-1">{description}</p>
+        <div className="ml-4 flex-1 min-w-0">
+          <p className="kpi-label text-gray-600">{title}</p>
+          <p className="kpi-value text-gray-900">{value}</p>
+          <p className="text-xs text-gray-500 mt-1 break-words">{description}</p>
         </div>
       </div>
     </div>
