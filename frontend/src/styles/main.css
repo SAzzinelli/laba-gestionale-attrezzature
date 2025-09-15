@@ -713,7 +713,7 @@ body {
 .sidebar {
   background-color: var(--bg-primary);
   border-right: 1px solid var(--border-primary);
-  transition: all 0.2s ease;
+  transition: width 0.2s ease, transform 0.2s ease;
   height: 100vh;
   width: 16rem; /* 64 = 16rem */
   position: fixed;
@@ -743,6 +743,15 @@ body {
   padding: 1rem;
   border-top: 1px solid var(--border-primary);
   background-color: var(--bg-primary);
+}
+
+/* UserBadge synchronization */
+.user-badge {
+  transition: all 0.2s ease;
+}
+
+.user-badge * {
+  transition: all 0.2s ease;
 }
 
 /* Header */
