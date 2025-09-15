@@ -372,21 +372,6 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  </select>
  </div>
 
- {formData.corsi_assegnati.length > 0 && (
- <div className="card bg-tertiary">
- <h4 className="font-medium text-primary mb-2">Corsi Selezionati ({formData.corsi_assegnati.length})</h4>
- <div className="flex flex-wrap gap-2">
- {formData.corsi_assegnati.map(corso => (
- <span key={corso} className="status-badge alert-info">
- {corso}
- </span>
- ))}
- </div>
- <p className="text-xs text-tertiary mt-2">
- Gli oggetti saranno visibili agli studenti di questi corsi
- </p>
- </div>
- )}
  </div>
  )}
 
