@@ -24,7 +24,7 @@ const Inventory = () => {
  const [savedFilters, setSavedFilters] = useState([]);
  const [currentFilters, setCurrentFilters] = useState({});
  const [showCategoryManager, setShowCategoryManager] = useState(false);
-  const [newCategory, setNewCategory] = useState({ nome: '' });
+  const [newCategory, setNewCategory] = useState({ madre: '', figlia: '' });
  const [expandedItems, setExpandedItems] = useState(new Set());
  const [selectedCourse, setSelectedCourse] = useState('');
  const [viewMode, setViewMode] = useState('list'); // only list view
@@ -73,22 +73,22 @@ const Inventory = () => {
  };
 
  // Fetch categories
- const fetchCategories = async () => {
- try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici`, {
- headers: {
- 'Authorization': `Bearer ${token}`
- }
- });
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
- if (!response.ok) throw new Error('Errore nel caricamento categorie');
+      if (!response.ok) throw new Error('Errore nel caricamento categorie');
 
- const data = await response.json();
- setCategories(data);
- } catch (err) {
- console.error('Errore categorie:', err);
- }
- };
+      const data = await response.json();
+      setCategories(data);
+    } catch (err) {
+      console.error('Errore categorie:', err);
+    }
+  };
 
  // Fetch courses
  const fetchCourses = async () => {
@@ -300,26 +300,29 @@ const Inventory = () => {
 
   // Handle add category
   const handleAddCategory = async () => {
-    if (!newCategory.nome || newCategory.nome.trim() === '') {
-      alert('Nome categoria è obbligatorio');
+    if (!newCategory.madre || !newCategory.figlia || newCategory.madre.trim() === '' || newCategory.figlia.trim() === '') {
+      alert('Categoria madre e figlia sono obbligatorie');
       return;
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ nome: newCategory.nome.trim() })
+        body: JSON.stringify({ 
+          madre: newCategory.madre.trim(),
+          figlia: newCategory.figlia.trim()
+        })
       });
 
       if (!response.ok) throw new Error('Errore nell\'aggiunta categoria');
 
       // Refresh categories
       fetchCategories();
-      setNewCategory({ nome: '' });
+      setNewCategory({ madre: '', figlia: '' });
     } catch (err) {
       setError(err.message);
     }
@@ -332,7 +335,7 @@ const Inventory = () => {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici/${categoryId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie/${categoryId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

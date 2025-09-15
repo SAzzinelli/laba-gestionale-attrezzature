@@ -14,7 +14,8 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
     scaffale: '',
     note: '',
     corsi_assegnati: [],
-    categoria_id: '',
+    categoria_madre: '',
+    categoria_figlia: '',
     unita: []
   });
  
@@ -33,7 +34,8 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
           scaffale: editingItem.posizione || '',
           note: editingItem.note || '',
           corsi_assegnati: editingItem.corsi_assegnati || [],
-          categoria_id: editingItem.categoria_id || '',
+          categoria_madre: editingItem.categoria_madre || '',
+          categoria_figlia: editingItem.categoria_figlia || '',
           unita: []
         });
  // Carica le unità esistenti per la modifica
@@ -46,7 +48,8 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
         scaffale: '',
         note: '',
         corsi_assegnati: [],
-        categoria_id: '',
+        categoria_madre: '',
+        categoria_figlia: '',
         unita: []
       });
  setStep(1);
@@ -167,9 +170,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
   // Prepara i dati per l'invio
   const submitData = {
     ...formData,
-    posizione: formData.scaffale, // Mappa scaffale a posizione per il backend
-    corso_accademico: formData.corsi_assegnati[0] || '', // Usa il primo corso selezionato
-    categoria_id: formData.categoria_id
+    posizione: formData.scaffale // Mappa scaffale a posizione per il backend
   };
 
   // Rimuovi i campi che non servono al backend
@@ -216,7 +217,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 const canProceed = () => {
   switch (step) {
     case 1: return formData.nome && formData.quantita_totale;
-    case 2: return formData.corsi_assegnati.length > 0 && formData.categoria_id;
+    case 2: return formData.corsi_assegnati.length > 0 && formData.categoria_madre && formData.categoria_figlia;
     case 3: return formData.unita.length > 0;
     default: return false;
   }
@@ -410,20 +411,41 @@ const canProceed = () => {
  </div>
 
         {/* Category Selection */}
-        <div className="form-group">
-          <label className="form-label">Categoria</label>
-          <select
-            value={formData.categoria_id}
-            onChange={(e) => setFormData(prev => ({ ...prev, categoria_id: e.target.value }))}
-            className="select-field"
-          >
-            <option value="">Seleziona categoria</option>
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.nome}
-              </option>
-            ))}
-          </select>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="form-group">
+            <label className="form-label">Categoria Madre *</label>
+            <select
+              value={formData.categoria_madre}
+              onChange={(e) => setFormData(prev => ({ ...prev, categoria_madre: e.target.value }))}
+              className="select-field"
+            >
+              <option value="">Seleziona categoria madre</option>
+              {categories.map(category => (
+                <option key={category.madre} value={category.madre}>
+                  {category.madre}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Categoria Figlia *</label>
+            <select
+              value={formData.categoria_figlia}
+              onChange={(e) => setFormData(prev => ({ ...prev, categoria_figlia: e.target.value }))}
+              className="select-field"
+            >
+              <option value="">Seleziona categoria figlia</option>
+              {categories
+                .filter(cat => cat.madre === formData.categoria_madre)
+                .map(category => (
+                  <option key={category.figlia} value={category.figlia}>
+                    {category.figlia}
+                  </option>
+                ))
+              }
+            </select>
+          </div>
         </div>
 
  </div>
