@@ -191,7 +191,7 @@ const ActivityLog = ({ isOpen, onClose }) => {
  </div>
  </div>
  <div className="mt-1 text-sm text-gray-600">
- <span className="font-medium">{activity.user_name}</span>
+ <span className="font-medium">{activity.user_name || 'Utente sconosciuto'}</span>
  {activity.details && (
  <span className="ml-2">• {activity.details}</span>
  )}

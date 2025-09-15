@@ -45,7 +45,7 @@ const Dashboard = ({ onNavigate }) => {
  realNotifications.push({
  id: notificationId++,
  title: "Richiesta Reset Password",
- description: `${request.user_name} ha richiesto il reset della password`,
+ description: `${request.user_name || 'Utente sconosciuto'} ha richiesto il reset della password`,
  time: getTimeAgo(request.requested_at),
  isRead: false,
  type: "password_reset"
@@ -380,11 +380,11 @@ const Dashboard = ({ onNavigate }) => {
  <div key={request.id} className="flex items-center justify-between p-4 bg-orange-50 /20 rounded-lg border border-orange-200 ">
  <div className="flex items-center">
  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3">
- {request.user_name.charAt(0)}
+ {request.user_name ? request.user_name.charAt(0) : '?'}
  </div>
  <div>
- <p className="font-medium text-gray-900">{request.user_name}</p>
- <p className="text-sm text-gray-600">{request.user_email}</p>
+ <p className="font-medium text-gray-900">{request.user_name || 'Utente sconosciuto'}</p>
+ <p className="text-sm text-gray-600">{request.user_email || 'Email non disponibile'}</p>
  <p className="text-xs text-gray-500">
  Richiesto: {new Date(request.requested_at).toLocaleString()}
  </p>

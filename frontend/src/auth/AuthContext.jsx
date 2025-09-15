@@ -28,16 +28,22 @@ export default function AuthProvider({ children }) {
  useEffect(() => {
  let cancelled = false;
  async function loadMe() {
- if (!token) { setUser(null); return; }
+ if (!token) { 
+ setUser(null); 
+ return; 
+ }
  try {
- const { data } = await api.get("/api/auth/me");
+ const { data } = await api.get(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me`);
  const u = data?.user || data || null; // tolerate both formats
  if (!cancelled) setUser(u);
  } catch (e) {
  // Token invalid/expired → clear session
  console.warn("/api/auth/me failed", e?.response?.status, e?.message);
  localStorage.removeItem(KEY);
- if (!cancelled) { setToken(null); setUser(null); }
+ if (!cancelled) { 
+ setToken(null); 
+ setUser(null); 
+ }
  }
  }
  loadMe();
@@ -47,7 +53,7 @@ export default function AuthProvider({ children }) {
  // Login
  const login = async (identifier, password) => {
  try {
- const { data } = await api.post("/api/auth/login", { 
+ const { data } = await api.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, { 
  email: identifier, 
  username: identifier, 
  password 
@@ -69,7 +75,7 @@ export default function AuthProvider({ children }) {
  const register = async ({ name, surname, email, password, matricola, phone, ruolo, corso_accademico }) => {
  try {
  const payload = { name, surname, email, password, matricola, phone, ruolo, corso_accademico };
- const { data } = await api.post("/api/auth/register", payload);
+ const { data } = await api.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, payload);
  const tok = data?.token;
  const u = data?.user || null;
  if (!tok || !u) throw new Error("Risposta registrazione non valida");
