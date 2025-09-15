@@ -75,6 +75,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
             ELSE 'disponibile'
           END AS stato_effettivo
         FROM inventario i
+        LEFT JOIN categorie_semplici cs ON cs.id = i.categoria_id
         ORDER BY i.nome
       `);
   } else {
@@ -94,6 +95,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
             ELSE 'disponibile'
           END AS stato_effettivo
         FROM inventario i
+        LEFT JOIN categorie_semplici cs ON cs.id = i.categoria_id
         WHERE EXISTS (SELECT 1 FROM inventario_corsi WHERE inventario_id = i.id AND corso = $1)
         ORDER BY i.nome
       `, [userCourse]);
