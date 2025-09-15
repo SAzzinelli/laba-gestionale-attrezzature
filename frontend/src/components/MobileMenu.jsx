@@ -7,12 +7,16 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
     <div className="fixed inset-0 z-40 lg:hidden">
       {/* Overlay - Simple fade */}
       <div 
-        className="absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
+        className={`absolute inset-0 bg-black transition-opacity duration-300 ${
+          isOpen ? 'opacity-50' : 'opacity-0'
+        }`}
         onClick={onClose}
       />
       
       {/* Mobile Menu - Simple slide up */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transform transition-transform duration-300 ease-out">
+      <div className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transform transition-transform duration-300 ease-out ${
+        isOpen ? 'translate-y-0' : 'translate-y-full'
+      }`}>
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
