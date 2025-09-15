@@ -10,17 +10,18 @@ r.get('/', async (req, res) => {
     // Recupera le categorie uniche dall'inventario
     const result = await query(`
       SELECT DISTINCT 
-        categoria_madre as madre, 
-        categoria_figlia as figlia,
+        i.categoria_madre as madre, 
+        cs.nome as figlia,
         COUNT(*) as count,
         SUM(CASE 
           WHEN EXISTS(SELECT 1 FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) 
           THEN 1 ELSE 0 
         END) as available_count
       FROM inventario i
-      WHERE categoria_madre IS NOT NULL AND categoria_figlia IS NOT NULL
-      GROUP BY categoria_madre, categoria_figlia
-      ORDER BY categoria_madre, categoria_figlia
+      LEFT JOIN categorie_semplici cs ON cs.id = i.categoria_id
+      WHERE i.categoria_madre IS NOT NULL AND i.categoria_id IS NOT NULL
+      GROUP BY i.categoria_madre, cs.nome
+      ORDER BY i.categoria_madre, cs.nome
     `);
     
     // Trasforma i dati per il frontend

@@ -15,7 +15,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
     note: '',
     corsi_assegnati: [],
     categoria_madre: '',
-    categoria_figlia: '',
+    categoria_id: '',
     unita: []
   });
  
@@ -35,7 +35,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
           note: editingItem.note || '',
           corsi_assegnati: editingItem.corsi_assegnati || [],
           categoria_madre: '', // Non serve, viene derivato automaticamente
-          categoria_figlia: editingItem.categoria_figlia || '',
+          categoria_id: editingItem.categoria_id || '',
           unita: []
         });
  // Carica le unità esistenti per la modifica
@@ -49,7 +49,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
         note: '',
         corsi_assegnati: [],
         categoria_madre: '', // Non serve, viene derivato automaticamente
-        categoria_figlia: '',
+        categoria_id: '',
         unita: []
       });
  setStep(1);
@@ -172,7 +172,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
     ...formData,
     posizione: formData.scaffale, // Mappa scaffale a posizione per il backend
     categoria_madre: formData.corsi_assegnati[0] || '', // Usa il primo corso selezionato come categoria_madre
-    categoria_figlia: formData.categoria_figlia
+    categoria_id: formData.categoria_id
   };
 
   // Rimuovi i campi che non servono al backend
@@ -219,7 +219,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 const canProceed = () => {
   switch (step) {
     case 1: return formData.nome && formData.quantita_totale;
-    case 2: return formData.corsi_assegnati.length > 0 && formData.categoria_figlia;
+    case 2: return formData.corsi_assegnati.length > 0 && formData.categoria_id;
     case 3: return formData.unita.length > 0;
     default: return false;
   }
@@ -413,17 +413,17 @@ const canProceed = () => {
  </div>
 
 
-        {/* Categoria Semplice (Categoria Figlia) */}
+        {/* Categoria Semplice */}
         <div className="form-group">
-          <label className="form-label">Categoria Semplice (Categoria Figlia) *</label>
+          <label className="form-label">Categoria Semplice *</label>
           <select
-            value={formData.categoria_figlia}
-            onChange={(e) => setFormData(prev => ({ ...prev, categoria_figlia: e.target.value }))}
+            value={formData.categoria_id}
+            onChange={(e) => setFormData(prev => ({ ...prev, categoria_id: e.target.value }))}
             className="select-field"
           >
             <option value="">Seleziona categoria semplice</option>
             {categories.map(category => (
-              <option key={category.id} value={category.nome}>
+              <option key={category.id} value={category.id}>
                 {category.nome}
               </option>
             ))}
