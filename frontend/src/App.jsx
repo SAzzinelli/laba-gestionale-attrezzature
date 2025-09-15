@@ -38,6 +38,7 @@ function AppInner() {
  // Listener per navigazione dal footer
  useEffect(() => {
    const handleNavigateToSystem = () => {
+     console.log('Admin: Received navigateToSystemAdmin event');
      setTab('sistema');
    };
    
@@ -279,7 +280,7 @@ function AppInner() {
        </div>
      </main>
      
-     <Footer />
+     <Footer onSystemClick={() => setTab('sistema')} />
    </div>
  ) : (
    <UserArea />

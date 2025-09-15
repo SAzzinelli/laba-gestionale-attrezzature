@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Footer = () => {
+const Footer = ({ onSystemClick }) => {
   return (
     <footer className="bg-white border-t border-gray-200 py-6 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,20 +22,23 @@ const Footer = () => {
             <div className="flex items-center space-x-4">
               <button 
                 onClick={() => {
-                  // Check if admin sidebar exists (admin area)
-                  const adminSidebar = document.querySelector('.sidebar');
-                  console.log('Footer click - adminSidebar found:', !!adminSidebar);
-                  
-                  if (adminSidebar) {
-                    // Admin area - switch to sistema tab
-                    console.log('Dispatching navigateToSystemAdmin event');
-                    const event = new CustomEvent('navigateToSystemAdmin');
-                    window.dispatchEvent(event);
+                  console.log('Footer click - onSystemClick:', !!onSystemClick);
+                  if (onSystemClick) {
+                    onSystemClick();
                   } else {
-                    // User area - switch to sistema view
-                    console.log('Dispatching navigateToSystem event');
-                    const event = new CustomEvent('navigateToSystem');
-                    window.dispatchEvent(event);
+                    // Fallback to events
+                    const adminSidebar = document.querySelector('.sidebar');
+                    console.log('Footer click - adminSidebar found:', !!adminSidebar);
+                    
+                    if (adminSidebar) {
+                      console.log('Dispatching navigateToSystemAdmin event');
+                      const event = new CustomEvent('navigateToSystemAdmin');
+                      window.dispatchEvent(event);
+                    } else {
+                      console.log('Dispatching navigateToSystem event');
+                      const event = new CustomEvent('navigateToSystem');
+                      window.dispatchEvent(event);
+                    }
                   }
                 }}
                 className="flex items-center space-x-1 text-xs text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"

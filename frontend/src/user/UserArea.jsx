@@ -89,6 +89,7 @@ const UserArea = () => {
   // Listener per navigazione dal footer
   useEffect(() => {
     const handleNavigateToSystem = () => {
+      console.log('User: Received navigateToSystem event');
       setActiveView('sistema');
     };
     
@@ -155,7 +156,7 @@ const UserArea = () => {
             {renderActiveView()}
           </main>
           
-          <Footer />
+          <Footer onSystemClick={() => setActiveView('sistema')} />
         </div>
     </div>
   );
