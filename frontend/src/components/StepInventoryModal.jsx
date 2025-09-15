@@ -219,7 +219,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 const canProceed = () => {
   switch (step) {
     case 1: return formData.nome && formData.quantita_totale;
-    case 2: return formData.corsi_assegnati.length > 0 && formData.categoria_id;
+    case 2: return formData.corsi_assegnati.length > 0; // Categoria non obbligatoria
     case 3: return formData.unita.length > 0;
     default: return false;
   }
@@ -415,7 +415,7 @@ const canProceed = () => {
 
         {/* Categoria Semplice */}
         <div className="form-group">
-          <label className="form-label">Categoria Semplice *</label>
+          <label className="form-label">Categoria Semplice</label>
           <select
             value={formData.categoria_id}
             onChange={(e) => setFormData(prev => ({ ...prev, categoria_id: e.target.value }))}
