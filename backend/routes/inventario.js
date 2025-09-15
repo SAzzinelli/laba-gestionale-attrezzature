@@ -18,7 +18,7 @@ r.get('/', requireAuth, requireRole('admin'), async (req, res) => {
       SELECT
         i.id, i.nome, i.quantita_totale, i.categoria_madre, i.categoria_figlia,
         i.posizione, i.note, i.in_manutenzione, i.created_at, i.updated_at,
-        CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(i.categoria_figlia, '')) as categoria_nome,
+        CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
         COALESCE(json_agg(DISTINCT ic.corso) FILTER (WHERE ic.corso IS NOT NULL), '[]') AS corsi_assegnati,
         (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) AS unita_disponibili,
         CASE
@@ -27,6 +27,7 @@ r.get('/', requireAuth, requireRole('admin'), async (req, res) => {
           ELSE 'disponibile'
         END AS stato_effettivo
       FROM inventario i
+      LEFT JOIN categorie_semplici cs ON cs.nome = i.categoria_figlia
       LEFT JOIN inventario_corsi ic ON ic.inventario_id = i.id
     `;
     const queryParams = [];
@@ -45,7 +46,7 @@ r.get('/', requireAuth, requireRole('admin'), async (req, res) => {
       queryText += ` WHERE ${conditions.join(' AND ')}`;
     }
 
-    queryText += ` GROUP BY i.id ORDER BY i.nome`;
+    queryText += ` GROUP BY i.id, cs.nome ORDER BY i.nome`;
 
     const rows = await query(queryText, queryParams);
     res.json(rows);
@@ -66,7 +67,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
       result = await query(`
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_figlia, i.posizione, i.note,
-          CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(i.categoria_figlia, '')) as categoria_nome,
+          CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
           (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) AS unita_disponibili,
           CASE
             WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') THEN 'in_riparazione'
@@ -74,6 +75,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
             ELSE 'disponibile'
           END AS stato_effettivo
         FROM inventario i
+        LEFT JOIN categorie_semplici cs ON cs.nome = i.categoria_figlia
         ORDER BY i.nome
       `);
   } else {
@@ -85,7 +87,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
       result = await query(`
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_figlia, i.posizione, i.note,
-          CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(i.categoria_figlia, '')) as categoria_nome,
+          CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
           (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) AS unita_disponibili,
           CASE
             WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') THEN 'in_riparazione'
@@ -93,6 +95,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
             ELSE 'disponibile'
           END AS stato_effettivo
         FROM inventario i
+        LEFT JOIN categorie_semplici cs ON cs.nome = i.categoria_figlia
         WHERE EXISTS (SELECT 1 FROM inventario_corsi WHERE inventario_id = i.id AND corso = $1)
         ORDER BY i.nome
       `, [userCourse]);
@@ -152,8 +155,8 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     } = req.body || {};
     
     if (!nome) return res.status(400).json({ error: 'nome richiesto' });
-    if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre richiesta' });
-    if (!categoria_figlia) return res.status(400).json({ error: 'categoria_figlia richiesta' });
+    if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre (corso accademico) richiesta' });
+    if (!categoria_figlia) return res.status(400).json({ error: 'categoria_figlia (categoria semplice) richiesta' });
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
     
     // Check if nome already exists
@@ -233,8 +236,8 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     } = req.body || {};
 
     if (!nome) return res.status(400).json({ error: 'nome richiesto' });
-    if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre richiesta' });
-    if (!categoria_figlia) return res.status(400).json({ error: 'categoria_figlia richiesta' });
+    if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre (corso accademico) richiesta' });
+    if (!categoria_figlia) return res.status(400).json({ error: 'categoria_figlia (categoria semplice) richiesta' });
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
 
     // Check if nome already exists for another item
