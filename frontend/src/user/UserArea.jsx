@@ -130,10 +130,6 @@ const UserArea = () => {
             </div>
           </div>
           
-          {/* Global Search in Sidebar */}
-          <div className="p-4 border-b border-gray-200">
-          </div>
-          
           <nav className="flex-1 p-4 space-y-2">
             {sidebarItems.map((item) => (
               <button
