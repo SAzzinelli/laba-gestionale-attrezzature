@@ -254,7 +254,7 @@ const SystemStatus = () => {
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-semibold text-gray-900">Memoria</h4>
-                    <span className="text-2xl font-bold text-blue-600">{systemData.metrics.memoryUsage}%</span>
+                    <span className="text-2xl font-bold text-blue-600">{Math.round(systemData.metrics.memoryUsage)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
@@ -268,7 +268,7 @@ const SystemStatus = () => {
                 <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-semibold text-gray-900">CPU</h4>
-                    <span className="text-2xl font-bold text-purple-600">{systemData.metrics.cpuUsage}%</span>
+                    <span className="text-2xl font-bold text-purple-600">{Math.round(systemData.metrics.cpuUsage)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
@@ -282,7 +282,7 @@ const SystemStatus = () => {
                 <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-semibold text-gray-900">Disco</h4>
-                    <span className="text-2xl font-bold text-green-600">{systemData.metrics.diskUsage}%</span>
+                    <span className="text-2xl font-bold text-green-600">{Math.round(systemData.metrics.diskUsage)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
