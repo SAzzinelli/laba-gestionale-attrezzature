@@ -67,7 +67,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
       result = await query(`
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_figlia, i.posizione, i.note,
-          CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
+          CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(i.categoria_figlia, '')) as categoria_nome,
           (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) AS unita_disponibili,
           CASE
             WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') THEN 'in_riparazione'
@@ -75,7 +75,6 @@ r.get('/disponibili', requireAuth, async (req, res) => {
             ELSE 'disponibile'
           END AS stato_effettivo
         FROM inventario i
-        LEFT JOIN categorie_semplici cs ON cs.nome = i.categoria_figlia
         ORDER BY i.nome
       `);
   } else {
@@ -87,7 +86,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
       result = await query(`
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_figlia, i.posizione, i.note,
-          CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
+          CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(i.categoria_figlia, '')) as categoria_nome,
           (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) AS unita_disponibili,
           CASE
             WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') THEN 'in_riparazione'
@@ -95,7 +94,6 @@ r.get('/disponibili', requireAuth, async (req, res) => {
             ELSE 'disponibile'
           END AS stato_effettivo
         FROM inventario i
-        LEFT JOIN categorie_semplici cs ON cs.nome = i.categoria_figlia
         WHERE EXISTS (SELECT 1 FROM inventario_corsi WHERE inventario_id = i.id AND corso = $1)
         ORDER BY i.nome
       `, [userCourse]);

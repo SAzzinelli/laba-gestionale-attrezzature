@@ -7,14 +7,32 @@ const r = Router();
 // GET /api/categorie
 r.get('/', async (req, res) => {
   try {
-    const result = await query('SELECT madre, figlia FROM categorie ORDER BY madre, figlia');
+    // Recupera le categorie uniche dall'inventario
+    const result = await query(`
+      SELECT DISTINCT 
+        categoria_madre as madre, 
+        categoria_figlia as figlia,
+        COUNT(*) as count,
+        SUM(CASE 
+          WHEN EXISTS(SELECT 1 FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) 
+          THEN 1 ELSE 0 
+        END) as available_count
+      FROM inventario i
+      WHERE categoria_madre IS NOT NULL AND categoria_figlia IS NOT NULL
+      GROUP BY categoria_madre, categoria_figlia
+      ORDER BY categoria_madre, categoria_figlia
+    `);
+    
     // Trasforma i dati per il frontend
     const categories = result.map(row => ({
       id: `${row.madre}-${row.figlia}`,
       madre: row.madre,
       figlia: row.figlia,
-      nome: `${row.madre} - ${row.figlia}`
+      nome: `${row.madre} - ${row.figlia}`,
+      count: parseInt(row.count),
+      available_count: parseInt(row.available_count)
     }));
+    
     res.json(categories);
   } catch (error) {
     console.error('Errore GET categorie:', error);
