@@ -172,7 +172,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 
  return (
  <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && handleClose()}>
- <div className="modal-content max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+ <div className="modal-content max-w-2xl h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
  <div className="modal-header">
  <div>
  <h2 className="text-lg font-semibold text-primary">
@@ -229,7 +229,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  </div>
  </div>
 
- <div className="modal-body">
+ <div className="modal-body flex-1 overflow-y-auto">
  {/* Step 1: Basic Info */}
  {step === 1 && (
  <div className="space-y-4">
@@ -394,11 +394,11 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 
  <div className="form-group">
  <label className="form-label">Codici Univoci ({formData.unita.length})</label>
- <div className="bg-gray-50 rounded-lg p-4 max-h-80 overflow-y-auto">
- <div className="space-y-3">
+ <div className="bg-gray-50 rounded-lg p-3 max-h-60 overflow-y-auto border border-gray-200">
+ <div className="space-y-2">
  {formData.unita.map((unit, index) => (
- <div key={index} className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
- <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
+ <div key={index} className="flex items-center space-x-2 p-2 bg-white rounded border border-gray-200 hover:border-blue-300 transition-colors">
+ <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
  {index + 1}
  </div>
  <div className="flex-1">
@@ -406,13 +406,13 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  type="text"
  value={unit.codice_univoco}
  onChange={(e) => handleUnitCodeChange(index, e.target.value)}
- className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+ className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
  placeholder={`Codice ${index + 1}`}
  />
  </div>
  <div className="flex-shrink-0">
- <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
- {unit.codice_univoco.length} caratteri
+ <span className="text-xs text-gray-500 bg-gray-100 px-1 py-0.5 rounded">
+ {unit.codice_univoco.length}
  </span>
  </div>
  </div>
@@ -435,7 +435,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  )}
  </div>
 
- <div className="modal-footer">
+ <div className="modal-footer flex-shrink-0 border-t border-gray-200 bg-white">
  <button
  onClick={() => step > 1 ? setStep(step - 1) : handleClose()}
  className="btn-secondary"
