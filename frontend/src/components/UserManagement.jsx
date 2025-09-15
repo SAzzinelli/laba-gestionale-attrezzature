@@ -259,104 +259,186 @@ const UserManagement = () => {
  </div>
  )}
 
- {/* Users Table */}
- <div className="bg-white rounded-lg shadow-lg overflow-hidden">
- <div className="overflow-x-auto shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg">
- <table className="min-w-full divide-y divide-gray-200 ">
- <thead className="bg-gradient-to-r from-gray-50 to-gray-100 ">
- <tr>
- <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
- Nome
- </th>
- <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
- Email
- </th>
- <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
- Matricola
- </th>
- <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
- Corso
- </th>
- <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
- Ruolo
- </th>
- <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
- Azioni
- </th>
- </tr>
- </thead>
- <tbody className="bg-white divide-y divide-gray-200 ">
- {users.map((user, index) => (
- <tr key={user.id} className={`hover:bg-gray-50 transition-colors duration-150 ${index % 2 === 0 ? 'bg-white ' : 'bg-gray-50 '}`}>
- <td className="px-6 py-4 whitespace-nowrap">
- <div className="flex items-center">
- <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
- {user.name.charAt(0)}{user.surname.charAt(0)}
- </div>
- <div className="ml-3">
- <div className="text-sm font-medium text-gray-900 ">
- {user.name} {user.surname}
- </div>
- </div>
- </div>
- </td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
- {user.email}
- </td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
- {user.matricola}
- </td>
- <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
- {user.corso_accademico || '-'}
- </td>
- <td className="px-6 py-4 whitespace-nowrap">
- <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
- user.ruolo === 'admin' 
- ? 'bg-red-100 text-red-800 '
- : 'bg-green-100 text-green-800 '
- }`}>
- {user.ruolo === 'admin' ? 'Amministratore' : 'Utente'}
- </span>
- </td>
- <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
- <div className="flex flex-col sm:flex-row gap-2 justify-center items-center">
- <button
- onClick={() => openEditModal(user)}
- className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors duration-200"
- >
- <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
- </svg>
- Modifica
- </button>
- <button
- onClick={() => openPasswordReset(user)}
- className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-orange-700 bg-orange-100 rounded-md hover:bg-orange-200 transition-colors duration-200"
- >
- <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z" />
- </svg>
- Reset
- </button>
- {user.ruolo !== 'admin' && (
- <button
- onClick={() => handleDeleteUser(user.id)}
- className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors duration-200"
- >
- <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
- </svg>
- Elimina
- </button>
- )}
- </div>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- </div>
- </div>
+    {/* Desktop Table View */}
+    <div className="hidden lg:block bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="overflow-x-auto shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg">
+        <table className="min-w-full divide-y divide-gray-200 ">
+          <thead className="bg-gradient-to-r from-gray-50 to-gray-100 ">
+            <tr>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Nome
+              </th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Email
+              </th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Matricola
+              </th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Corso
+              </th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Ruolo
+              </th>
+              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Azioni
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200 ">
+            {users.map((user, index) => (
+              <tr key={user.id} className={`hover:bg-gray-50 transition-colors duration-150 ${index % 2 === 0 ? 'bg-white ' : 'bg-gray-50 '}`}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                      {user.name.charAt(0)}{user.surname.charAt(0)}
+                    </div>
+                    <div className="ml-3">
+                      <div className="text-sm font-medium text-gray-900 ">
+                        {user.name} {user.surname}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
+                  {user.email}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
+                  {user.matricola}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
+                  {user.corso_accademico || '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    user.ruolo === 'admin' 
+                    ? 'bg-red-100 text-red-800 '
+                    : 'bg-green-100 text-green-800 '
+                  }`}>
+                    {user.ruolo === 'admin' ? 'Amministratore' : 'Utente'}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center items-center">
+                    <button
+                      onClick={() => openEditModal(user)}
+                      className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors duration-200"
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Modifica
+                    </button>
+                    <button
+                      onClick={() => openPasswordReset(user)}
+                      className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-orange-700 bg-orange-100 rounded-md hover:bg-orange-200 transition-colors duration-200"
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z" />
+                      </svg>
+                      Reset
+                    </button>
+                    {user.ruolo !== 'admin' && (
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors duration-200"
+                      >
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Elimina
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {/* Mobile Card View */}
+    <div className="lg:hidden space-y-4">
+      {users.map((user) => (
+        <div key={user.id} className="bg-white rounded-lg shadow-lg border border-gray-200 p-4">
+          {/* User Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                {user.name.charAt(0)}{user.surname.charAt(0)}
+              </div>
+              <div className="ml-3">
+                <div className="text-lg font-semibold text-gray-900">
+                  {user.name} {user.surname}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {user.email}
+                </div>
+              </div>
+            </div>
+            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+              user.ruolo === 'admin' 
+              ? 'bg-red-100 text-red-800' 
+              : 'bg-green-100 text-green-800'
+            }`}>
+              {user.ruolo === 'admin' ? 'Admin' : 'Utente'}
+            </span>
+          </div>
+
+          {/* User Details */}
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between">
+              <span className="text-sm font-medium text-gray-600">Matricola:</span>
+              <span className="text-sm text-gray-900">{user.matricola}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm font-medium text-gray-600">Corso:</span>
+              <span className="text-sm text-gray-900">{user.corso_accademico || '-'}</span>
+            </div>
+            {user.phone && (
+              <div className="flex justify-between">
+                <span className="text-sm font-medium text-gray-600">Telefono:</span>
+                <span className="text-sm text-gray-900">{user.phone}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => openEditModal(user)}
+              className="w-full btn-primary text-center py-2"
+            >
+              <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Modifica Utente
+            </button>
+            <button
+              onClick={() => openPasswordReset(user)}
+              className="w-full btn-secondary text-center py-2"
+            >
+              <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z" />
+              </svg>
+              Reset Password
+            </button>
+            {user.ruolo !== 'admin' && (
+              <button
+                onClick={() => handleDeleteUser(user.id)}
+                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-lg py-2 transition-colors duration-200"
+              >
+                <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Elimina Utente
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
 
  {/* Add User Modal */}
  {showAddModal && (
