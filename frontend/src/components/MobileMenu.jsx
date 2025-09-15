@@ -5,25 +5,25 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
   return (
     <Transition
       show={isOpen}
-      enter="transition-all duration-300 ease-out"
-      enterFrom="translate-y-full opacity-0"
-      enterTo="translate-y-0 opacity-100"
+      enter="transition-all duration-250 ease-out"
+      enterFrom="translate-y-full"
+      enterTo="translate-y-0"
       leave="transition-all duration-200 ease-in"
-      leaveFrom="translate-y-0 opacity-100"
-      leaveTo="translate-y-full opacity-0"
+      leaveFrom="translate-y-0"
+      leaveTo="translate-y-full"
     >
       <div className="fixed inset-0 z-40 lg:hidden">
-        {/* Overlay */}
+        {/* Overlay - More subtle */}
         <Transition.Child
-          enter="ease-out duration-300"
+          enter="ease-out duration-200"
           enterFrom="opacity-0"
           enterTo="opacity-100"
-          leave="ease-in duration-200"
+          leave="ease-in duration-150"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
           <div 
-            className="absolute inset-0 bg-black bg-opacity-50"
+            className="absolute inset-0 bg-gray-900 bg-opacity-20"
             onClick={onClose}
           />
         </Transition.Child>
