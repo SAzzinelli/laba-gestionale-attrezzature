@@ -301,7 +301,7 @@ const Inventory = () => {
  // Handle add category
  const handleAddCategory = async () => {
  if (!newCategory.madre || !newCategory.figlia) {
- alert('Inserisci sia la categoria madre che figlia');
+ alert('Seleziona un corso accademico e inserisci una sottocategoria');
  return;
  }
 
@@ -778,23 +778,28 @@ const Inventory = () => {
  <h4 className="text-lg font-medium text-gray-900 mb-4">Aggiungi Nuova Categoria</h4>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
- <label className="block text-sm font-medium text-gray-700 mb-2">Categoria Madre</label>
- <input
- type="text"
+ <label className="block text-sm font-medium text-gray-700 mb-2">Corso Accademico (Categoria Madre)</label>
+ <select
  value={newCategory.madre}
  onChange={(e) => setNewCategory({...newCategory, madre: e.target.value})}
  className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
- placeholder="es. Elettronica"
- />
+ >
+ <option value="">Seleziona corso...</option>
+ {courses.map(course => (
+ <option key={course.id} value={course.nome}>
+ {course.nome}
+ </option>
+ ))}
+ </select>
  </div>
  <div>
- <label className="block text-sm font-medium text-gray-700 mb-2">Categoria Figlia</label>
+ <label className="block text-sm font-medium text-gray-700 mb-2">Sottocategoria (Categoria Figlia)</label>
  <input
  type="text"
  value={newCategory.figlia}
  onChange={(e) => setNewCategory({...newCategory, figlia: e.target.value})}
  className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
- placeholder="es. Arduino"
+ placeholder="es. Arduino, Fotocamera, etc."
  />
  </div>
  </div>
@@ -812,10 +817,15 @@ const Inventory = () => {
  <div className="space-y-2">
  {categories.map((category) => (
  <div key={category.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
- <div>
- <span className="font-medium text-gray-900">{category.madre}</span>
- <span className="text-gray-500 mx-2">-</span>
+ <div className="flex-1">
+ <div className="flex items-center space-x-2">
+ <span className="text-sm text-gray-500">Corso:</span>
+ <span className="font-medium text-blue-600">{category.madre}</span>
+ </div>
+ <div className="flex items-center space-x-2 mt-1">
+ <span className="text-sm text-gray-500">Sottocategoria:</span>
  <span className="text-gray-700">{category.figlia}</span>
+ </div>
  </div>
  <button
  onClick={() => handleDeleteCategory(category.id)}
