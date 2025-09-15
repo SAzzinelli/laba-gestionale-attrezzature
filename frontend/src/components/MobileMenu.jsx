@@ -5,31 +5,39 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
   return (
     <Transition
       show={isOpen}
-      enter="transition-all duration-250 ease-out"
+      enter="transition-all duration-300 ease-out"
       enterFrom="translate-y-full"
       enterTo="translate-y-0"
-      leave="transition-all duration-200 ease-in"
+      leave="transition-all duration-250 ease-in"
       leaveFrom="translate-y-0"
       leaveTo="translate-y-full"
     >
       <div className="fixed inset-0 z-40 lg:hidden">
-        {/* Overlay - More subtle */}
+        {/* Overlay - Appears first with blur effect */}
         <Transition.Child
-          enter="ease-out duration-200"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-150"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+          enter="ease-out duration-500"
+          enterFrom="opacity-0 backdrop-blur-none"
+          enterTo="opacity-100 backdrop-blur-sm"
+          leave="ease-in duration-300"
+          leaveFrom="opacity-100 backdrop-blur-sm"
+          leaveTo="opacity-0 backdrop-blur-none"
         >
           <div 
-            className="absolute inset-0 bg-gray-900 bg-opacity-20"
+            className="absolute inset-0 bg-black bg-opacity-30"
             onClick={onClose}
           />
         </Transition.Child>
         
-        {/* Mobile Menu */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl">
+        {/* Mobile Menu - Appears after overlay */}
+        <Transition.Child
+          enter="ease-out duration-300 delay-100"
+          enterFrom="translate-y-full"
+          enterTo="translate-y-0"
+          leave="ease-in duration-250"
+          leaveFrom="translate-y-0"
+          leaveTo="translate-y-full"
+        >
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl">
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
@@ -110,7 +118,8 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
             Esci
           </button>
         </div>
-        </div>
+          </div>
+        </Transition.Child>
       </div>
     </Transition>
   );
