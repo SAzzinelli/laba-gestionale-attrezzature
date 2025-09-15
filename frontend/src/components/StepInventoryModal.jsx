@@ -14,7 +14,6 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
     scaffale: '',
     note: '',
     corsi_assegnati: [],
-    corso_accademico: '',
     categoria_id: '',
     unita: []
   });
@@ -28,16 +27,15 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  fetchCategories();
  if (editingItem) {
  // Carica dati per la modifica
-      setFormData({
-        nome: editingItem.nome || '',
-        quantita_totale: editingItem.quantita_totale || 1,
-        scaffale: editingItem.posizione || '',
-        note: editingItem.note || '',
-        corsi_assegnati: editingItem.corsi_assegnati || [],
-        corso_accademico: editingItem.corso_accademico || '',
-        categoria_id: editingItem.categoria_id || '',
-        unita: []
-      });
+        setFormData({
+          nome: editingItem.nome || '',
+          quantita_totale: editingItem.quantita_totale || 1,
+          scaffale: editingItem.posizione || '',
+          note: editingItem.note || '',
+          corsi_assegnati: editingItem.corsi_assegnati || [],
+          categoria_id: editingItem.categoria_id || '',
+          unita: []
+        });
  // Carica le unità esistenti per la modifica
  fetchExistingUnits(editingItem.id);
  } else {
@@ -48,7 +46,6 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
         scaffale: '',
         note: '',
         corsi_assegnati: [],
-        corso_accademico: '',
         categoria_id: '',
         unita: []
       });
@@ -171,7 +168,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
   const submitData = {
     ...formData,
     posizione: formData.scaffale, // Mappa scaffale a posizione per il backend
-    corso_accademico: formData.corso_accademico,
+    corso_accademico: formData.corsi_assegnati[0] || '', // Usa il primo corso selezionato
     categoria_id: formData.categoria_id
   };
 
@@ -216,14 +213,14 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  }
  };
 
- const canProceed = () => {
- switch (step) {
- case 1: return formData.nome && formData.quantita_totale;
- case 2: return formData.corsi_assegnati.length > 0;
- case 3: return formData.unita.length > 0;
- default: return false;
- }
- };
+const canProceed = () => {
+  switch (step) {
+    case 1: return formData.nome && formData.quantita_totale;
+    case 2: return formData.corsi_assegnati.length > 0 && formData.categoria_id;
+    case 3: return formData.unita.length > 0;
+    default: return false;
+  }
+};
 
  if (!isOpen) return null;
 
@@ -411,23 +408,6 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  </div>
  )}
  </div>
-
-        {/* Corso Accademico Selection */}
-        <div className="form-group">
-          <label className="form-label">Corso Accademico</label>
-          <select
-            value={formData.corso_accademico}
-            onChange={(e) => setFormData(prev => ({ ...prev, corso_accademico: e.target.value }))}
-            className="select-field"
-          >
-            <option value="">Seleziona corso accademico</option>
-            {courses.map(course => (
-              <option key={course.id} value={course.nome}>
-                {course.nome}
-              </option>
-            ))}
-          </select>
-        </div>
 
         {/* Category Selection */}
         <div className="form-group">
