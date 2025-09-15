@@ -29,8 +29,10 @@ const Dashboard = ({ onNavigate }) => {
  const [selectedAlert, setSelectedAlert] = useState(null);
  const [showNotifications, setShowNotifications] = useState(false);
  const [notifications, setNotifications] = useState([]);
- const [showActivityLog, setShowActivityLog] = useState(false);
- const { token, isAdmin } = useAuth();
+  const [showActivityLog, setShowActivityLog] = useState(false);
+  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
+  const [selectedPasswordRequest, setSelectedPasswordRequest] = useState(null);
+  const { token, isAdmin } = useAuth();
 
  // Calculate unread notifications
  const unreadNotifications = notifications.filter(n => !n.isRead).length;
@@ -92,16 +94,43 @@ const Dashboard = ({ onNavigate }) => {
  };
  
  // Helper function to calculate time ago
- const getTimeAgo = (dateString) => {
- const now = new Date();
- const date = new Date(dateString);
- const diffInMinutes = Math.floor((now - date) / (1000 * 60));
- 
- if (diffInMinutes < 1) return "Ora";
- if (diffInMinutes < 60) return `${diffInMinutes} minuti fa`;
- if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} ore fa`;
- return `${Math.floor(diffInMinutes / 1440)} giorni fa`;
- };
+  const getTimeAgo = (dateString) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return "Ora";
+    if (diffInMinutes < 60) return `${diffInMinutes} minuti fa`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} ore fa`;
+    return `${Math.floor(diffInMinutes / 1440)} giorni fa`;
+  };
+
+  // Handle password reset
+  const handlePasswordReset = async (email, newPassword) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/admin-reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ email, newPassword })
+      });
+
+      if (response.ok) {
+        alert('Password aggiornata con successo!');
+        setShowPasswordResetModal(false);
+        setSelectedPasswordRequest(null);
+        fetchDashboardData(); // Refresh data
+      } else {
+        const error = await response.json();
+        alert(`Errore: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Errore reset password:', error);
+      alert('Errore durante l\'aggiornamento della password');
+    }
+  };
 
  // Fetch dashboard data
  const fetchDashboardData = async () => {
@@ -390,12 +419,15 @@ const Dashboard = ({ onNavigate }) => {
  </p>
  </div>
  </div>
- <button
- onClick={() => onNavigate('utenti')}
- className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
- >
- Gestisci
- </button>
+    <button
+      onClick={() => {
+        setSelectedPasswordRequest(request);
+        setShowPasswordResetModal(true);
+      }}
+      className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
+    >
+      Gestisci
+    </button>
  </div>
  ))}
  </div>
@@ -848,13 +880,83 @@ const Dashboard = ({ onNavigate }) => {
  }}
  />
 
- {/* Activity Log */}
- <ActivityLog
- isOpen={showActivityLog}
- onClose={() => setShowActivityLog(false)}
- />
- </div>
- );
+    {/* Activity Log */}
+    <ActivityLog
+      isOpen={showActivityLog}
+      onClose={() => setShowActivityLog(false)}
+    />
+
+    {/* Password Reset Modal */}
+    {showPasswordResetModal && selectedPasswordRequest && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h3 className="text-xl font-semibold text-gray-900">Reset Password</h3>
+            <button
+              onClick={() => {
+                setShowPasswordResetModal(false);
+                setSelectedPasswordRequest(null);
+              }}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="p-6">
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">Utente:</p>
+              <p className="font-medium text-gray-900">
+                {selectedPasswordRequest.user_name || 'Nome non disponibile'} {selectedPasswordRequest.user_surname || 'Cognome non disponibile'}
+              </p>
+              <p className="text-sm text-gray-600">{selectedPasswordRequest.email}</p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nuova Password
+              </label>
+              <input
+                type="password"
+                id="newPassword"
+                className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
+                placeholder="Inserisci nuova password"
+                required
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowPasswordResetModal(false);
+                  setSelectedPasswordRequest(null);
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={() => {
+                  const newPassword = document.getElementById('newPassword').value;
+                  if (newPassword) {
+                    handlePasswordReset(selectedPasswordRequest.email, newPassword);
+                  } else {
+                    alert('Inserisci una nuova password');
+                  }
+                }}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                Aggiorna Password
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
 };
 
 // Stat Card Component
