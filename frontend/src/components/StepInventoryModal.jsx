@@ -170,7 +170,9 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
   // Prepara i dati per l'invio
   const submitData = {
     ...formData,
-    posizione: formData.scaffale // Mappa scaffale a posizione per il backend
+    posizione: formData.scaffale, // Mappa scaffale a posizione per il backend
+    categoria_madre: formData.categoria_madre,
+    categoria_figlia: formData.categoria_figlia
   };
 
   // Rimuovi i campi che non servono al backend
@@ -410,42 +412,36 @@ const canProceed = () => {
  )}
  </div>
 
-        {/* Category Selection */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="form-group">
-            <label className="form-label">Categoria Madre *</label>
-            <select
-              value={formData.categoria_madre}
-              onChange={(e) => setFormData(prev => ({ ...prev, categoria_madre: e.target.value }))}
-              className="select-field"
-            >
-              <option value="">Seleziona categoria madre</option>
-              {categories.map(category => (
-                <option key={category.madre} value={category.madre}>
-                  {category.madre}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label">Categoria Figlia *</label>
-            <select
-              value={formData.categoria_figlia}
-              onChange={(e) => setFormData(prev => ({ ...prev, categoria_figlia: e.target.value }))}
-              className="select-field"
-            >
-              <option value="">Seleziona categoria figlia</option>
-              {categories
-                .filter(cat => cat.madre === formData.categoria_madre)
-                .map(category => (
-                  <option key={category.figlia} value={category.figlia}>
-                    {category.figlia}
-                  </option>
-                ))
-              }
-            </select>
-          </div>
+        {/* Corso Accademico (Categoria Madre) */}
+        <div className="form-group">
+          <label className="form-label">Corso Accademico (Categoria Madre) *</label>
+          <select
+            value={formData.categoria_madre}
+            onChange={(e) => setFormData(prev => ({ ...prev, categoria_madre: e.target.value }))}
+            className="select-field"
+          >
+            <option value="">Seleziona corso accademico</option>
+            {courses.map(course => (
+              <option key={course.id} value={course.nome}>{course.nome}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Categoria Semplice (Categoria Figlia) */}
+        <div className="form-group">
+          <label className="form-label">Categoria Semplice (Categoria Figlia) *</label>
+          <select
+            value={formData.categoria_figlia}
+            onChange={(e) => setFormData(prev => ({ ...prev, categoria_figlia: e.target.value }))}
+            className="select-field"
+          >
+            <option value="">Seleziona categoria semplice</option>
+            {categories.map(category => (
+              <option key={category.id} value={category.nome}>
+                {category.nome}
+              </option>
+            ))}
+          </select>
         </div>
 
  </div>
