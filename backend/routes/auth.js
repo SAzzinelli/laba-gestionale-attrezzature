@@ -95,7 +95,7 @@ r.post('/register', async (req, res) => {
 
     // Check if user already exists
     const existing = await query('SELECT id FROM users WHERE email = $1', [email]);
-    if (existing.rows.length > 0) {
+    if (existing.length > 0) {
       return res.status(400).json({ error: 'Utente già esistente' });
     }
 
