@@ -237,11 +237,11 @@ r.post('/admin-reset-password', requireAuth, requireRole('admin'), async (req, r
     }
     
     // Hash della nuova password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
     
     // Aggiorna la password
     await query(
-      'UPDATE users SET password = $1, updated_at = NOW() WHERE email = $2',
+      'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE email = $2',
       [hashedPassword, email]
     );
     
