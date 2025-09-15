@@ -15,6 +15,7 @@ import segnalazioniRouter from "./routes/segnalazioni.js";
 import avvisiRouter from "./routes/avvisi.js";
 import statsRouter from "./routes/stats.js";
 import usersRouter from "./routes/users.js";
+import migrationRouter from "./routes/migration.js";
 import { initDatabase } from './utils/postgres.js'; // PostgreSQL instead of SQLite
 
 const app = express();
@@ -49,6 +50,7 @@ app.use("/api/segnalazioni", segnalazioniRouter);
 app.use("/api/avvisi", avvisiRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/migration", migrationRouter);
 
 // serve frontend build if built
 const __filename = fileURLToPath(import.meta.url);
