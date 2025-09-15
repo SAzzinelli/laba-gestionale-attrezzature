@@ -296,57 +296,57 @@ const Loans = () => {
  </nav>
  </div>
 
- {/* Content */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
- {filteredData.length === 0 ? (
-      <div className="md:col-span-2 lg:col-span-3 xl:col-span-4">
- <div className="card text-center py-12">
- <div className="text-muted text-lg mb-2">
- <svg className="icon-lg mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
- </svg>
- </div>
- <p className="text-secondary">
- {searchTerm 
- ? 'Nessun elemento trovato con i filtri selezionati' 
- : `Nessuna ${activeTab === 'pending' ? 'richiesta in attesa' : activeTab === 'processed' ? 'richiesta processata' : 'prestito attivo'}`
- }
- </p>
- </div>
- </div>
- ) : (
- filteredData.map(item => (
- <div
- key={item.id}
- className="card card-clickable"
- onClick={() => setSelectedLoan(item)}
- >
- <div className="flex flex-col gap-4">
- <div className="flex items-start justify-between">
- <div className="flex-1">
- <div className="flex items-center justify-between mb-3">
- <div>
- <h3 className="text-lg font-semibold text-primary">{item.oggetto_nome}</h3>
- {item.oggetto_id && (
- <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full">
- ID: {item.oggetto_id}
- </span>
- )}
- </div>
- {getStatusBadge(item.stato)}
- </div>
- 
- <div className="flex items-center gap-2 mb-3">
- <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
- <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
- </svg>
- </div>
- <div>
- <p className="font-medium text-primary">{item.utente_nome} {item.utente_cognome}</p>
- <p className="text-xs text-tertiary">{item.utente_email}</p>
- </div>
- </div>
+    {/* Desktop Grid View */}
+    <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {filteredData.length === 0 ? (
+        <div className="md:col-span-2 lg:col-span-3 xl:col-span-4">
+          <div className="card text-center py-12">
+            <div className="text-muted text-lg mb-2">
+              <svg className="icon-lg mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <p className="text-secondary">
+              {searchTerm 
+                ? 'Nessun elemento trovato con i filtri selezionati' 
+                : `Nessuna ${activeTab === 'pending' ? 'richiesta in attesa' : activeTab === 'processed' ? 'richiesta processata' : 'prestito attivo'}`
+              }
+            </p>
+          </div>
+        </div>
+      ) : (
+        filteredData.map(item => (
+          <div
+            key={item.id}
+            className="card card-clickable"
+            onClick={() => setSelectedLoan(item)}
+          >
+            <div className="flex flex-col gap-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-primary">{item.oggetto_nome}</h3>
+                      {item.oggetto_id && (
+                        <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full">
+                          ID: {item.oggetto_id}
+                        </span>
+                      )}
+                    </div>
+                    {getStatusBadge(item.stato)}
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-primary">{item.utente_nome} {item.utente_cognome}</p>
+                      <p className="text-xs text-tertiary">{item.utente_email}</p>
+                    </div>
+                  </div>
  </div>
  </div>
  
@@ -416,10 +416,129 @@ const Loans = () => {
  )}
  </div>
  </div>
- </div>
- ))
- )}
- </div>
+        </div>
+      ))
+      )}
+    </div>
+
+    {/* Mobile Card View */}
+    <div className="lg:hidden space-y-4">
+      {filteredData.length === 0 ? (
+        <div className="card text-center py-12">
+          <div className="text-muted text-lg mb-2">
+            <svg className="icon-lg mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <p className="text-secondary">
+            {searchTerm 
+              ? 'Nessun elemento trovato con i filtri selezionati' 
+              : `Nessuna ${activeTab === 'pending' ? 'richiesta in attesa' : activeTab === 'processed' ? 'richiesta processata' : 'prestito attivo'}`
+            }
+          </p>
+        </div>
+      ) : (
+        filteredData.map(item => (
+          <div key={item.id} className="card">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                  {item.utente_nome.charAt(0)}{item.utente_cognome.charAt(0)}
+                </div>
+                <div className="ml-3">
+                  <div className="text-lg font-semibold text-primary">
+                    {item.utente_nome} {item.utente_cognome}
+                  </div>
+                  <div className="text-sm text-tertiary">
+                    {item.utente_email}
+                  </div>
+                </div>
+              </div>
+              {getStatusBadge(item.stato)}
+            </div>
+
+            {/* Object Info */}
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-primary mb-2">{item.oggetto_nome}</h3>
+              {item.oggetto_id && (
+                <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full">
+                  ID: {item.oggetto_id}
+                </span>
+              )}
+            </div>
+
+            {/* Dates */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex flex-col">
+                  <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Inizio</span>
+                  <span className="text-primary font-semibold text-base">{new Date(item.dal).toLocaleDateString('it-IT')}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Fine</span>
+                  <span className="text-primary font-semibold text-base">{new Date(item.al).toLocaleDateString('it-IT')}</span>
+                </div>
+                {item.data_restituzione && (
+                  <div className="col-span-2 flex flex-col">
+                    <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituito</span>
+                    <span className="text-green-600 font-semibold text-base">{new Date(item.data_restituzione).toLocaleDateString('it-IT')}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-2">
+              {activeTab === 'pending' && (
+                <>
+                  <button
+                    onClick={() => handleApprove(item.id)}
+                    className="w-full btn-success text-center py-2"
+                  >
+                    <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Approva Richiesta
+                  </button>
+                  <button
+                    onClick={() => handleReject(item.id)}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white rounded-lg py-2 transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Rifiuta Richiesta
+                  </button>
+                </>
+              )}
+              
+              {activeTab === 'active' && item.stato === 'attivo' && (
+                <button
+                  onClick={() => handleReturn(item.id)}
+                  className="w-full btn-success text-center py-2"
+                >
+                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                  </svg>
+                  Termina Prestito
+                </button>
+              )}
+
+              <button
+                onClick={() => setSelectedLoan(item)}
+                className="w-full btn-secondary text-center py-2"
+              >
+                <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Visualizza Dettagli
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
 
  {/* Advanced Loan Modal */}
  <AdvancedLoanModal
