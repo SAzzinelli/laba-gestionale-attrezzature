@@ -754,11 +754,14 @@ body {
   transition: all 0.2s ease;
 }
 
-/* Footer visibility */
+/* Footer sticky positioning */
 footer {
-  position: relative;
-  z-index: 10;
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
   min-height: 80px;
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
 }
 
 /* Header */
