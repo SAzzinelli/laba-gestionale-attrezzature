@@ -13,14 +13,14 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
       leaveTo="translate-y-full"
     >
       <div className="fixed inset-0 z-40 lg:hidden">
-        {/* Overlay - Appears first with blur effect */}
+        {/* Overlay - Fade from center */}
         <Transition.Child
-          enter="ease-out duration-500"
-          enterFrom="opacity-0 backdrop-blur-none"
-          enterTo="opacity-100 backdrop-blur-sm"
+          enter="ease-out duration-400"
+          enterFrom="opacity-0 scale-95 backdrop-blur-none"
+          enterTo="opacity-100 scale-100 backdrop-blur-sm"
           leave="ease-in duration-300"
-          leaveFrom="opacity-100 backdrop-blur-sm"
-          leaveTo="opacity-0 backdrop-blur-none"
+          leaveFrom="opacity-100 scale-100 backdrop-blur-sm"
+          leaveTo="opacity-0 scale-95 backdrop-blur-none"
         >
           <div 
             className="absolute inset-0 bg-black bg-opacity-30"
@@ -30,7 +30,7 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
         
         {/* Mobile Menu - Appears after overlay */}
         <Transition.Child
-          enter="ease-out duration-300 delay-100"
+          enter="ease-out duration-300 delay-150"
           enterFrom="translate-y-full"
           enterTo="translate-y-0"
           leave="ease-in duration-250"
