@@ -6,6 +6,7 @@ import AvailableItems from '../components/AvailableItems';
 import ReportFault from '../components/ReportFault';
 import SystemStatus from '../components/SystemStatus.jsx';
 import Footer from '../components/Footer';
+import MobileMenu from '../components/MobileMenu';
 
 // UserBadge Component (simplified to avoid overlap)
 function UserBadge() {
@@ -44,6 +45,7 @@ function UserBadge() {
 
 const UserArea = () => {
   const [activeView, setActiveView] = useState('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, logout } = useAuth();
 
 
@@ -119,7 +121,27 @@ const UserArea = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-        {/* Sidebar */}
+        {/* Mobile Header */}
+        <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 z-30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
+              <div className="ml-3">
+                <p className="text-sm font-semibold text-gray-900">Gestione Attrezzature</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 rounded-lg hover:bg-gray-100"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Sidebar Desktop */}
         <div className="hidden lg:flex lg:flex-col lg:w-64 bg-white sidebar border-r border-gray-200">
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex items-center">
@@ -148,12 +170,23 @@ const UserArea = () => {
 
         {/* Main Content Area with Footer */}
         <div className="flex-1 lg:ml-64 flex flex-col">
-          <main className="flex-1">
+          <main className="flex-1 pt-16 lg:pt-0">
             {renderActiveView()}
           </main>
           
           <Footer onSystemClick={() => setActiveView('sistema')} />
         </div>
+
+        {/* Mobile Menu */}
+        <MobileMenu
+          isOpen={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+          sidebarItems={sidebarItems}
+          activeView={activeView}
+          onNavigate={setActiveView}
+          user={user}
+          logout={logout}
+        />
     </div>
   );
 };
