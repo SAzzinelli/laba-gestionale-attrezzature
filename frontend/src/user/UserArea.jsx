@@ -99,35 +99,7 @@ const UserArea = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <img src="/logoSito.svg" alt="LABA" className="h-8 w-auto mr-3" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Gestione Attrezzature</h1>
-                <p className="text-sm text-gray-600">Area Utente</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.name} {user?.surname}</p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
-              </div>
-              <button
-                onClick={logout}
-                className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded-md hover:bg-gray-100"
-              >
-                Esci
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex">
+    <div className="min-h-screen bg-gray-50 flex">
         {/* Sidebar */}
         <div className="hidden lg:flex lg:flex-col lg:w-64 bg-white sidebar border-r border-gray-200">
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -160,10 +132,9 @@ const UserArea = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1">
+        <div className="flex-1 lg:ml-64">
           {renderActiveView()}
         </div>
-      </div>
     </div>
   );
 };
