@@ -18,44 +18,28 @@ import usersRouter from "./routes/users.js";
 import migrationRouter from "./routes/migration.js";
 import debugRouter from "./routes/debug.js";
 import { initDatabase as initPostgresDB } from './utils/postgres.js';
-import { initDatabase as initSQLiteDB } from './utils/db.js';
-import { setDatabaseType } from './utils/database.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || "0.0.0.0";
 
-// Inizializza il database con fallback intelligente
-let dbType = 'unknown';
+// Inizializza il database PostgreSQL
 try {
-  console.log('🔄 Tentativo connessione PostgreSQL...');
+  console.log('🔄 Inizializzazione database PostgreSQL...');
   await initPostgresDB();
-  dbType = 'postgresql';
-  setDatabaseType('postgresql');
   console.log('✅ Database PostgreSQL inizializzato con successo!');
 } catch (error) {
-  console.warn('⚠️ PostgreSQL non disponibile, fallback a SQLite...');
-  console.warn('Errore PostgreSQL:', error.message);
-  
-  try {
-    console.log('🔄 Inizializzazione database SQLite...');
-    await initSQLiteDB();
-    dbType = 'sqlite';
-    setDatabaseType('sqlite');
-    console.log('✅ Database SQLite inizializzato con successo!');
-  } catch (sqliteError) {
-    console.error('❌ Errore critico: né PostgreSQL né SQLite disponibili');
-    console.error('Errore SQLite:', sqliteError.message);
-    process.exit(1);
-  }
+  console.error('❌ Errore durante l\'inizializzazione del database PostgreSQL:', error.message);
+  console.error('Verifica la configurazione DATABASE_URL e la connessione al database');
+  process.exit(1);
 }
 
-// Aggiungi informazioni database al health check
+// Health check
 app.get("/api/health", (_, res) => res.json({ 
   ok: true, 
   version: "1.0a", 
   build: "304",
-  database: dbType
+  database: "postgresql"
 }));
 
 app.use(cors());

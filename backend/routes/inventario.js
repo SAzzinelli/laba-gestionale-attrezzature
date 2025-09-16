@@ -1,7 +1,7 @@
-// backend/routes/inventario.js - Database Agnostic Version
+// backend/routes/inventario.js - PostgreSQL Version
 import { Router } from 'express';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { query, adaptQuery } from '../utils/database.js';
+import { query } from '../utils/postgres.js';
 
 const r = Router();
 
@@ -48,8 +48,7 @@ r.get('/', requireAuth, requireRole('admin'), async (req, res) => {
 
     queryText += ` GROUP BY i.id, cs.nome ORDER BY i.nome`;
 
-    const { sql, params } = adaptQuery(queryText, queryParams);
-    const rows = await query(sql, params);
+    const rows = await query(queryText, queryParams);
     res.json(rows);
   } catch (error) {
     console.error('Error fetching inventory:', error);
@@ -113,7 +112,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
 r.get('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { sql, params } = adaptQuery(`
+    const result = await query(`
       SELECT i.*, 
              STRING_AGG(ic.corso, ',') as corsi_assegnati,
              (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) as unita_disponibili,
@@ -129,7 +128,6 @@ r.get('/:id', requireAuth, async (req, res) => {
       WHERE i.id = $1
       GROUP BY i.id
     `, [id]);
-    const result = await query(sql, params);
     
     if (result.length === 0) {
       return res.status(404).json({ error: 'Not found' });
