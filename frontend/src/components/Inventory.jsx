@@ -119,21 +119,24 @@ const Inventory = () => {
     const existingItem = acc.find(group => group.nome === item.nome);
     
     if (existingItem) {
-      existingItem.quantita_totale += 1;
+      // Aggiungi la quantità dell'oggetto corrente alla quantità totale
+      existingItem.quantita_totale += (item.quantita_totale || 1);
       existingItem.unita.push({
         id: item.id,
         stato: item.stato_effettivo,
-        note: item.note
+        note: item.note,
+        quantita: item.quantita_totale || 1
       });
     } else {
       acc.push({
  ...item,
-        quantita_totale: 1,
+        quantita_totale: item.quantita_totale || 1,
         hasMultipleUnits: false,
         unita: [{
           id: item.id,
           stato: item.stato_effettivo,
-          note: item.note
+          note: item.note,
+          quantita: item.quantita_totale || 1
         }]
       });
     }
@@ -614,35 +617,77 @@ const Inventory = () => {
               {/* Expanded Units Section */}
               {item.hasMultipleUnits && expandedItems.has(item.id) && (
                 <div className="border-t border-gray-200 bg-gray-50 p-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-4">Unità individuali:</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-4">Unità individuali ({item.unita.length}):</h4>
                   <div className="grid grid-cols-1 gap-3">
-                    {item.unita.map((unit, index) => (
-                      <div key={unit.id || index} className="bg-white p-4 rounded-lg border border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="text-sm font-medium text-gray-900">
-                              ID: {unit.id || `Unit ${index + 1}`}
+                    {item.unita.map((unit, index) => {
+                      // Determina il colore della pillola in base allo stato
+                      const getStatusPillColor = (stato) => {
+                        switch (stato) {
+                          case 'disponibile':
+                            return 'bg-green-100 text-green-800 border-green-200';
+                          case 'in_prestito':
+                            return 'bg-blue-100 text-blue-800 border-blue-200';
+                          case 'in_riparazione':
+                            return 'bg-orange-100 text-orange-800 border-orange-200';
+                          case 'perso':
+                            return 'bg-red-100 text-red-800 border-red-200';
+                          default:
+                            return 'bg-gray-100 text-gray-800 border-gray-200';
+                        }
+                      };
+
+                      const getStatusText = (stato) => {
+                        switch (stato) {
+                          case 'disponibile':
+                            return 'Disponibile';
+                          case 'in_prestito':
+                            return 'In Prestito';
+                          case 'in_riparazione':
+                            return 'In Riparazione';
+                          case 'perso':
+                            return 'Perso';
+                          default:
+                            return stato || 'Disponibile';
+                        }
+                      };
+
+                      return (
+                        <div key={unit.id || index} className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3">
+                                <div className="text-sm font-medium text-gray-900">
+                                  ID: {unit.id || `Unit ${index + 1}`}
+                                </div>
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusPillColor(unit.stato)}`}>
+                                  {getStatusText(unit.stato)}
+                                </span>
+                                {unit.quantita && unit.quantita > 1 && (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                                    {unit.quantita} pezzi
+                                  </span>
+                                )}
+                              </div>
+                              {unit.note && (
+                                <div className="text-xs text-gray-500 mt-2">{unit.note}</div>
+                              )}
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              Stato: {unit.stato || 'Disponibile'}
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => setQrCodeItem({...item, unita: [unit]})}
+                                className="inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                                title="QR Code per questa unità"
+                              >
+                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                </svg>
+                                QR
+                              </button>
                             </div>
-                            {unit.note && (
-                              <div className="text-xs text-gray-500 mt-1">{unit.note}</div>
-                            )}
                           </div>
-                          <button
-                            onClick={() => setQrCodeItem({...item, unita: [unit]})}
-                            className="inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
-                            title="QR Code per questa unità"
-                          >
-                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                            </svg>
-                            QR
-                          </button>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
