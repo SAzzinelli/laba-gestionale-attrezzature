@@ -525,7 +525,7 @@ const Inventory = () => {
  </div>
 
         {/* Inventory Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="space-y-4">
           {filteredInventory.map((item) => (
             <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
               {/* Card Header */}
@@ -574,7 +574,7 @@ const Inventory = () => {
 
               {/* Card Body */}
               <div className="p-6">
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Category */}
                   <div>
                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Categoria</label>
@@ -591,16 +591,16 @@ const Inventory = () => {
                     </p>
                   </div>
 
-                  {/* Quantity and Shelf */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Quantità</label>
-                      <p className="text-lg font-semibold text-gray-900 mt-1">{item.quantita_totale}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Scaffale</label>
-                      <p className="text-sm text-gray-900 mt-1">{item.scaffale || 'N/A'}</p>
-                    </div>
+                  {/* Quantity */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Quantità</label>
+                    <p className="text-lg font-semibold text-gray-900 mt-1">{item.quantita_totale}</p>
+                  </div>
+
+                  {/* Shelf */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Scaffale</label>
+                    <p className="text-sm text-gray-900 mt-1">{item.scaffale || 'N/A'}</p>
                   </div>
                 </div>
               </div>
