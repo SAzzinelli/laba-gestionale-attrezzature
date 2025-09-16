@@ -4,7 +4,7 @@ function NotificationsPanel({ isOpen, onClose, notifications = [], onMarkAsRead,
  const unreadCount = notifications.filter(n => !n.isRead).length;
 
  return (
- <div className={`fixed inset-0 z-50 overflow-hidden transition-opacity duration-300 ${
+ <div className={`fixed inset-0 z-[9999] overflow-hidden transition-opacity duration-300 ${
  isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
  }`}>
  <div 
