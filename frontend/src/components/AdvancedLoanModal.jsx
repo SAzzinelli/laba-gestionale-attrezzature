@@ -147,14 +147,14 @@ const loanResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prest
  'Content-Type': 'application/json',
  'Authorization': `Bearer ${token}`
  },
- body: JSON.stringify({
- inventario_id: selectedItem.id,
- utente_id: userId,
- dal: dateRange.dal,
- al: dateRange.al,
- unita_ids: selectedUnits.map(u => u.id),
- note: `Prestito diretto - ${selectedUnits.length} unità`
- })
+body: JSON.stringify({
+  inventario_id: selectedItem.id,
+  chi: selectedUser ? `${selectedUser.name} ${selectedUser.surname}` : `${manualUser.name} ${manualUser.surname}`,
+  data_uscita: dateRange.dal,
+  data_rientro: dateRange.al,
+  unita_ids: selectedUnits.map(u => u.id),
+  note: `Prestito diretto - ${selectedUnits.length} unità`
+})
  });
 
  if (!loanResponse.ok) {
