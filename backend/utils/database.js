@@ -2,7 +2,7 @@
 // Database abstraction layer that handles both PostgreSQL and SQLite
 
 import { query as postgresQuery } from './postgres.js';
-import { query as sqliteQuery } from './db.js';
+import { query as sqliteQuery, querySync as sqliteQuerySync } from './db.js';
 
 let currentDbType = 'unknown';
 
@@ -27,7 +27,6 @@ export async function query(sql, params = []) {
 
 export function querySync(sql, params = []) {
   if (currentDbType === 'sqlite') {
-    const { querySync: sqliteQuerySync } = await import('./db.js');
     return sqliteQuerySync(sql, params);
   } else {
     throw new Error('Sync queries only supported for SQLite');

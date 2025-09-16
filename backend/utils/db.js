@@ -227,4 +227,52 @@ export async function initDatabase() {
   console.log('Categorie inserite:', categorie.length);
 }
 
+// Funzione query per SQLite
+export function query(sql, params = []) {
+  try {
+    const stmt = db.prepare(sql);
+    
+    // Determina il tipo di query
+    const queryType = sql.trim().toUpperCase().split(' ')[0];
+    
+    if (queryType === 'SELECT') {
+      return stmt.all(params);
+    } else {
+      // Per INSERT, UPDATE, DELETE
+      const result = stmt.run(params);
+      return {
+        rowCount: result.changes,
+        rows: result.changes > 0 ? [result] : []
+      };
+    }
+  } catch (error) {
+    console.error('SQLite query error:', error);
+    throw error;
+  }
+}
+
+// Funzione querySync per SQLite
+export function querySync(sql, params = []) {
+  try {
+    const stmt = db.prepare(sql);
+    
+    // Determina il tipo di query
+    const queryType = sql.trim().toUpperCase().split(' ')[0];
+    
+    if (queryType === 'SELECT') {
+      return stmt.all(params);
+    } else {
+      // Per INSERT, UPDATE, DELETE
+      const result = stmt.run(params);
+      return {
+        rowCount: result.changes,
+        rows: result.changes > 0 ? [result] : []
+      };
+    }
+  } catch (error) {
+    console.error('SQLite querySync error:', error);
+    throw error;
+  }
+}
+
 export default db;
