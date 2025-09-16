@@ -29,6 +29,7 @@ const Inventory = () => {
  const [selectedCourse, setSelectedCourse] = useState('');
  const [viewMode, setViewMode] = useState('list'); // only list view
  const [loans, setLoans] = useState([]);
+  const [itemUnits, setItemUnits] = useState({}); // Cache per le unità degli oggetti
  
  // New item form state
  const [newItem, setNewItem] = useState({
@@ -108,6 +109,25 @@ const Inventory = () => {
  }
  };
 
+  // Fetch units for a specific item
+  const fetchItemUnits = async (itemId) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario/${itemId}/units`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Errore nel caricamento unità');
+
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error('Errore unità:', err);
+      return [];
+    }
+  };
+
  useEffect(() => {
  fetchInventory();
  fetchCategories();
@@ -160,12 +180,20 @@ const Inventory = () => {
   const lowStockItems = inventory.filter(item => item.quantita_totale <= 2);
 
   // Toggle expanded state for items with multiple units
-  const toggleExpanded = (itemId) => {
+  const toggleExpanded = async (itemId) => {
     const newExpanded = new Set(expandedItems);
     if (newExpanded.has(itemId)) {
       newExpanded.delete(itemId);
     } else {
       newExpanded.add(itemId);
+      // Carica le unità se non sono già in cache
+      if (!itemUnits[itemId]) {
+        const units = await fetchItemUnits(itemId);
+        setItemUnits(prev => ({
+          ...prev,
+          [itemId]: units
+        }));
+      }
     }
     setExpandedItems(newExpanded);
   };
@@ -617,9 +645,17 @@ const Inventory = () => {
               {/* Expanded Units Section */}
               {item.hasMultipleUnits && expandedItems.has(item.id) && (
                 <div className="border-t border-gray-200 bg-gray-50 p-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-4">Unità individuali ({item.unita.length}):</h4>
-                  <div className="grid grid-cols-1 gap-3">
-                    {item.unita.map((unit, index) => {
+                  <h4 className="text-sm font-medium text-gray-700 mb-4">
+                    Unità individuali ({itemUnits[item.id]?.length || 0}):
+                  </h4>
+                  {!itemUnits[item.id] ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                      <span className="ml-2 text-gray-600">Caricamento unità...</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3">
+                      {itemUnits[item.id]?.map((unit, index) => {
                       // Determina il colore della pillola in base allo stato
                       const getStatusPillColor = (stato) => {
                         switch (stato) {
@@ -652,21 +688,16 @@ const Inventory = () => {
                       };
 
                       return (
-                        <div key={unit.id || index} className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                        <div key={unit.id} className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center space-x-3">
                                 <div className="text-sm font-medium text-gray-900">
-                                  ID: {unit.id || `Unit ${index + 1}`}
+                                  ID: {unit.codice_univoco || unit.id}
                                 </div>
                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusPillColor(unit.stato)}`}>
                                   {getStatusText(unit.stato)}
                                 </span>
-                                {unit.quantita && unit.quantita > 1 && (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
-                                    {unit.quantita} pezzi
-                                  </span>
-                                )}
                               </div>
                               {unit.note && (
                                 <div className="text-xs text-gray-500 mt-2">{unit.note}</div>
@@ -688,7 +719,8 @@ const Inventory = () => {
                         </div>
                       );
                     })}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
