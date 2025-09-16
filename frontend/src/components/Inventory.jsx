@@ -278,7 +278,24 @@ const Inventory = () => {
 
   // Handle delete category
   const handleDeleteCategory = async (categoryId) => {
-    if (!window.confirm('Sei sicuro di voler eliminare questa categoria?')) return;
+    // Trova la categoria da eliminare
+    const categoryToDelete = categories.find(cat => cat.id === categoryId);
+    if (!categoryToDelete) return;
+
+    // Controlla se la categoria è in uso
+    const itemsUsingCategory = inventory.filter(item => 
+      item.categoria_id === categoryId || 
+      item.categoria_nome === categoryToDelete.nome
+    );
+
+    if (itemsUsingCategory.length > 0) {
+      const itemNames = itemsUsingCategory.map(item => item.nome).join(', ');
+      const confirmMessage = `ATTENZIONE: La categoria "${categoryToDelete.nome}" è attualmente in uso da ${itemsUsingCategory.length} oggetto/i:\n\n${itemNames}\n\nSe procedi con l'eliminazione:\n• La categoria verrà rimossa\n• Gli oggetti perderanno la categoria e verrà assegnato "VUOTO"\n\nVuoi comunque eliminare la categoria?`;
+      
+      if (!window.confirm(confirmMessage)) return;
+    } else {
+      if (!window.confirm(`Sei sicuro di voler eliminare la categoria "${categoryToDelete.nome}"?`)) return;
+    }
     
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici/${categoryId}`, {
@@ -291,6 +308,7 @@ const Inventory = () => {
       if (!response.ok) throw new Error('Errore nell\'eliminazione categoria');
 
       await fetchCategories();
+      await fetchInventory(); // Ricarica l'inventario per aggiornare le categorie
     } catch (err) {
       setError(err.message);
     }
@@ -331,9 +349,9 @@ const Inventory = () => {
           </svg>
           <p className="text-red-800 ">{error}</p>
         </div>
-      </div>
-    );
-  }
+ </div>
+ );
+ }
 
  return (
  <div className="min-h-screen bg-gray-50">
@@ -440,7 +458,7 @@ const Inventory = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
                 <span>Gestisci Categorie</span>
-              </button>
+ </button>
  
  <OperationsDropdown 
  onExport={handleExport}
@@ -648,7 +666,7 @@ const Inventory = () => {
                 </button>
  </div>
               <div className="modal-body">
-                <QRCodeGenerator item={qrCodeItem} />
+                <QRCodeGenerator item={qrCodeItem} embedded={true} />
  </div>
  </div>
  </div>
