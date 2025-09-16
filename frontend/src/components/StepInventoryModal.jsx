@@ -125,26 +125,40 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  return units;
  };
 
- // Handle quantity change
- const handleQuantityChange = (quantity) => {
- const newQuantity = Math.max(1, parseInt(quantity) || 1);
- 
- // Se stiamo modificando un articolo esistente, non rigenerare i codici
- if (editingItem) {
- setFormData(prev => ({
- ...prev,
- quantita_totale: newQuantity
- }));
- } else {
- // Solo per nuovi articoli, genera i codici
- const units = generateUnitCodes(newQuantity, formData.nome || 'ITEM');
- setFormData(prev => ({
- ...prev,
- quantita_totale: newQuantity,
- unita: units
- }));
- }
- };
+// Handle quantity change
+const handleQuantityChange = (quantity) => {
+  // Permetti al campo di essere vuoto temporaneamente
+  if (quantity === '' || quantity === null || quantity === undefined) {
+    setFormData(prev => ({
+      ...prev,
+      quantita_totale: ''
+    }));
+    return;
+  }
+  
+  const parsedQuantity = parseInt(quantity);
+  if (isNaN(parsedQuantity) || parsedQuantity < 1) {
+    return; // Non aggiornare se non è un numero valido
+  }
+  
+  const newQuantity = Math.max(1, parsedQuantity);
+  
+  // Se stiamo modificando un articolo esistente, non rigenerare i codici
+  if (editingItem) {
+    setFormData(prev => ({
+      ...prev,
+      quantita_totale: newQuantity
+    }));
+  } else {
+    // Solo per nuovi articoli, genera i codici
+    const units = generateUnitCodes(newQuantity, formData.nome || 'ITEM');
+    setFormData(prev => ({
+      ...prev,
+      quantita_totale: newQuantity,
+      unita: units
+    }));
+  }
+};
 
  // Handle unit code change
  const handleUnitCodeChange = (index, newCode) => {
@@ -156,11 +170,11 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
  }));
  };
 
- const handleSubmit = async () => {
- if (!formData.nome || !formData.quantita_totale || formData.unita.length === 0) {
- setError('Compila tutti i campi obbligatori');
- return;
- }
+const handleSubmit = async () => {
+  if (!formData.nome || !formData.quantita_totale || formData.quantita_totale <= 0 || formData.unita.length === 0) {
+    setError('Compila tutti i campi obbligatori');
+    return;
+  }
 
  try {
  setLoading(true);
@@ -218,7 +232,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
 
 const canProceed = () => {
   switch (step) {
-    case 1: return formData.nome && formData.quantita_totale;
+    case 1: return formData.nome && formData.quantita_totale && formData.quantita_totale > 0;
     case 2: return formData.corsi_assegnati.length > 0; // Categoria non obbligatoria
     case 3: return formData.unita.length > 0;
     default: return false;
@@ -301,14 +315,14 @@ const canProceed = () => {
  type="text"
  required
  value={formData.nome}
- onChange={(e) => {
- const newName = e.target.value;
- setFormData(prev => ({ ...prev, nome: newName }));
- if (newName && formData.quantita_totale) {
- const units = generateUnitCodes(formData.quantita_totale, newName);
- setFormData(prev => ({ ...prev, unita: units }));
- }
- }}
+onChange={(e) => {
+const newName = e.target.value;
+setFormData(prev => ({ ...prev, nome: newName }));
+if (newName && formData.quantita_totale && formData.quantita_totale > 0) {
+const units = generateUnitCodes(formData.quantita_totale, newName);
+setFormData(prev => ({ ...prev, unita: units }));
+}
+}}
  className="input-field"
  placeholder="Nome dell'elemento"
  />
@@ -514,15 +528,15 @@ const canProceed = () => {
  <div className="flex space-x-3">
  {step < 3 ? (
  <button
- onClick={() => {
- if (canProceed()) {
- if (step === 1 && formData.nome) {
- const units = generateUnitCodes(formData.quantita_totale, formData.nome);
- setFormData(prev => ({ ...prev, unita: units }));
- }
- setStep(step + 1);
- }
- }}
+onClick={() => {
+if (canProceed()) {
+if (step === 1 && formData.nome && formData.quantita_totale && formData.quantita_totale > 0) {
+const units = generateUnitCodes(formData.quantita_totale, formData.nome);
+setFormData(prev => ({ ...prev, unita: units }));
+}
+setStep(step + 1);
+}
+}}
  disabled={!canProceed()}
  className="btn-primary"
  >
