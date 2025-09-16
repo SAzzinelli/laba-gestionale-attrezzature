@@ -156,7 +156,6 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     
     if (!nome) return res.status(400).json({ error: 'nome richiesto' });
     if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre (corso accademico) richiesta' });
-    if (!categoria_id) return res.status(400).json({ error: 'categoria_id (categoria semplice) richiesta' });
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
     
     // Check if nome already exists
@@ -237,7 +236,6 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 
     if (!nome) return res.status(400).json({ error: 'nome richiesto' });
     if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre (corso accademico) richiesta' });
-    if (!categoria_id) return res.status(400).json({ error: 'categoria_id (categoria semplice) richiesta' });
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
 
     // Check if nome already exists for another item

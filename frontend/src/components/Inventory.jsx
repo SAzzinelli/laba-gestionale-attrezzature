@@ -125,8 +125,8 @@ const Inventory = () => {
     } catch (err) {
       console.error('Errore unità:', err);
       return [];
-    }
-  };
+ }
+ };
 
  useEffect(() => {
  fetchInventory();
@@ -654,7 +654,7 @@ const Inventory = () => {
                       <span className="ml-2 text-gray-600">Caricamento unità...</span>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                       {itemUnits[item.id]?.map((unit, index) => {
                       // Determina il colore della pillola in base allo stato
                       const getStatusPillColor = (stato) => {
@@ -688,33 +688,29 @@ const Inventory = () => {
                       };
 
                       return (
-                        <div key={unit.id} className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-3">
-                                <div className="text-sm font-medium text-gray-900">
-                                  ID: {unit.codice_univoco || unit.id}
-                                </div>
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusPillColor(unit.stato)}`}>
-                                  {getStatusText(unit.stato)}
-                                </span>
+                        <div key={unit.id} className="bg-white p-3 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                          <div className="text-center">
+                            <div className="text-xs font-medium text-gray-900 mb-2 truncate" title={unit.codice_univoco || unit.id}>
+                              {unit.codice_univoco || unit.id}
+                            </div>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusPillColor(unit.stato)}`}>
+                              {getStatusText(unit.stato)}
+                            </span>
+                            {unit.note && (
+                              <div className="text-xs text-gray-500 mt-2 truncate" title={unit.note}>
+                                {unit.note}
                               </div>
-                              {unit.note && (
-                                <div className="text-xs text-gray-500 mt-2">{unit.note}</div>
-                              )}
-                            </div>
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => setQrCodeItem({...item, unita: [unit]})}
-                                className="inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                                title="QR Code per questa unità"
-                              >
-                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                                </svg>
-                                QR
-                              </button>
-                            </div>
+                            )}
+                            <button
+                              onClick={() => setQrCodeItem({...item, unita: [unit]})}
+                              className="mt-2 w-full inline-flex items-center justify-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                              title="QR Code per questa unità"
+                            >
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                              </svg>
+                              QR
+                            </button>
                           </div>
                         </div>
                       );
