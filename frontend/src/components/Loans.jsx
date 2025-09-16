@@ -140,9 +140,18 @@ if (searchTerm) {
  return data;
  };
 
- const filteredData = getFilteredData();
+const filteredData = getFilteredData();
 
- const getStatusBadge = (status) => {
+const formatDate = (dateString) => {
+  if (!dateString) return 'Non specificata';
+  try {
+    return new Date(dateString).toLocaleDateString('it-IT');
+  } catch (error) {
+    return 'Data non valida';
+  }
+};
+
+const getStatusBadge = (status) => {
  const statusConfig = {
  'in_attesa': { 
  className: 'alert-warning', 
@@ -354,16 +363,16 @@ if (searchTerm) {
  <div className="grid grid-cols-2 gap-4 text-sm">
  <div className="flex flex-col">
  <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Inizio</span>
- <span className="text-primary font-semibold text-base">{new Date(item.dal).toLocaleDateString('it-IT')}</span>
+ <span className="text-primary font-semibold text-base">{formatDate(item.dal || item.data_uscita)}</span>
  </div>
  <div className="flex flex-col">
  <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Fine</span>
- <span className="text-primary font-semibold text-base">{new Date(item.al).toLocaleDateString('it-IT')}</span>
+ <span className="text-primary font-semibold text-base">{formatDate(item.al || item.data_rientro)}</span>
  </div>
- {item.data_restituzione && (
+ {item.data_rientro && (
  <div className="col-span-2 flex flex-col">
  <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituito</span>
- <span className="text-green-600 font-semibold text-base">{new Date(item.data_restituzione).toLocaleDateString('it-IT')}</span>
+ <span className="text-green-600 font-semibold text-base">{formatDate(item.data_rientro)}</span>
  </div>
  )}
  </div>
@@ -473,16 +482,16 @@ if (searchTerm) {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="flex flex-col">
                   <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Inizio</span>
-                  <span className="text-primary font-semibold text-base">{new Date(item.dal).toLocaleDateString('it-IT')}</span>
+                  <span className="text-primary font-semibold text-base">{formatDate(item.dal || item.data_uscita)}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Fine</span>
-                  <span className="text-primary font-semibold text-base">{new Date(item.al).toLocaleDateString('it-IT')}</span>
+                  <span className="text-primary font-semibold text-base">{formatDate(item.al || item.data_rientro)}</span>
                 </div>
-                {item.data_restituzione && (
+                {item.data_rientro && (
                   <div className="col-span-2 flex flex-col">
                     <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituito</span>
-                    <span className="text-green-600 font-semibold text-base">{new Date(item.data_restituzione).toLocaleDateString('it-IT')}</span>
+                    <span className="text-green-600 font-semibold text-base">{formatDate(item.data_rientro)}</span>
                   </div>
                 )}
               </div>

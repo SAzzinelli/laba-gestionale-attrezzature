@@ -51,7 +51,12 @@ const MyLoans = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('it-IT');
+    if (!dateString) return 'Non specificata';
+    try {
+      return new Date(dateString).toLocaleDateString('it-IT');
+    } catch (error) {
+      return 'Data non valida';
+    }
   };
 
   if (loading) {
