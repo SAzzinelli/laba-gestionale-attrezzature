@@ -17,27 +17,50 @@ import statsRouter from "./routes/stats.js";
 import usersRouter from "./routes/users.js";
 import migrationRouter from "./routes/migration.js";
 import debugRouter from "./routes/debug.js";
-import { initDatabase } from './utils/postgres.js'; // PostgreSQL instead of SQLite
+import { initDatabase as initPostgresDB } from './utils/postgres.js';
+import { initDatabase as initSQLiteDB } from './utils/db.js';
+import { setDatabaseType } from './utils/database.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || "0.0.0.0";
 
-// Inizializza il database PostgreSQL all'avvio
+// Inizializza il database con fallback intelligente
+let dbType = 'unknown';
 try {
-  console.log('🔄 Inizializzazione database PostgreSQL...');
-  await initDatabase();
+  console.log('🔄 Tentativo connessione PostgreSQL...');
+  await initPostgresDB();
+  dbType = 'postgresql';
+  setDatabaseType('postgresql');
   console.log('✅ Database PostgreSQL inizializzato con successo!');
 } catch (error) {
-  console.error('❌ Errore durante l\'inizializzazione del database:', error.message);
-  process.exit(1);
+  console.warn('⚠️ PostgreSQL non disponibile, fallback a SQLite...');
+  console.warn('Errore PostgreSQL:', error.message);
+  
+  try {
+    console.log('🔄 Inizializzazione database SQLite...');
+    await initSQLiteDB();
+    dbType = 'sqlite';
+    setDatabaseType('sqlite');
+    console.log('✅ Database SQLite inizializzato con successo!');
+  } catch (sqliteError) {
+    console.error('❌ Errore critico: né PostgreSQL né SQLite disponibili');
+    console.error('Errore SQLite:', sqliteError.message);
+    process.exit(1);
+  }
 }
+
+// Aggiungi informazioni database al health check
+app.get("/api/health", (_, res) => res.json({ 
+  ok: true, 
+  version: "1.0a", 
+  build: "304",
+  database: dbType
+}));
 
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-
-app.get("/api/health", (_, res) => res.json({ ok: true, version: "1.0a", build: "304" }));
 
 app.use("/api/inventario", inventarioRouter);
 app.use("/api/prestiti", prestitiRouter);

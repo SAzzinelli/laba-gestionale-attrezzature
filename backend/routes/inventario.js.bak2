@@ -49,7 +49,7 @@ r.get('/', requireAuth, requireRole('admin'), async (req, res) => {
     queryText += ` GROUP BY i.id, cs.nome ORDER BY i.nome`;
 
     const { sql, params } = adaptQuery(queryText, queryParams);
-    const rows = await query(sql, params);
+    const rows = const { sql, params } = adaptQuery(sql, params);
     res.json(rows);
   } catch (error) {
     console.error('Error fetching inventory:', error);
@@ -65,7 +65,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
     
     if (req.user.ruolo === 'admin') {
       // Admin vede tutti gli oggetti
-      result = await query(`
+      result = const { sql, params } = adaptQuery(`
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
@@ -85,7 +85,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
         return res.status(403).json({ error: 'Corso accademico non assegnato' });
       }
 
-      result = await query(`
+      result = const { sql, params } = adaptQuery(`
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
@@ -129,7 +129,7 @@ r.get('/:id', requireAuth, async (req, res) => {
       WHERE i.id = $1
       GROUP BY i.id
     `, [id]);
-    const result = await query(sql, params);
+    const result = const { sql, params } = adaptQuery(sql, params);
     
     if (result.length === 0) {
       return res.status(404).json({ error: 'Not found' });
@@ -161,8 +161,7 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
     
     // Check if nome already exists
-    const { sql, params } = adaptQuery('SELECT id FROM inventario WHERE nome = $1', [nome]);
-    const existing = await query(sql, params);
+    const existing = const { sql, params } = adaptQuery('SELECT id FROM inventario WHERE nome = $1', [nome]);
     if (existing.length > 0) {
       return res.status(400).json({ error: 'Un elemento con questo nome esiste già' });
     }
@@ -177,7 +176,7 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       
       // Check if unit codes already exist
       for (const unit of unita) {
-        const existingUnit = await query('SELECT id FROM inventario_unita WHERE codice_univoco = $1', [unit.codice_univoco]);
+        const existingUnit = const { sql, params } = adaptQuery('SELECT id FROM inventario_unita WHERE codice_univoco = $1', [unit.codice_univoco]);
         if (existingUnit.length > 0) {
           return res.status(400).json({ error: `Codice univoco già esistente: ${unit.codice_univoco}` });
         }
@@ -185,7 +184,7 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     }
     
     // Create inventory item
-    const result = await query(`
+    const result = const { sql, params } = adaptQuery(`
       INSERT INTO inventario (nome, categoria_madre, categoria_id, posizione, note, quantita_totale, quantita, in_manutenzione)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
@@ -196,7 +195,7 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     // Create units if provided
     if (unita && unita.length > 0) {
       for (const unit of unita) {
-        await query(`
+        const { sql, params } = adaptQuery(`
           INSERT INTO inventario_unita (inventario_id, codice_univoco, note)
           VALUES ($1, $2, $3)
         `, [newItem.id, unit.codice_univoco, unit.note || null]);
@@ -206,7 +205,7 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     // Assign to courses if specified
     if (corsi_assegnati && corsi_assegnati.length > 0) {
       for (const corso of corsi_assegnati) {
-        await query(`
+        const { sql, params } = adaptQuery(`
           INSERT INTO inventario_corsi (inventario_id, corso)
           VALUES ($1, $2)
           ON CONFLICT (inventario_id, corso) DO NOTHING
@@ -242,13 +241,13 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
 
     // Check if nome already exists for another item
-    const existing = await query('SELECT id FROM inventario WHERE nome = $1 AND id != $2', [nome, id]);
+    const existing = const { sql, params } = adaptQuery('SELECT id FROM inventario WHERE nome = $1 AND id != $2', [nome, id]);
     if (existing.length > 0) {
       return res.status(400).json({ error: 'Un altro elemento con questo nome esiste già' });
     }
 
     // Update inventory item
-    const result = await query(`
+    const result = const { sql, params } = adaptQuery(`
       UPDATE inventario 
       SET nome = $1, categoria_madre = $2, categoria_id = $3, posizione = $4, note = $5, 
           quantita_totale = $6, quantita = $7, in_manutenzione = $8, updated_at = CURRENT_TIMESTAMP
@@ -261,10 +260,10 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     }
 
     // Update units: delete existing and re-create
-    await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
+    const { sql, params } = adaptQuery('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
     if (unita && unita.length > 0) {
       for (const unit of unita) {
-        await query(`
+        const { sql, params } = adaptQuery(`
           INSERT INTO inventario_unita (inventario_id, codice_univoco, note)
           VALUES ($1, $2, $3)
         `, [id, unit.codice_univoco, unit.note || null]);
@@ -272,10 +271,10 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     }
 
     // Update courses: delete existing and re-create
-    await query('DELETE FROM inventario_corsi WHERE inventario_id = $1', [id]);
+    const { sql, params } = adaptQuery('DELETE FROM inventario_corsi WHERE inventario_id = $1', [id]);
     if (corsi_assegnati && corsi_assegnati.length > 0) {
       for (const corso of corsi_assegnati) {
-        await query(`
+        const { sql, params } = adaptQuery(`
           INSERT INTO inventario_corsi (inventario_id, corso)
           VALUES ($1, $2)
         `, [id, corso]);
@@ -295,7 +294,7 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     const { id } = req.params;
     
     // Controlla se ci sono prestiti attivi per questo oggetto
-    const activeLoans = await query(`
+    const activeLoans = const { sql, params } = adaptQuery(`
       SELECT COUNT(*) as count 
       FROM prestiti p 
       WHERE p.inventario_id = $1 AND p.stato = 'attivo'
@@ -308,7 +307,7 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     }
     
     // Controlla se ci sono richieste in attesa per questo oggetto
-    const pendingRequests = await query(`
+    const pendingRequests = const { sql, params } = adaptQuery(`
       SELECT COUNT(*) as count 
       FROM richieste r 
       WHERE r.inventario_id = $1 AND r.stato = 'in_attesa'
@@ -321,10 +320,10 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     }
     
     // Prima elimina le unità associate
-    await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
+    const { sql, params } = adaptQuery('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
     
     // Poi elimina l'articolo principale
-    const result = await query('DELETE FROM inventario WHERE id = $1', [id]);
+    const result = const { sql, params } = adaptQuery('DELETE FROM inventario WHERE id = $1', [id]);
     
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Elemento inventario non trovato' });
@@ -341,7 +340,7 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 r.get('/:id/units', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await query('SELECT * FROM inventario_unita WHERE inventario_id = $1 ORDER BY codice_univoco', [id]);
+    const result = const { sql, params } = adaptQuery('SELECT * FROM inventario_unita WHERE inventario_id = $1 ORDER BY codice_univoco', [id]);
     res.json(result);
   } catch (error) {
     console.error('Errore GET units:', error);
@@ -353,7 +352,7 @@ r.get('/:id/units', requireAuth, async (req, res) => {
 r.get('/:id/disponibili', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await query(`
+    const result = const { sql, params } = adaptQuery(`
       SELECT 
         iu.id,
         iu.codice_univoco,
@@ -383,7 +382,7 @@ r.put('/units/:unitId/status', requireAuth, requireRole('admin'), async (req, re
     
     if (!stato) return res.status(400).json({ error: 'Stato richiesto' });
     
-    const result = await query(`
+    const result = const { sql, params } = adaptQuery(`
       UPDATE inventario_unita 
       SET stato = $1, prestito_corrente_id = $2
       WHERE id = $3
