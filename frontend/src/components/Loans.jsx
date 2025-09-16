@@ -616,10 +616,10 @@ const getStatusBadge = (status) => {
  <label className="form-label">Al</label>
  <p className="text-primary">{new Date(selectedLoan.al).toLocaleDateString('it-IT')}</p>
  </div>
- {selectedLoan.data_restituzione && (
+ {selectedLoan.data_rientro && (
  <div className="md:col-span-2">
  <label className="form-label">Data Restituzione</label>
- <p className="text-primary">{new Date(selectedLoan.data_restituzione).toLocaleDateString('it-IT')}</p>
+ <p className="text-primary">{new Date(selectedLoan.data_rientro).toLocaleDateString('it-IT')}</p>
  </div>
  )}
  {selectedLoan.note && (
