@@ -39,6 +39,24 @@ r.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/richieste/mie
+r.get('/mie', requireAuth, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT r.*, i.nome as articolo_nome
+      FROM richieste r
+      LEFT JOIN inventario i ON r.inventario_id = i.id
+      WHERE r.utente_id = $1
+      ORDER BY r.created_at DESC
+    `, [req.user.id]);
+    
+    res.json(result || []);
+  } catch (error) {
+    console.error('Errore GET mie richieste:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
 // POST /api/richieste
 r.post('/', requireAuth, async (req, res) => {
   try {

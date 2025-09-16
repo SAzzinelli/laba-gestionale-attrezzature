@@ -128,14 +128,14 @@ const Loans = () => {
  }
 
  // Apply search filter
- if (searchTerm) {
- data = data.filter(item =>
- item.oggetto_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
- item.utente_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
- item.utente_cognome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
- item.utente_email?.toLowerCase().includes(searchTerm.toLowerCase())
- );
- }
+if (searchTerm) {
+  data = data.filter(item =>
+    item.oggetto_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.utente_nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.utente_cognome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.utente_email || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+}
 
  return data;
  };
@@ -343,7 +343,7 @@ const Loans = () => {
                       </svg>
                     </div>
                     <div>
-                      <p className="font-medium text-primary">{item.utente_nome} {item.utente_cognome}</p>
+                      <p className="font-medium text-primary">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
                       <p className="text-xs text-tertiary">{item.utente_email}</p>
                     </div>
                   </div>
@@ -444,11 +444,11 @@ const Loans = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                  {item.utente_nome.charAt(0)}{item.utente_cognome.charAt(0)}
+                  {(item.utente_nome || '').charAt(0)}{(item.utente_cognome || '').charAt(0)}
                 </div>
                 <div className="ml-3">
                   <div className="text-lg font-semibold text-primary">
-                    {item.utente_nome} {item.utente_cognome}
+                    {item.utente_nome || ''} {item.utente_cognome || ''}
                   </div>
                   <div className="text-sm text-tertiary">
                     {item.utente_email}
@@ -591,7 +591,7 @@ const Loans = () => {
  </svg>
  </div>
  <div>
- <p className="text-primary font-medium">{selectedLoan.utente_nome} {selectedLoan.utente_cognome}</p>
+ <p className="text-primary font-medium">{selectedLoan.utente_nome || ''} {selectedLoan.utente_cognome || ''}</p>
  </div>
  </div>
  </div>
