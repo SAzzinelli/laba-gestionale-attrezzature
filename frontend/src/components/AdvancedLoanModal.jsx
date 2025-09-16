@@ -34,47 +34,51 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  }
  }, [isOpen]);
 
- const fetchInventory = async () => {
- try {
- const response = await fetch('/api/inventario', {
- headers: { 'Authorization': `Bearer ${token}` }
- });
- if (response.ok) {
- const data = await response.json();
- setInventory(data.filter(item => item.stato_effettivo === 'disponibile'));
- }
- } catch (err) {
- console.error('Errore caricamento inventario:', err);
- }
- };
+const fetchInventory = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setInventory(data.filter(item => item.stato_effettivo === 'disponibile'));
+    }
+  } catch (err) {
+    console.error('Errore caricamento inventario:', err);
+  }
+};
 
- const fetchUsers = async () => {
- try {
- const response = await fetch('/api/auth/users', {
- headers: { 'Authorization': `Bearer ${token}` }
- });
- if (response.ok) {
- const data = await response.json();
- setUsers(data);
- }
- } catch (err) {
- console.error('Errore caricamento utenti:', err);
- }
- };
+const fetchUsers = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/users`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setUsers(data);
+    }
+  } catch (err) {
+    console.error('Errore caricamento utenti:', err);
+  }
+};
 
- const fetchAvailableUnits = async (itemId) => {
- try {
- const response = await fetch(`/api/inventario/${itemId}/disponibili`, {
- headers: { 'Authorization': `Bearer ${token}` }
- });
- if (response.ok) {
- const data = await response.json();
- setAvailableUnits(data);
- }
- } catch (err) {
- console.error('Errore caricamento unità:', err);
- }
- };
+const fetchAvailableUnits = async (itemId) => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario/${itemId}/disponibili`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setAvailableUnits(data);
+    } else {
+      console.error('Errore nel caricamento unità disponibili:', response.status);
+      setAvailableUnits([]);
+    }
+  } catch (err) {
+    console.error('Errore caricamento unità:', err);
+    setAvailableUnits([]);
+  }
+};
 
  const handleItemSelect = (item) => {
  setSelectedItem(item);
@@ -115,7 +119,7 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  
  // Create manual user if needed
  if (isManualUser) {
- const userResponse = await fetch('/api/auth/register', {
+ const userResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',
@@ -136,8 +140,8 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  userId = userData.user.id;
  }
 
- // Create loan
- const loanResponse = await fetch('/api/prestiti', {
+// Create loan
+const loanResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',

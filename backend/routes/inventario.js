@@ -322,6 +322,32 @@ r.get('/:id/units', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/inventario/:id/disponibili - Get available units for an inventory item
+r.get('/:id/disponibili', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query(`
+      SELECT 
+        iu.id,
+        iu.codice_univoco,
+        iu.stato,
+        iu.note,
+        iu.inventario_id,
+        i.nome as item_name
+      FROM inventario_unita iu
+      JOIN inventario i ON i.id = iu.inventario_id
+      WHERE iu.inventario_id = $1 
+        AND iu.stato = 'disponibile' 
+        AND iu.prestito_corrente_id IS NULL
+      ORDER BY iu.codice_univoco
+    `, [id]);
+    res.json(result);
+  } catch (error) {
+    console.error('Errore GET disponibili:', error);
+    res.status(500).json({ error: error.message || 'Errore nel recupero delle unità disponibili' });
+  }
+});
+
 // PUT /api/inventario/units/:unitId/status - Update unit status
 r.put('/units/:unitId/status', requireAuth, requireRole('admin'), async (req, res) => {
   try {
