@@ -654,7 +654,7 @@ const Inventory = () => {
                       <span className="ml-2 text-gray-600">Caricamento unità...</span>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <div className="flex flex-wrap gap-3 overflow-x-auto pb-2">
                       {itemUnits[item.id]?.map((unit, index) => {
                       // Determina il colore della pillola in base allo stato
                       const getStatusPillColor = (stato) => {
@@ -688,7 +688,7 @@ const Inventory = () => {
                       };
 
                       return (
-                        <div key={unit.id} className="bg-white p-3 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                        <div key={unit.id} className="bg-white p-3 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow flex-shrink-0 min-w-[120px]">
                           <div className="text-center">
                             <div className="text-xs font-medium text-gray-900 mb-2 truncate" title={unit.codice_univoco || unit.id}>
                               {unit.codice_univoco || unit.id}
