@@ -126,7 +126,7 @@ r.get('/:id', requireAuth, async (req, res) => {
     FROM inventario i
     LEFT JOIN inventario_corsi ic ON ic.inventario_id = i.id
       WHERE i.id = $1
-      GROUP BY i.id
+    GROUP BY i.id
     `, [id]);
     
     if (result.length === 0) {
@@ -159,8 +159,7 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
     
     // Check if nome already exists
-    const { sql, params } = adaptQuery('SELECT id FROM inventario WHERE nome = $1', [nome]);
-    const existing = await query(sql, params);
+    const existing = await query('SELECT id FROM inventario WHERE nome = $1', [nome]);
     if (existing.length > 0) {
       return res.status(400).json({ error: 'Un elemento con questo nome esiste già' });
     }

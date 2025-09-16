@@ -17,34 +17,28 @@ import statsRouter from "./routes/stats.js";
 import usersRouter from "./routes/users.js";
 import migrationRouter from "./routes/migration.js";
 import debugRouter from "./routes/debug.js";
-import { initDatabase as initPostgresDB } from './utils/postgres.js';
+import { initDatabase } from './utils/postgres.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || "0.0.0.0";
 
-// Inizializza il database PostgreSQL
+// Inizializza il database PostgreSQL/Supabase
 try {
-  console.log('🔄 Inizializzazione database PostgreSQL...');
-  await initPostgresDB();
-  console.log('✅ Database PostgreSQL inizializzato con successo!');
+  console.log('🔄 Inizializzazione database PostgreSQL/Supabase...');
+  await initDatabase();
+  console.log('✅ Database PostgreSQL/Supabase inizializzato con successo!');
 } catch (error) {
-  console.error('❌ Errore durante l\'inizializzazione del database PostgreSQL:', error.message);
-  console.error('Verifica la configurazione DATABASE_URL e la connessione al database');
+  console.error('❌ Errore durante l\'inizializzazione del database:', error.message);
+  console.error('Verifica la configurazione DATABASE_URL e la connessione a Supabase');
   process.exit(1);
 }
-
-// Health check
-app.get("/api/health", (_, res) => res.json({ 
-  ok: true, 
-  version: "1.0a", 
-  build: "304",
-  database: "postgresql"
-}));
 
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+
+app.get("/api/health", (_, res) => res.json({ ok: true, version: "1.0a", build: "304" }));
 
 app.use("/api/inventario", inventarioRouter);
 app.use("/api/prestiti", prestitiRouter);

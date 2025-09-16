@@ -3,15 +3,9 @@ import bcrypt from 'bcryptjs';
 
 const { Pool } = pkg;
 
-// Configurazione PostgreSQL
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres.kzqabwmtpmlhaueqiuoc:Dittafono26!@aws-1-eu-north-1.pooler.supabase.com:6543/postgres';
-
-if (!process.env.DATABASE_URL) {
-  console.warn('⚠️ DATABASE_URL non configurata, usando connessione di default');
-}
-
+// Configurazione Supabase
 const pool = new Pool({
-  connectionString,
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres.kzqabwmtpmlhaueqiuoc:Dittafono26!@aws-1-eu-north-1.pooler.supabase.com:6543/postgres',
   ssl: {
     rejectUnauthorized: false
   }

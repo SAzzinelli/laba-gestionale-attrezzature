@@ -226,7 +226,7 @@ r.put('/:id/restituisci', requireAuth, requireRole('admin'), async (req, res) =>
     // Update loan status to returned
     const result = await query(`
       UPDATE prestiti 
-      SET stato = 'restituito', data_rientro = CURRENT_DATE 
+      SET stato = 'restituito', data_restituzione = CURRENT_TIMESTAMP 
       WHERE id = $1
     `, [id]);
     
