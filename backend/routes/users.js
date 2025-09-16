@@ -81,6 +81,32 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(400).json({ error: 'Non è possibile eliminare l\'admin principale' });
     }
     
+    // Controlla se l'utente ha prestiti attivi
+    const activeLoans = await query(`
+      SELECT COUNT(*) as count 
+      FROM prestiti p 
+      WHERE p.chi LIKE $1 AND p.stato = 'attivo'
+    `, [`%${id}%`]);
+    
+    if (activeLoans[0]?.count > 0) {
+      return res.status(400).json({ 
+        error: 'Impossibile eliminare: utente ha prestiti attivi. Termina prima i prestiti.' 
+      });
+    }
+    
+    // Controlla se l'utente ha richieste in attesa
+    const pendingRequests = await query(`
+      SELECT COUNT(*) as count 
+      FROM richieste r 
+      WHERE r.utente_id = $1 AND r.stato = 'in_attesa'
+    `, [id]);
+    
+    if (pendingRequests[0]?.count > 0) {
+      return res.status(400).json({ 
+        error: 'Impossibile eliminare: utente ha richieste in attesa. Gestisci prima le richieste.' 
+      });
+    }
+    
     const result = await query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
     
     if (result.length === 0) {

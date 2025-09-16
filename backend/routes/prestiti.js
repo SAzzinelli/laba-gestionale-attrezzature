@@ -167,12 +167,18 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
     // Get request details
     const request = await query('SELECT * FROM richieste WHERE id = $1', [id]);
     
+    if (request.length === 0) {
+      return res.status(404).json({ error: 'Richiesta non trovata' });
+    }
+    
+    const requestData = request[0];
+    
     // Create loan record
     const loanResult = await query(`
       INSERT INTO prestiti (inventario_id, chi, data_uscita, data_rientro, note)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id
-    `, [request.rows[0].inventario_id, `User ${request.rows[0].utente_id}`, request.rows[0].dal, request.rows[0].al, request.rows[0].note]);
+    `, [requestData.inventario_id, `User ${requestData.utente_id}`, requestData.dal, requestData.al, requestData.note]);
     
     res.json({ 
       message: 'Richiesta approvata e prestito creato',
@@ -181,6 +187,57 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
   } catch (error) {
     console.error('Errore PUT approva prestito:', error);
     res.status(400).json({ error: error.message || 'Errore nell\'approvazione' });
+  }
+});
+
+// PUT /api/prestiti/:id/rifiuta (reject request) — admin only
+r.put('/:id/rifiuta', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const { motivazione } = req.body || {};
+    
+    if (!motivazione) {
+      return res.status(400).json({ error: 'Motivazione del rifiuto richiesta' });
+    }
+    
+    // Update request status to rejected with reason
+    const requestResult = await query(`
+      UPDATE richieste 
+      SET stato = $1, note = $2 
+      WHERE id = $3
+    `, ['rifiutata', motivazione, id]);
+    
+    if (requestResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Richiesta non trovata' });
+    }
+    
+    res.json({ message: 'Richiesta rifiutata' });
+  } catch (error) {
+    console.error('Errore PUT rifiuta prestito:', error);
+    res.status(400).json({ error: error.message || 'Errore nel rifiuto' });
+  }
+});
+
+// PUT /api/prestiti/:id/restituisci (return loan) — admin only
+r.put('/:id/restituisci', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    
+    // Update loan status to returned
+    const result = await query(`
+      UPDATE prestiti 
+      SET stato = 'restituito', data_restituzione = CURRENT_TIMESTAMP 
+      WHERE id = $1
+    `, [id]);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Prestito non trovato' });
+    }
+    
+    res.json({ message: 'Prestito terminato con successo' });
+  } catch (error) {
+    console.error('Errore PUT restituisci prestito:', error);
+    res.status(400).json({ error: error.message || 'Errore nella restituzione' });
   }
 });
 

@@ -291,6 +291,32 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Controlla se ci sono prestiti attivi per questo oggetto
+    const activeLoans = await query(`
+      SELECT COUNT(*) as count 
+      FROM prestiti p 
+      WHERE p.inventario_id = $1 AND p.stato = 'attivo'
+    `, [id]);
+    
+    if (activeLoans[0]?.count > 0) {
+      return res.status(400).json({ 
+        error: 'Impossibile eliminare: oggetto ha prestiti attivi. Termina prima i prestiti.' 
+      });
+    }
+    
+    // Controlla se ci sono richieste in attesa per questo oggetto
+    const pendingRequests = await query(`
+      SELECT COUNT(*) as count 
+      FROM richieste r 
+      WHERE r.inventario_id = $1 AND r.stato = 'in_attesa'
+    `, [id]);
+    
+    if (pendingRequests[0]?.count > 0) {
+      return res.status(400).json({ 
+        error: 'Impossibile eliminare: oggetto ha richieste in attesa. Gestisci prima le richieste.' 
+      });
+    }
+    
     // Prima elimina le unità associate
     await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
     

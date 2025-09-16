@@ -9,6 +9,7 @@
     "dev": "vite --port 3000"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.8",
     "@reduxjs/toolkit": "^2.2.5",
     "axios": "^1.7.2",
     "exceljs": "^4.4.0",

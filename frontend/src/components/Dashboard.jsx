@@ -297,7 +297,8 @@ const Dashboard = ({ onNavigate }) => {
  setPasswordResetRequests(passwordResetData);
  }
 
- setRecentRequests(requestsData.slice(0, 5));
+ console.log('Dashboard - requestsData:', requestsData);
+ setRecentRequests((requestsData || []).slice(0, 5));
  setRecentReports(reportsData.slice(0, 5));
 
  // Load notifications

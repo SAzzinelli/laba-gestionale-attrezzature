@@ -12,12 +12,35 @@ const Repairs = () => {
  const [searchTerm, setSearchTerm] = useState('');
  const [formData, setFormData] = useState({
  oggetto_id: '',
+ unit_id: '',
  descrizione: '',
  note_tecniche: '',
  priorita: 'media',
  stato: 'in_corso'
  });
+ const [availableUnits, setAvailableUnits] = useState([]);
  const { token } = useAuth();
+
+ // Fetch available units for selected object
+ const fetchAvailableUnits = async (objectId) => {
+   if (!objectId) {
+     setAvailableUnits([]);
+     return;
+   }
+   
+   try {
+     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario/${objectId}/units`, {
+       headers: { 'Authorization': `Bearer ${token}` }
+     });
+     
+     if (response.ok) {
+       const units = await response.json();
+       setAvailableUnits(units);
+     }
+   } catch (err) {
+     console.error('Errore caricamento unità:', err);
+   }
+ };
 
  // Handle form submission
  const handleSubmit = async (e) => {
@@ -32,7 +55,11 @@ const Repairs = () => {
  'Content-Type': 'application/json',
  'Authorization': `Bearer ${token}`
  },
- body: JSON.stringify(formData)
+ body: JSON.stringify({
+   ...formData,
+   inventario_id: formData.oggetto_id,
+   unit_id: formData.unit_id
+ })
  });
 
  if (!response.ok) {
@@ -43,11 +70,13 @@ const Repairs = () => {
  setEditingRepair(null);
  setFormData({
  oggetto_id: '',
+ unit_id: '',
  descrizione: '',
  note_tecniche: '',
  priorita: 'media',
  stato: 'in_corso'
  });
+ setAvailableUnits([]);
  fetchData();
  } catch (err) {
  setError(err.message);
@@ -338,7 +367,11 @@ const Repairs = () => {
  </label>
  <select
  value={formData.oggetto_id}
- onChange={(e) => setFormData({...formData, oggetto_id: e.target.value})}
+ onChange={(e) => {
+   const objectId = e.target.value;
+   setFormData({...formData, oggetto_id: objectId, unit_id: ''});
+   fetchAvailableUnits(objectId);
+ }}
  className="custom-select"
  required
  >
@@ -350,6 +383,28 @@ const Repairs = () => {
  ))}
  </select>
  </div>
+
+ {/* Unit ID Selection */}
+ {formData.oggetto_id && (
+   <div>
+     <label className="block text-sm font-medium text-primary mb-2">
+       ID Univoco *
+     </label>
+     <select
+       value={formData.unit_id}
+       onChange={(e) => setFormData({...formData, unit_id: e.target.value})}
+       className="custom-select"
+       required
+     >
+       <option value="">Seleziona ID univoco</option>
+       {availableUnits.map(unit => (
+         <option key={unit.id} value={unit.id}>
+           {unit.codice_univoco} - {unit.stato}
+         </option>
+       ))}
+     </select>
+   </div>
+ )}
 
  <div>
  <label className="block text-sm font-medium text-primary mb-2">
