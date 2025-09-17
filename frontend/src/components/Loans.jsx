@@ -11,6 +11,9 @@ const Loans = ({ selectedRequestFromNotification, onRequestHandled }) => {
  const [selectedLoan, setSelectedLoan] = useState(null);
  const [activeTab, setActiveTab] = useState('active');
  const [searchTerm, setSearchTerm] = useState('');
+ const [showRejectModal, setShowRejectModal] = useState(false);
+ const [rejectRequestId, setRejectRequestId] = useState(null);
+ const [rejectReason, setRejectReason] = useState('');
  const { token } = useAuth();
 
  const fetchData = async () => {
@@ -85,14 +88,19 @@ const Loans = ({ selectedRequestFromNotification, onRequestHandled }) => {
  }
  };
 
- const handleReject = async (requestId) => {
+ const handleReject = async (requestId, motivazione) => {
  try {
+ if (!motivazione || motivazione.trim() === '') {
+   throw new Error('Motivazione del rifiuto richiesta');
+ }
+
  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/${requestId}/rifiuta`, {
  method: 'PUT',
  headers: {
  'Authorization': `Bearer ${token}`,
  'Content-Type': 'application/json'
- }
+ },
+ body: JSON.stringify({ motivazione: motivazione.trim() })
  });
 
  if (!response.ok) {
@@ -104,6 +112,28 @@ const Loans = ({ selectedRequestFromNotification, onRequestHandled }) => {
  } catch (err) {
  setError(err.message);
  }
+ };
+
+ const openRejectModal = (requestId) => {
+   setRejectRequestId(requestId);
+   setRejectReason('');
+   setShowRejectModal(true);
+ };
+
+ const confirmReject = async () => {
+   if (!rejectReason.trim()) {
+     setError('Motivazione del rifiuto richiesta');
+     return;
+   }
+   
+   try {
+     await handleReject(rejectRequestId, rejectReason);
+     setShowRejectModal(false);
+     setRejectRequestId(null);
+     setRejectReason('');
+   } catch (err) {
+     setError(err.message);
+   }
  };
 
  const handleReturn = async (loanId) => {
@@ -446,7 +476,7 @@ const getStatusBadge = (status) => {
  <button
  onClick={(e) => {
  e.stopPropagation();
- handleReject(item.id);
+ openRejectModal(item.id);
  }}
  className="btn-danger btn-small"
  >
@@ -564,7 +594,7 @@ const getStatusBadge = (status) => {
                     Approva Richiesta
                   </button>
                   <button
-                    onClick={() => handleReject(item.id)}
+                    onClick={() => openRejectModal(item.id)}
                     className="w-full bg-red-500 hover:bg-red-600 text-white rounded-lg py-2 transition-colors duration-200"
                   >
                     <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -685,6 +715,62 @@ const getStatusBadge = (status) => {
  </div>
  </div>
  </div>
+ )}
+
+ {/* Reject Modal */}
+ {showRejectModal && (
+   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+     <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+       <div className="flex items-center justify-between p-6 border-b border-gray-200">
+         <h2 className="text-xl font-semibold text-gray-900">Rifiuta Richiesta</h2>
+         <button
+           onClick={() => {
+             setShowRejectModal(false);
+             setError(null);
+           }}
+           className="text-gray-400 hover:text-gray-600 transition-colors"
+         >
+           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+           </svg>
+         </button>
+       </div>
+       
+       <div className="p-6">
+         <p className="text-gray-600 mb-4">Inserisci il motivo del rifiuto per questa richiesta:</p>
+         <textarea
+           value={rejectReason}
+           onChange={(e) => setRejectReason(e.target.value)}
+           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+           rows={4}
+           placeholder="Motivo del rifiuto..."
+           required
+         />
+         {error && (
+           <p className="text-red-600 text-sm mt-2">{error}</p>
+         )}
+       </div>
+       
+       <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+         <button
+           onClick={() => {
+             setShowRejectModal(false);
+             setError(null);
+           }}
+           className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+         >
+           Annulla
+         </button>
+         <button
+           onClick={confirmReject}
+           disabled={!rejectReason.trim()}
+           className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+         >
+           Conferma Rifiuto
+         </button>
+       </div>
+     </div>
+   </div>
  )}
 
  {/* Error Message */}
