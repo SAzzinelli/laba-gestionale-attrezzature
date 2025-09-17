@@ -159,8 +159,8 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
     const id = Number(req.params.id);
     
     // Update request status to approved
-    const requestResult = await query('UPDATE richieste SET stato = $1 WHERE id = $2', ['approvata', id]);
-    if (requestResult.rowCount === 0) {
+    const requestResult = await query('UPDATE richieste SET stato = $1 WHERE id = $2 RETURNING id', ['approvata', id]);
+    if (requestResult.length === 0) {
       return res.status(404).json({ error: 'Richiesta non trovata' });
     }
     
@@ -182,7 +182,7 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
     
     res.json({ 
       message: 'Richiesta approvata e prestito creato',
-      loanId: loanResult.rows[0].id 
+      loanId: loanResult[0].id 
     });
   } catch (error) {
     console.error('Errore PUT approva prestito:', error);
