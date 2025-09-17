@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function NotificationsPanel({ isOpen, onClose, notifications = [], onMarkAsRead, onDelete }) {
+function NotificationsPanel({ isOpen, onClose, notifications = [], onMarkAsRead, onDelete, onClick }) {
  const unreadCount = notifications.filter(n => !n.isRead).length;
 
  return (
@@ -54,38 +54,51 @@ function NotificationsPanel({ isOpen, onClose, notifications = [], onMarkAsRead,
  </div>
  ) : (
  notifications.map((notification, index) => (
- <div 
- key={notification.id}
- className={`p-4 rounded-lg border-l-4 transform transition-all duration-300 ease-out ${
- notification.type === 'password_reset' ? 'border-l-red-500 bg-red-50 ' :
- notification.type === 'inventory' ? 'border-l-green-500 bg-green-50 ' :
- 'border-l-orange-500 bg-orange-50 '
- } ${!notification.isRead ? 'ring-2 ring-blue-200 ' : ''} ${
- isOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
- }`}
- style={{
- transitionDelay: `${index * 100}ms`
- }}
- >
+                <div 
+                  key={notification.id}
+                  onClick={() => onClick && onClick(notification)}
+                  className={`p-4 rounded-lg border-l-4 transform transition-all duration-300 ease-out cursor-pointer hover:shadow-md ${
+                    notification.type === 'password_reset' ? 'border-l-red-500 bg-red-50 hover:bg-red-100' :
+                    notification.type === 'inventory' ? 'border-l-green-500 bg-green-50 hover:bg-green-100' :
+                    notification.type === 'info' ? 'border-l-blue-500 bg-blue-50 hover:bg-blue-100' :
+                    notification.type === 'warning' ? 'border-l-orange-500 bg-orange-50 hover:bg-orange-100' :
+                    'border-l-gray-500 bg-gray-50 hover:bg-gray-100'
+                  } ${!notification.isRead ? 'ring-2 ring-blue-200 ' : ''} ${
+                    isOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                  }`}
+                  style={{
+                    transitionDelay: `${index * 100}ms`
+                  }}
+                >
  <div className="flex items-start">
- <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
- notification.type === 'password_reset' ? 'bg-orange-100 ' :
- notification.type === 'inventory' ? 'bg-green-100 ' :
- 'bg-red-100 '
- }`}>
- {notification.type === 'password_reset' ? (
- <svg className="w-4 h-4 text-orange-600 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z" />
- </svg>
- ) : notification.type === 'inventory' ? (
- <svg className="w-4 h-4 text-green-600 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
- </svg>
- ) : (
- <svg className="w-4 h-4 text-red-600 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
- </svg>
- )}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  notification.type === 'password_reset' ? 'bg-orange-100 ' :
+                  notification.type === 'inventory' ? 'bg-green-100 ' :
+                  notification.type === 'info' ? 'bg-blue-100 ' :
+                  notification.type === 'warning' ? 'bg-orange-100 ' :
+                  'bg-gray-100 '
+                }`}>
+                  {notification.type === 'password_reset' ? (
+                    <svg className="w-4 h-4 text-orange-600 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z" />
+                    </svg>
+                  ) : notification.type === 'inventory' ? (
+                    <svg className="w-4 h-4 text-green-600 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  ) : notification.type === 'info' ? (
+                    <svg className="w-4 h-4 text-blue-600 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  ) : notification.type === 'warning' ? (
+                    <svg className="w-4 h-4 text-orange-600 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-gray-600 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
  </div>
  <div className="ml-3 flex-1">
  <div className="flex items-center justify-between">
@@ -102,7 +115,7 @@ function NotificationsPanel({ isOpen, onClose, notifications = [], onMarkAsRead,
  </button>
  </div>
  </div>
- <p className="text-sm text-gray-600 mt-1">{notification.description}</p>
+                  <p className="text-sm text-gray-600 mt-1">{notification.message || notification.description}</p>
  <p className="text-xs text-gray-500 mt-2">{notification.time}</p>
  {!notification.isRead && (
  <button 

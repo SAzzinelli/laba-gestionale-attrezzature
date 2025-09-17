@@ -37,16 +37,119 @@ function AppInner() {
     { id: 'statistiche', label: 'Statistiche', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg> }
   ];
   
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: 'Sistema Online', message: 'Tutti i servizi operativi', time: '2 min fa', isRead: false, type: 'success' },
-    { id: 2, title: 'Nuova Richiesta', message: 'Simone ha richiesto un prestito', time: '15 min fa', isRead: false, type: 'info' },
-    { id: 3, title: 'Manutenzione', message: 'Manutenzione programmata per domani', time: '1 ora fa', isRead: true, type: 'warning' }
-  ]);
-  const { isAdmin, user, logout } = useAuth();
+  const [notifications, setNotifications] = useState([]);
+  const { isAdmin, user, logout, token } = useAuth();
  // const { isDark, toggleTheme } = useTheme();
  
  // Hook per notifiche in tempo reale
  useRealtimeNotifications();
+
+ // Fetch real notifications
+ const fetchNotifications = async () => {
+   if (!token) return;
+   
+   try {
+     // Load recent requests and alerts
+     const [requestsRes, alertsRes] = await Promise.all([
+       fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste?all=1`, {
+         headers: { 'Authorization': `Bearer ${token}` }
+       }),
+       fetch(`${import.meta.env.VITE_API_BASE_URL}/api/avvisi`, {
+         headers: { 'Authorization': `Bearer ${token}` }
+       })
+     ]);
+
+     if (requestsRes.ok && alertsRes.ok) {
+       const [requestsData, alertsData] = await Promise.all([
+         requestsRes.json(),
+         alertsRes.json()
+       ]);
+
+       // Generate real notifications
+       const realNotifications = [];
+       let notificationId = 1;
+
+       // New pending requests (last 24 hours)
+       const pendingRequests = requestsData.filter(req => 
+         req.stato === 'in_attesa' && 
+         new Date(req.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+       );
+
+       pendingRequests.forEach(request => {
+         realNotifications.push({
+           id: notificationId++,
+           title: 'Nuova Richiesta',
+           message: `${request.utente_nome} ${request.utente_cognome} ha richiesto ${request.oggetto_nome}`,
+           time: getTimeAgo(request.created_at),
+           isRead: false,
+           type: 'info',
+           data: { type: 'request', id: request.id, requestData: request }
+         });
+       });
+
+       // Overdue loans
+       if (alertsData.prestiti_scaduti) {
+         alertsData.prestiti_scaduti.forEach(loan => {
+           realNotifications.push({
+             id: notificationId++,
+             title: 'Prestito Scaduto',
+             message: `${loan.oggetto_nome} di ${loan.utente_nome} è scaduto`,
+             time: getTimeAgo(loan.data_rientro),
+             isRead: false,
+             type: 'warning',
+             data: { type: 'loan', id: loan.id, loanData: loan }
+           });
+         });
+       }
+
+       // Low stock alerts
+       if (alertsData.scorte_basse) {
+         alertsData.scorte_basse.forEach(item => {
+           realNotifications.push({
+             id: notificationId++,
+             title: 'Scorte Basse',
+             message: `${item.nome}: solo ${item.unita_disponibili} disponibili`,
+             time: 'Ora',
+             isRead: false,
+             type: 'warning',
+             data: { type: 'inventory', id: item.id, itemData: item }
+           });
+         });
+       }
+
+       setNotifications(realNotifications);
+     }
+   } catch (error) {
+     console.error('Errore nel caricamento notifiche:', error);
+   }
+ };
+
+ // Helper function for time ago
+ const getTimeAgo = (dateString) => {
+   if (!dateString) return 'Ora';
+   const now = new Date();
+   const date = new Date(dateString);
+   const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+   
+   if (diffInMinutes < 1) return 'Ora';
+   if (diffInMinutes < 60) return `${diffInMinutes} min fa`;
+   
+   const diffInHours = Math.floor(diffInMinutes / 60);
+   if (diffInHours < 24) return `${diffInHours} ore fa`;
+   
+   const diffInDays = Math.floor(diffInHours / 24);
+   return `${diffInDays} giorni fa`;
+ };
+
+ // Load notifications on component mount and token change
+ useEffect(() => {
+   if (token && isAdmin) {
+     fetchNotifications();
+     // Refresh every 5 minutes
+     const interval = setInterval(fetchNotifications, 5 * 60 * 1000);
+     return () => clearInterval(interval);
+   }
+ }, [token, isAdmin]);
 
  // Listener per navigazione dal footer
  useEffect(() => {
@@ -75,6 +178,32 @@ function AppInner() {
 
  const handleDeleteNotification = (id) => {
    setNotifications(prev => prev.filter(notif => notif.id !== id));
+ };
+
+ const handleNotificationClick = (notification) => {
+   if (notification.data) {
+     switch (notification.data.type) {
+       case 'request':
+         // Navigate to loans page and show request details
+         setTab('prestiti');
+         setNotificationsOpen(false);
+         break;
+       case 'loan':
+         // Navigate to loans page and show loan details
+         setTab('prestiti');
+         setNotificationsOpen(false);
+         break;
+       case 'inventory':
+         // Navigate to inventory page
+         setTab('inventario');
+         setNotificationsOpen(false);
+         break;
+       default:
+         break;
+     }
+   }
+   // Mark as read
+   handleMarkAsRead(notification.id);
  };
 
  // Gestione URL per la navigazione
@@ -330,6 +459,7 @@ function AppInner() {
    notifications={notifications}
    onMarkAsRead={handleMarkAsRead}
    onDelete={handleDeleteNotification}
+   onClick={handleNotificationClick}
  />
  
  {/* Mobile Menu for Admin */}
