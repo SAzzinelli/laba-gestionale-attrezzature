@@ -281,7 +281,7 @@ body: JSON.stringify({
                       e.stopPropagation();
                       window.open(item.immagine_url, '_blank');
                     }}
-                    className="mt-2 inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                    className="mt-2 inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full hover:bg-purple-200 transition-colors"
                     title="Visualizza immagine"
                   >
                     <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
