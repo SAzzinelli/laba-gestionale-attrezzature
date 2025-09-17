@@ -705,8 +705,10 @@ const Inventory = () => {
                         switch (stato) {
                           case 'disponibile':
                             return 'bg-green-100 text-green-800 border-green-200';
-                          case 'in_prestito':
+                          case 'prestato':
                             return 'bg-blue-100 text-blue-800 border-blue-200';
+                          case 'riservato':
+                            return 'bg-yellow-100 text-yellow-800 border-yellow-200';
                           case 'in_riparazione':
                             return 'bg-orange-100 text-orange-800 border-orange-200';
                           case 'perso':
@@ -720,8 +722,10 @@ const Inventory = () => {
                         switch (stato) {
                           case 'disponibile':
                             return 'Disponibile';
-                          case 'in_prestito':
+                          case 'prestato':
                             return 'In Prestito';
+                          case 'riservato':
+                            return 'Riservato';
                           case 'in_riparazione':
                             return 'In Riparazione';
                           case 'perso':

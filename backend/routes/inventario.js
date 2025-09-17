@@ -20,10 +20,10 @@ r.get('/', requireAuth, requireRole('admin'), async (req, res) => {
         i.posizione, i.note, i.immagine_url, i.in_manutenzione, i.created_at, i.updated_at,
         CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
         COALESCE(json_agg(DISTINCT ic.corso) FILTER (WHERE ic.corso IS NOT NULL), '[]') AS corsi_assegnati,
-        (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) AS unita_disponibili,
+        (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS unita_disponibili,
         CASE
           WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') THEN 'in_riparazione'
-          WHEN i.in_manutenzione = TRUE OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0 THEN 'non_disponibile'
+          WHEN i.in_manutenzione = TRUE OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) = 0 THEN 'non_disponibile'
           ELSE 'disponibile'
         END AS stato_effettivo
       FROM inventario i
@@ -68,10 +68,10 @@ r.get('/disponibili', requireAuth, async (req, res) => {
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
-          (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) AS unita_disponibili,
+          (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS unita_disponibili,
           CASE
             WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') THEN 'in_riparazione'
-            WHEN i.in_manutenzione = TRUE OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0 THEN 'non_disponibile'
+            WHEN i.in_manutenzione = TRUE OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) = 0 THEN 'non_disponibile'
             ELSE 'disponibile'
           END AS stato_effettivo
         FROM inventario i
@@ -88,10 +88,10 @@ r.get('/disponibili', requireAuth, async (req, res) => {
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
-          (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) AS unita_disponibili,
+          (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS unita_disponibili,
           CASE
             WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') THEN 'in_riparazione'
-            WHEN i.in_manutenzione = TRUE OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0 THEN 'non_disponibile'
+            WHEN i.in_manutenzione = TRUE OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) = 0 THEN 'non_disponibile'
             ELSE 'disponibile'
           END AS stato_effettivo
         FROM inventario i
@@ -115,11 +115,11 @@ r.get('/:id', requireAuth, async (req, res) => {
     const result = await query(`
       SELECT i.*, 
              STRING_AGG(ic.corso, ',') as corsi_assegnati,
-             (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) as unita_disponibili,
+             (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) as unita_disponibili,
              CASE 
                WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') 
                THEN 'in_riparazione'
-               WHEN i.in_manutenzione = true OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL) = 0
+               WHEN i.in_manutenzione = true OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) = 0
                THEN 'non_disponibile'
                ELSE 'disponibile'
              END as stato_effettivo

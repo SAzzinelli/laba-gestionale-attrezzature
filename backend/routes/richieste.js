@@ -101,10 +101,21 @@ r.post('/', requireAuth, async (req, res) => {
     }
     
     const result = await query(`
-      INSERT INTO richieste (utente_id, inventario_id, dal, al, motivo, note)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO richieste (utente_id, inventario_id, dal, al, motivo, note, unit_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
-    `, [req.user.id, actualInventarioId, dal, al, motivo || null, note || null]);
+    `, [req.user.id, actualInventarioId, dal, al, motivo || null, note || null, unit_id || null]);
+    
+    // Se è stata specificata un'unità, riservala
+    if (unit_id) {
+      await query(`
+        UPDATE inventario_unita 
+        SET stato = 'riservato', richiesta_riservata_id = $1
+        WHERE id = $2
+      `, [result[0].id, unit_id]);
+      
+      console.log(`✅ Unità ${unit_id} riservata per richiesta ${result[0].id}`);
+    }
     
     res.status(201).json(result[0]);
   } catch (error) {

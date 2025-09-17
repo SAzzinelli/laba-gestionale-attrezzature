@@ -190,18 +190,28 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
       RETURNING id
     `, [requestData.inventario_id, userFullName, requestData.dal, requestData.al, requestData.note, id]);
     
-    // Update inventory units status to 'prestato' based on the requested quantity
-    await query(`
-      UPDATE inventario_unita 
-      SET stato = 'prestato' 
-      WHERE inventario_id = $1 
-      AND stato = 'disponibile' 
-      AND id IN (
-        SELECT id FROM inventario_unita 
-        WHERE inventario_id = $1 AND stato = 'disponibile' 
-        LIMIT $2
-      )
-    `, [requestData.inventario_id, requestData.quantita || 1]);
+    // Update inventory units status to 'prestato'
+    if (requestData.unit_id) {
+      // Se c'è un'unità specifica riservata, marcala come prestata
+      await query(`
+        UPDATE inventario_unita 
+        SET stato = 'prestato', richiesta_riservata_id = NULL
+        WHERE id = $1 AND richiesta_riservata_id = $2
+      `, [requestData.unit_id, id]);
+    } else {
+      // Altrimenti marca le prime unità disponibili come prestate
+      await query(`
+        UPDATE inventario_unita 
+        SET stato = 'prestato' 
+        WHERE inventario_id = $1 
+        AND stato = 'disponibile' 
+        AND id IN (
+          SELECT id FROM inventario_unita 
+          WHERE inventario_id = $1 AND stato = 'disponibile' 
+          LIMIT $2
+        )
+      `, [requestData.inventario_id, requestData.quantita || 1]);
+    }
     
     res.json({ 
       message: 'Richiesta approvata e prestito creato',
@@ -223,6 +233,9 @@ r.put('/:id/rifiuta', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(400).json({ error: 'Motivazione del rifiuto richiesta' });
     }
     
+    // Get request details to free reserved units
+    const request = await query('SELECT unit_id FROM richieste WHERE id = $1', [id]);
+    
     // Update request status to rejected with reason
     const requestResult = await query(`
       UPDATE richieste 
@@ -232,6 +245,17 @@ r.put('/:id/rifiuta', requireAuth, requireRole('admin'), async (req, res) => {
     
     if (requestResult.rowCount === 0) {
       return res.status(404).json({ error: 'Richiesta non trovata' });
+    }
+    
+    // Free reserved unit if exists
+    if (request.length > 0 && request[0].unit_id) {
+      await query(`
+        UPDATE inventario_unita 
+        SET stato = 'disponibile', richiesta_riservata_id = NULL
+        WHERE id = $1 AND richiesta_riservata_id = $2
+      `, [request[0].unit_id, id]);
+      
+      console.log(`✅ Unità ${request[0].unit_id} liberata dopo rifiuto richiesta ${id}`);
     }
     
     res.json({ message: 'Richiesta rifiutata' });
