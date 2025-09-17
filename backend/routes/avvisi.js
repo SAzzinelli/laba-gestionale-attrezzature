@@ -28,9 +28,12 @@ r.get('/', requireAuth, async (req, res) => {
         p.*,
         i.nome as oggetto_nome,
         p.chi as utente_nome,
+        u.name as utente_nome_reale,
+        u.surname as utente_cognome,
         (CURRENT_DATE - p.data_rientro) as giorni_ritardo
       FROM prestiti p
       JOIN inventario i ON p.inventario_id = i.id
+      LEFT JOIN users u ON (p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
       WHERE p.stato = 'attivo'
       AND p.data_rientro IS NOT NULL
       AND p.data_rientro < CURRENT_DATE
@@ -42,9 +45,12 @@ r.get('/', requireAuth, async (req, res) => {
       SELECT 
         p.*,
         i.nome as oggetto_nome,
-        p.chi as utente_nome
+        p.chi as utente_nome,
+        u.name as utente_nome_reale,
+        u.surname as utente_cognome
       FROM prestiti p
       JOIN inventario i ON p.inventario_id = i.id
+      LEFT JOIN users u ON (p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
       WHERE p.stato = 'attivo'
       AND p.data_rientro IS NOT NULL
       AND p.data_rientro = CURRENT_DATE
@@ -56,9 +62,12 @@ r.get('/', requireAuth, async (req, res) => {
       SELECT 
         p.*,
         i.nome as oggetto_nome,
-        p.chi as utente_nome
+        p.chi as utente_nome,
+        u.name as utente_nome_reale,
+        u.surname as utente_cognome
       FROM prestiti p
       JOIN inventario i ON p.inventario_id = i.id
+      LEFT JOIN users u ON (p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
       WHERE p.stato = 'attivo'
       AND p.data_rientro IS NOT NULL
       AND p.data_rientro = CURRENT_DATE + INTERVAL '1 day'

@@ -200,34 +200,12 @@ const formatDate = (dateString) => {
 };
 
 const canTerminateLoan = (loan) => {
-  if (!loan.data_rientro) return false; // Nessuna data di rientro impostata
-  
-  const today = new Date();
-  const returnDate = new Date(loan.data_rientro);
-  
-  // Resetta le ore per confrontare solo le date
-  today.setHours(0, 0, 0, 0);
-  returnDate.setHours(0, 0, 0, 0);
-  
-  // Può terminare solo dal giorno di rientro in poi
-  return today >= returnDate;
+  // Admin può terminare il prestito in qualsiasi momento
+  return loan.stato === 'attivo';
 };
 
 const getTerminateButtonTooltip = (loan) => {
-  if (!loan.data_rientro) return 'Data di rientro non impostata';
-  
-  const today = new Date();
-  const returnDate = new Date(loan.data_rientro);
-  today.setHours(0, 0, 0, 0);
-  returnDate.setHours(0, 0, 0, 0);
-  
-  if (today < returnDate) {
-    const diffTime = returnDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return `Disponibile dal ${formatDate(loan.data_rientro)} (tra ${diffDays} giorni)`;
-  }
-  
-  return 'Termina il prestito';
+  return loan.stato === 'attivo' ? 'Clicca per terminare il prestito' : 'Prestito non attivo';
 };
 
 const getStatusBadge = (status) => {

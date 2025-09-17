@@ -497,11 +497,11 @@ const Dashboard = ({ onNavigate }) => {
  </h3>
  </div>
  <div className="space-y-2">
- {alerts.prestiti_scaduti.slice(0, 3).map(prestito => (
- <div key={prestito.id} className="bg-white rounded-lg p-3 border border-orange-200">
- <div className="font-semibold text-gray-900 text-sm">
- {prestito.utente_nome} {prestito.utente_cognome}
- </div>
+               {alerts.prestiti_scaduti.slice(0, 3).map(prestito => (
+                <div key={prestito.id} className="bg-white rounded-lg p-3 border border-orange-200">
+                <div className="font-semibold text-gray-900 text-sm">
+                 {prestito.utente_nome_reale || prestito.utente_nome} {prestito.utente_cognome || ''}
+                </div>
  <div className="text-orange-600 font-medium text-xs mt-1">
  {Math.floor(prestito.giorni_ritardo)} giorni di ritardo
  </div>
