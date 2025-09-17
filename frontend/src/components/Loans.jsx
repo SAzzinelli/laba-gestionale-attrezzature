@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import AdvancedLoanModal from './AdvancedLoanModal';
 
-const Loans = () => {
+const Loans = ({ selectedRequestFromNotification, onRequestHandled }) => {
  const [requests, setRequests] = useState([]);
  const [loans, setLoans] = useState([]);
  const [loading, setLoading] = useState(true);
@@ -46,9 +46,27 @@ const Loans = () => {
  fetchData();
  }, []);
 
+ // Gestisce l'apertura automatica del modale dalla notifica
+ useEffect(() => {
+   if (selectedRequestFromNotification && requests.length > 0) {
+     // Trova la richiesta corrispondente
+     const request = requests.find(r => r.id === selectedRequestFromNotification.id);
+     if (request && request.stato === 'in_attesa') {
+       // Passa al tab "In Attesa" e apri il modale
+       setActiveTab('pending');
+       setSelectedLoan(request);
+       setShowLoanModal(true);
+       // Notifica che la richiesta è stata gestita
+       if (onRequestHandled) {
+         onRequestHandled();
+       }
+     }
+   }
+ }, [selectedRequestFromNotification, requests, onRequestHandled]);
+
  const handleApprove = async (requestId) => {
  try {
- const response = await fetch(`/api/prestiti/${requestId}/approva`, {
+ const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/${requestId}/approva`, {
  method: 'PUT',
  headers: {
  'Authorization': `Bearer ${token}`,
@@ -69,7 +87,7 @@ const Loans = () => {
 
  const handleReject = async (requestId) => {
  try {
- const response = await fetch(`/api/prestiti/${requestId}/rifiuta`, {
+ const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/${requestId}/rifiuta`, {
  method: 'PUT',
  headers: {
  'Authorization': `Bearer ${token}`,
@@ -90,7 +108,7 @@ const Loans = () => {
 
  const handleReturn = async (loanId) => {
  try {
- const response = await fetch(`/api/prestiti/${loanId}/restituisci`, {
+ const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/${loanId}/restituisci`, {
  method: 'PUT',
  headers: {
  'Authorization': `Bearer ${token}`,

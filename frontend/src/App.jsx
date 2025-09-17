@@ -26,6 +26,7 @@ function AppInner() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedRequestFromNotification, setSelectedRequestFromNotification] = useState(null);
   
   // Admin sidebar items for mobile menu
   const adminSidebarItems = [
@@ -180,31 +181,32 @@ function AppInner() {
    setNotifications(prev => prev.filter(notif => notif.id !== id));
  };
 
- const handleNotificationClick = (notification) => {
-   if (notification.data) {
-     switch (notification.data.type) {
-       case 'request':
-         // Navigate to loans page and show request details
-         setTab('prestiti');
-         setNotificationsOpen(false);
-         break;
-       case 'loan':
-         // Navigate to loans page and show loan details
-         setTab('prestiti');
-         setNotificationsOpen(false);
-         break;
-       case 'inventory':
-         // Navigate to inventory page
-         setTab('inventario');
-         setNotificationsOpen(false);
-         break;
-       default:
-         break;
-     }
-   }
-   // Mark as read
-   handleMarkAsRead(notification.id);
- };
+  const handleNotificationClick = (notification) => {
+    if (notification.data) {
+      switch (notification.data.type) {
+        case 'request':
+          // Navigate to loans page and show request details
+          setTab('prestiti');
+          setSelectedRequestFromNotification(notification.data);
+          setNotificationsOpen(false);
+          break;
+        case 'loan':
+          // Navigate to loans page and show loan details
+          setTab('prestiti');
+          setNotificationsOpen(false);
+          break;
+        case 'inventory':
+          // Navigate to inventory page
+          setTab('inventario');
+          setNotificationsOpen(false);
+          break;
+        default:
+          break;
+      }
+    }
+    // Mark as read
+    handleMarkAsRead(notification.id);
+  };
 
  // Gestione URL per la navigazione
  const getCurrentTab = () => {
@@ -437,7 +439,7 @@ function AppInner() {
        <div className="max-w-7xl mx-auto">
          {tab === 'dashboard' && <Dashboard onNavigate={handleTabChange} />}
          {tab === 'inventario' && <Inventory />}
-         {tab === 'prestiti' && <Loans />}
+         {tab === 'prestiti' && <Loans selectedRequestFromNotification={selectedRequestFromNotification} onRequestHandled={() => setSelectedRequestFromNotification(null)} />}
          {tab === 'riparazioni' && <Repairs />}
          {tab === 'utenti' && <UserManagement />}
          {tab === 'statistiche' && <Statistics />}
