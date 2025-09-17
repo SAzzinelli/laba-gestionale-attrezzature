@@ -321,10 +321,9 @@ const handleCancelRepair = async (repairId) => {
  </div>
  </div>
 
- {/* Filters */}
+ {/* Search */}
  <div className="card">
- <div className="flex flex-col sm:flex-row gap-4 items-center">
- <div className="flex-1 form-group">
+ <div className="form-group">
  <label className="form-label">Cerca riparazioni</label>
  <div className="relative">
  <input
@@ -339,8 +338,11 @@ const handleCancelRepair = async (repairId) => {
  </svg>
  </div>
  </div>
+ </div>
+
  {/* Tab Navigation */}
- <nav className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+ <div className="flex justify-center">
+ <nav className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
  <button
  onClick={() => setActiveTab('in_corso')}
  className={`tab-button ${activeTab === 'in_corso' ? 'active' : ''}`}
@@ -381,7 +383,6 @@ const handleCancelRepair = async (repairId) => {
  </span>
  </button>
  </nav>
- </div>
  </div>
 
  {/* Repairs Grid */}
