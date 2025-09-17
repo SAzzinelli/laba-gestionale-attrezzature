@@ -25,7 +25,7 @@ r.get('/', requireAuth, async (req, res) => {
                r.dal, r.al, r.note AS richiesta_note
         FROM prestiti p
         LEFT JOIN inventario i ON i.id = p.inventario_id
-        LEFT JOIN users u ON (p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
+        LEFT JOIN users u ON (p.chi = (u.name || ' ' || u.surname) OR p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
         LEFT JOIN richieste r ON r.id = p.richiesta_id
         ORDER BY p.id DESC
       `);
