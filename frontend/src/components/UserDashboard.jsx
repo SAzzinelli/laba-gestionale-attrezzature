@@ -68,8 +68,9 @@ const UserDashboard = () => {
       // Process loans data
       if (loansRes.ok) {
         const loansData = await loansRes.json();
-        setStats(prev => ({ ...prev, myLoans: loansData.length }));
-        setRecentData(prev => ({ ...prev, activeLoans: loansData.slice(0, 3) }));
+        const activeLoans = loansData.filter(loan => loan.stato === 'attivo');
+        setStats(prev => ({ ...prev, myLoans: activeLoans.length }));
+        setRecentData(prev => ({ ...prev, activeLoans: activeLoans.slice(0, 3) }));
       }
 
     } catch (err) {
