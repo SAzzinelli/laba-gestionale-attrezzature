@@ -347,8 +347,15 @@ const Repairs = () => {
  
  <div className="grid grid-cols-2 gap-4 text-sm">
  <div>
- <span className="text-tertiary">Priorità:</span>
- <span className="text-primary ml-1 font-medium">{repair.priorita || 'Media'}</span>
+ <span className="text-tertiary">Descrizione:</span>
+ <span className="text-primary ml-1 font-medium">
+   {(() => {
+     if (!repair.note) return 'N/A';
+     // Estrai la prima riga come descrizione
+     const firstLine = repair.note.split('\n')[0];
+     return firstLine || 'N/A';
+   })()}
+ </span>
  </div>
  <div>
  <span className="text-tertiary">Creata:</span>
@@ -674,10 +681,28 @@ const Repairs = () => {
            
            {selectedRepair.note && (
              <div>
-               <label className="block text-sm font-medium text-gray-700">Descrizione</label>
-               <p className="text-gray-600 whitespace-pre-wrap">{selectedRepair.note}</p>
+               <label className="block text-sm font-medium text-gray-700">Dettagli Completi</label>
+               <div className="text-gray-600 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg text-sm">
+                 {selectedRepair.note}
+               </div>
              </div>
            )}
+           
+           <div>
+             <label className="block text-sm font-medium text-gray-700">Priorità</label>
+             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+               selectedRepair.priorita === 'critica' ? 'bg-red-100 text-red-800' :
+               selectedRepair.priorita === 'alta' ? 'bg-orange-100 text-orange-800' :
+               selectedRepair.priorita === 'media' ? 'bg-yellow-100 text-yellow-800' :
+               'bg-green-100 text-green-800'
+             }`}>
+               {selectedRepair.priorita === 'critica' ? 'Critica' :
+                selectedRepair.priorita === 'alta' ? 'Alta' :
+                selectedRepair.priorita === 'media' ? 'Media' :
+                selectedRepair.priorita === 'bassa' ? 'Bassa' :
+                'Media'}
+             </span>
+           </div>
            
          </div>
        </div>
