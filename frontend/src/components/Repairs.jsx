@@ -20,6 +20,8 @@ const Repairs = () => {
  stato: 'in_corso'
  });
  const [availableUnits, setAvailableUnits] = useState([]);
+ const [showDetailsModal, setShowDetailsModal] = useState(false);
+ const [selectedRepair, setSelectedRepair] = useState(null);
  const { token } = useAuth();
 
  // Handle object selection
@@ -302,11 +304,14 @@ const Repairs = () => {
  <div
  key={repair.id}
  className="card card-clickable"
- onClick={() => setEditingRepair(repair)}
+ onClick={() => {
+   setSelectedRepair(repair);
+   setShowDetailsModal(true);
+ }}
  >
  <div className="flex flex-col gap-4">
  <div className="flex items-center justify-between">
- <h3 className="text-lg font-semibold text-primary">{repair.inventario_nome}</h3>
+ <h3 className="text-lg font-semibold text-primary">{repair.articolo_nome}</h3>
  {getStatusBadge(repair.stato)}
  </div>
  
@@ -341,8 +346,8 @@ const Repairs = () => {
  <button
  onClick={(e) => {
  e.stopPropagation();
- setEditingRepair(repair);
- setShowAddModal(true);
+ setSelectedRepair(repair);
+ setShowDetailsModal(true);
  }}
  className="btn-secondary btn-small"
  >
@@ -604,6 +609,76 @@ const Repairs = () => {
  </div>
  </div>
  </div>
+ )}
+
+ {/* Repair Details Modal */}
+ {showDetailsModal && selectedRepair && (
+   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+     <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+       <div className="flex items-center justify-between p-6 border-b border-gray-200">
+         <h2 className="text-xl font-semibold text-gray-900">Dettagli Riparazione</h2>
+         <button
+           onClick={() => {
+             setShowDetailsModal(false);
+             setSelectedRepair(null);
+           }}
+           className="text-gray-400 hover:text-gray-600 transition-colors"
+         >
+           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+           </svg>
+         </button>
+       </div>
+       
+       <div className="p-6">
+         <div className="space-y-4">
+           <div>
+             <label className="block text-sm font-medium text-gray-700">Oggetto</label>
+             <p className="text-lg font-semibold text-gray-900">{selectedRepair.articolo_nome}</p>
+           </div>
+           
+           <div>
+             <label className="block text-sm font-medium text-gray-700">Stato</label>
+             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+               selectedRepair.stato === 'in_corso' ? 'bg-yellow-100 text-yellow-800' :
+               selectedRepair.stato === 'completata' ? 'bg-green-100 text-green-800' :
+               'bg-gray-100 text-gray-800'
+             }`}>
+               {selectedRepair.stato === 'in_corso' ? 'In Corso' :
+                selectedRepair.stato === 'completata' ? 'Completata' :
+                selectedRepair.stato}
+             </span>
+           </div>
+           
+           <div>
+             <label className="block text-sm font-medium text-gray-700">Data Creazione</label>
+             <p className="text-gray-900">{new Date(selectedRepair.created_at).toLocaleDateString('it-IT')}</p>
+           </div>
+           
+           {selectedRepair.note && (
+             <div>
+               <label className="block text-sm font-medium text-gray-700">Descrizione</label>
+               <p className="text-gray-600 whitespace-pre-wrap">{selectedRepair.note}</p>
+             </div>
+           )}
+           
+           <div className="flex justify-end space-x-3 pt-4">
+             <button
+               onClick={() => {
+                 setShowDetailsModal(false);
+                 setSelectedRepair(null);
+                 setEditingRepair(selectedRepair);
+                 setShowAddModal(true);
+               }}
+               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+             >
+               Modifica
+             </button>
+           </div>
+         </div>
+       </div>
+     </div>
+   </div>
  )}
  </div>
  );
