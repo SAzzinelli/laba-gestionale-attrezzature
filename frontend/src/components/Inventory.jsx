@@ -23,9 +23,12 @@ const Inventory = () => {
  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
  const [savedFilters, setSavedFilters] = useState([]);
  const [currentFilters, setCurrentFilters] = useState({});
- const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [newCategory, setNewCategory] = useState({ nome: '' });
- const [expandedItems, setExpandedItems] = useState(new Set());
+  const [expandedItems, setExpandedItems] = useState(new Set());
+  const [showDeleteCategoryModal, setShowDeleteCategoryModal] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [itemsUsingCategory, setItemsUsingCategory] = useState([]);
  const [selectedCourse, setSelectedCourse] = useState('');
  const [viewMode, setViewMode] = useState('list'); // only list view
  const [showUnitDetailModal, setShowUnitDetailModal] = useState(false);
@@ -331,28 +334,28 @@ const Inventory = () => {
   };
 
   // Handle delete category
-  const handleDeleteCategory = async (categoryId) => {
+  const handleDeleteCategory = (categoryId) => {
     // Trova la categoria da eliminare
-    const categoryToDelete = categories.find(cat => cat.id === categoryId);
-    if (!categoryToDelete) return;
+    const category = categories.find(cat => cat.id === categoryId);
+    if (!category) return;
 
     // Controlla se la categoria è in uso
-    const itemsUsingCategory = inventory.filter(item => 
+    const itemsUsing = inventory.filter(item => 
       item.categoria_id === categoryId || 
-      item.categoria_nome === categoryToDelete.nome
+      item.categoria_nome === category.nome
     );
 
-    if (itemsUsingCategory.length > 0) {
-      const itemNames = itemsUsingCategory.map(item => item.nome).join(', ');
-      const confirmMessage = `ATTENZIONE: La categoria "${categoryToDelete.nome}" è attualmente in uso da ${itemsUsingCategory.length} oggetto/i:\n\n${itemNames}\n\nSe procedi con l'eliminazione:\n• La categoria verrà rimossa\n• Gli oggetti perderanno la categoria e verrà assegnato "VUOTO"\n\nVuoi comunque eliminare la categoria?`;
-      
-      if (!window.confirm(confirmMessage)) return;
-    } else {
-      if (!window.confirm(`Sei sicuro di voler eliminare la categoria "${categoryToDelete.nome}"?`)) return;
-    }
+    setCategoryToDelete(category);
+    setItemsUsingCategory(itemsUsing);
+    setShowDeleteCategoryModal(true);
+  };
+
+  // Confirm delete category
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici/${categoryId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici/${categoryToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -363,6 +366,11 @@ const Inventory = () => {
 
       await fetchCategories();
       await fetchInventory(); // Ricarica l'inventario per aggiornare le categorie
+      
+      // Chiudi il modal
+      setShowDeleteCategoryModal(false);
+      setCategoryToDelete(null);
+      setItemsUsingCategory([]);
     } catch (err) {
       setError(err.message);
     }
@@ -947,6 +955,121 @@ const Inventory = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Category Confirmation Modal */}
+        {showDeleteCategoryModal && categoryToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Elimina Categoria</h3>
+                    <p className="text-sm text-gray-600">Questa azione non può essere annullata</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDeleteCategoryModal(false);
+                    setCategoryToDelete(null);
+                    setItemsUsingCategory([]);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="p-6">
+                {itemsUsingCategory.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <h4 className="text-sm font-medium text-amber-800">Attenzione</h4>
+                          <p className="text-sm text-amber-700 mt-1">
+                            La categoria "<span className="font-semibold">{categoryToDelete.nome}</span>" è attualmente in uso da {itemsUsingCategory.length} oggetto/i.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 mb-2">Oggetti che usano questa categoria:</p>
+                      <div className="bg-gray-50 rounded-lg p-3 max-h-32 overflow-y-auto">
+                        <ul className="text-sm text-gray-700 space-y-1">
+                          {itemsUsingCategory.map((item, index) => (
+                            <li key={index} className="flex items-center">
+                              <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                              {item.nome}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <h4 className="text-sm font-medium text-blue-800">Cosa succederà</h4>
+                          <ul className="text-sm text-blue-700 mt-1 space-y-1">
+                            <li>• La categoria verrà rimossa definitivamente</li>
+                            <li>• Gli oggetti saranno spostati nella categoria "nessuna categoria"</li>
+                            <li>• Potrai riassegnare una categoria agli oggetti in seguito</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-gray-700">
+                      Sei sicuro di voler eliminare la categoria "<span className="font-semibold">{categoryToDelete.nome}</span>"?
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Questa categoria non è attualmente in uso e può essere eliminata senza problemi.
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                <button
+                  onClick={() => {
+                    setShowDeleteCategoryModal(false);
+                    setCategoryToDelete(null);
+                    setItemsUsingCategory([]);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Annulla
+                </button>
+                <button
+                  onClick={confirmDeleteCategory}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
+                >
+                  {itemsUsingCategory.length > 0 ? 'Elimina e Sposta Oggetti' : 'Elimina Categoria'}
+                </button>
               </div>
             </div>
           </div>
