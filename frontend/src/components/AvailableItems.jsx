@@ -35,18 +35,14 @@ const AvailableItems = () => {
   // Fetch categories - filter by user's course
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (response.ok) {
         const data = await response.json();
-        // Filter categories by user's course
-        const userCourse = user?.corso_accademico;
-        const filteredCategories = userCourse
-          ? data.filter(cat => cat.madre && cat.madre.toLowerCase().includes(userCourse.toLowerCase()))
-          : [];
-        setCategories(filteredCategories);
+        // Show all categories for now - can add course filtering later if needed
+        setCategories(data);
       }
     } catch (err) {
       console.error('Errore caricamento categorie:', err);
