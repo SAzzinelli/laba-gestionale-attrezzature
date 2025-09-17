@@ -20,10 +20,13 @@ r.get('/', requireAuth, async (req, res) => {
     if (wantAll) {
       if (!isAdminUser(req.user)) return res.status(403).json({ error: 'Solo admin' });
       result = await query(`
-        SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione, 
-               p.chi AS utente_nome
+        SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
+               u.name AS utente_nome, u.surname AS utente_cognome, u.email AS utente_email,
+               r.dal, r.al, r.note AS richiesta_note
         FROM prestiti p
         LEFT JOIN inventario i ON i.id = p.inventario_id
+        LEFT JOIN users u ON (p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
+        LEFT JOIN richieste r ON r.id = p.richiesta_id
         ORDER BY p.id DESC
       `);
     } else {
@@ -164,21 +167,40 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(404).json({ error: 'Richiesta non trovata' });
     }
     
-    // Get request details
-    const request = await query('SELECT * FROM richieste WHERE id = $1', [id]);
+    // Get request details with user info
+    const request = await query(`
+      SELECT r.*, u.name, u.surname, u.email 
+      FROM richieste r 
+      LEFT JOIN users u ON r.utente_id = u.id 
+      WHERE r.id = $1
+    `, [id]);
     
     if (request.length === 0) {
       return res.status(404).json({ error: 'Richiesta non trovata' });
     }
     
     const requestData = request[0];
+    const userFullName = `${requestData.name} ${requestData.surname}`.trim() || requestData.email;
     
     // Create loan record
     const loanResult = await query(`
-      INSERT INTO prestiti (inventario_id, chi, data_uscita, data_rientro, note)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO prestiti (inventario_id, chi, data_uscita, data_rientro, note, richiesta_id)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id
-    `, [requestData.inventario_id, `User ${requestData.utente_id}`, requestData.dal, requestData.al, requestData.note]);
+    `, [requestData.inventario_id, userFullName, requestData.dal, requestData.al, requestData.note, id]);
+    
+    // Update inventory units status to 'prestato' based on the requested quantity
+    await query(`
+      UPDATE inventario_unita 
+      SET stato = 'prestato' 
+      WHERE inventario_id = $1 
+      AND stato = 'disponibile' 
+      AND id IN (
+        SELECT id FROM inventario_unita 
+        WHERE inventario_id = $1 AND stato = 'disponibile' 
+        LIMIT $2
+      )
+    `, [requestData.inventario_id, requestData.quantita || 1]);
     
     res.json({ 
       message: 'Richiesta approvata e prestito creato',
@@ -223,6 +245,13 @@ r.put('/:id/restituisci', requireAuth, requireRole('admin'), async (req, res) =>
   try {
     const id = Number(req.params.id);
     
+    // Get loan details first
+    const loanDetails = await query('SELECT inventario_id FROM prestiti WHERE id = $1', [id]);
+    
+    if (loanDetails.length === 0) {
+      return res.status(404).json({ error: 'Prestito non trovato' });
+    }
+    
     // Update loan status to returned
     const result = await query(`
       UPDATE prestiti 
@@ -234,10 +263,45 @@ r.put('/:id/restituisci', requireAuth, requireRole('admin'), async (req, res) =>
       return res.status(404).json({ error: 'Prestito non trovato' });
     }
     
+    // Set inventory units back to available
+    await query(`
+      UPDATE inventario_unita 
+      SET stato = 'disponibile' 
+      WHERE inventario_id = $1 AND stato = 'prestato'
+    `, [loanDetails[0].inventario_id]);
+    
     res.json({ message: 'Prestito terminato con successo' });
   } catch (error) {
     console.error('Errore PUT restituisci prestito:', error);
     res.status(400).json({ error: error.message || 'Errore nella restituzione' });
+  }
+});
+
+// GET /api/prestiti/unit/:unitId (get loan details for specific unit) — admin only
+r.get('/unit/:unitId', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const { unitId } = req.params;
+    
+    // Get loan details for the specific unit
+    const result = await query(`
+      SELECT p.*, u.name AS utente_nome, u.surname AS utente_cognome, u.email AS utente_email,
+             i.nome AS articolo_nome, iu.codice_univoco
+      FROM prestiti p
+      LEFT JOIN users u ON (p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
+      LEFT JOIN inventario i ON p.inventario_id = i.id
+      LEFT JOIN inventario_unita iu ON iu.inventario_id = p.inventario_id
+      WHERE iu.id = $1 AND iu.stato = 'prestato' AND p.stato = 'attivo'
+      LIMIT 1
+    `, [unitId]);
+    
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Prestito non trovato per questa unità' });
+    }
+    
+    res.json(result[0]);
+  } catch (error) {
+    console.error('Errore GET unit loan details:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
   }
 });
 

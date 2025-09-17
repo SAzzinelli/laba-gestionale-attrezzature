@@ -28,6 +28,9 @@ const Inventory = () => {
  const [expandedItems, setExpandedItems] = useState(new Set());
  const [selectedCourse, setSelectedCourse] = useState('');
  const [viewMode, setViewMode] = useState('list'); // only list view
+ const [showUnitDetailModal, setShowUnitDetailModal] = useState(false);
+ const [selectedUnit, setSelectedUnit] = useState(null);
+ const [unitLoanDetails, setUnitLoanDetails] = useState(null);
  const [loans, setLoans] = useState([]);
   const [itemUnits, setItemUnits] = useState({}); // Cache per le unità degli oggetti
  
@@ -42,6 +45,26 @@ const Inventory = () => {
  });
  
  const { isAdmin, token } = useAuth();
+
+ // Handle unit click to show loan details
+ const handleUnitClick = async (unit) => {
+   if (unit.stato !== 'prestato') return; // Only show details for loaned units
+   
+   try {
+     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/unit/${unit.id}`, {
+       headers: { 'Authorization': `Bearer ${token}` }
+     });
+     
+     if (response.ok) {
+       const loanDetails = await response.json();
+       setSelectedUnit(unit);
+       setUnitLoanDetails(loanDetails);
+       setShowUnitDetailModal(true);
+     }
+   } catch (error) {
+     console.error('Error fetching unit loan details:', error);
+   }
+ };
 
  // Fetch inventory data
  const fetchInventory = async () => {
@@ -709,10 +732,21 @@ const Inventory = () => {
                       };
 
                       return (
-                        <div key={unit.id} className="bg-white p-3 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow flex-shrink-0 min-w-[120px]">
+                        <div 
+                          key={unit.id} 
+                          className={`bg-white p-3 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow flex-shrink-0 min-w-[120px] ${
+                            unit.stato === 'prestato' ? 'cursor-pointer hover:border-blue-500' : ''
+                          }`}
+                          onClick={() => handleUnitClick(unit)}
+                        >
                           <div className="text-center">
                             <div className="text-xs font-medium text-gray-900 mb-2 truncate" title={unit.codice_univoco || unit.id}>
                               {unit.codice_univoco || unit.id}
+                              {unit.stato === 'prestato' && (
+                                <svg className="w-3 h-3 inline-block ml-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              )}
                             </div>
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusPillColor(unit.stato)}`}>
                               {getStatusText(unit.stato)}
@@ -844,6 +878,75 @@ const Inventory = () => {
           categories={categories}
           courses={courses}
         />
+
+        {/* Unit Loan Details Modal */}
+        {showUnitDetailModal && selectedUnit && unitLoanDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-900">Dettagli Prestito</h2>
+                <button
+                  onClick={() => {
+                    setShowUnitDetailModal(false);
+                    setSelectedUnit(null);
+                    setUnitLoanDetails(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Unità</label>
+                    <p className="text-lg font-semibold text-gray-900">{selectedUnit.codice_univoco}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Chi ha preso</label>
+                    <p className="text-gray-900">{unitLoanDetails.chi}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <p className="text-gray-600">{unitLoanDetails.utente_email}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Data Uscita</label>
+                      <p className="text-gray-900">{new Date(unitLoanDetails.data_uscita).toLocaleDateString('it-IT')}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Data Rientro</label>
+                      <p className="text-gray-900">{new Date(unitLoanDetails.data_rientro).toLocaleDateString('it-IT')}</p>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Stato</label>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      unitLoanDetails.stato === 'attivo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {unitLoanDetails.stato === 'attivo' ? 'Attivo' : 'Restituito'}
+                    </span>
+                  </div>
+                  
+                  {unitLoanDetails.note && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Note</label>
+                      <p className="text-gray-600">{unitLoanDetails.note}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
  </div>
  );

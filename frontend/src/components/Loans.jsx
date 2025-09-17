@@ -662,7 +662,7 @@ const getStatusBadge = (status) => {
  <div>
  <label className="form-label">Oggetto</label>
  <div className="flex items-center gap-2">
- <p className="text-primary font-medium">{selectedLoan.oggetto_nome}</p>
+                <p className="text-primary font-medium">{selectedLoan.articolo_nome || selectedLoan.oggetto_nome}</p>
  {selectedLoan.oggetto_id && (
  <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full">
  ID: {selectedLoan.oggetto_id}
