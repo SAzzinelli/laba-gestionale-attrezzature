@@ -28,17 +28,17 @@ r.get('/', requireAuth, async (req, res) => {
 // POST /api/segnalazioni
 r.post('/', requireAuth, async (req, res) => {
   try {
-    const { prestito_id, inventario_id, tipo, messaggio } = req.body || {};
+    const { prestito_id, inventario_id, unit_id, tipo, urgenza = 'media', messaggio } = req.body || {};
     
-    if (!tipo) {
-      return res.status(400).json({ error: 'Tipo segnalazione richiesto' });
+    if (!tipo || !messaggio) {
+      return res.status(400).json({ error: 'Tipo e messaggio richiesti' });
     }
     
     const result = await query(`
-      INSERT INTO segnalazioni (user_id, prestito_id, inventario_id, tipo, messaggio)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO segnalazioni (user_id, prestito_id, inventario_id, unit_id, tipo, urgenza, messaggio)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
-    `, [req.user.id, prestito_id || null, inventario_id || null, tipo, messaggio || null]);
+    `, [req.user.id, prestito_id || null, inventario_id || null, unit_id || null, tipo, urgenza, messaggio]);
     
     res.status(201).json(result[0]);
   } catch (error) {

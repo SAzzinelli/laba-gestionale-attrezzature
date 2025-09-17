@@ -17,6 +17,8 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showQuickRequestModal, setShowQuickRequestModal] = useState(false);
+  const [showRequestDetailModal, setShowRequestDetailModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
   const { token, user } = useAuth();
 
   // Fetch data
@@ -90,6 +92,11 @@ const UserDashboard = () => {
     } catch (error) {
       return 'Data non valida';
     }
+  };
+
+  const handleRequestClick = (request) => {
+    setSelectedRequest(request);
+    setShowRequestDetailModal(true);
   };
 
   if (loading) {
@@ -179,7 +186,11 @@ const UserDashboard = () => {
             </h3>
             <div className="space-y-3">
               {recentData.recentRequests.map((request, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div 
+                  key={index} 
+                  onClick={() => handleRequestClick(request)}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-blue-50 hover:shadow-md cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+                >
                   <div>
                     <p className="font-medium text-gray-900">{request.oggetto_nome || request.articolo_nome || 'Oggetto'}</p>
                     <p className="text-sm text-gray-600">

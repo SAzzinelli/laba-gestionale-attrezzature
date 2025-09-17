@@ -125,7 +125,9 @@ export async function initDatabase() {
         user_id INTEGER NOT NULL,
         prestito_id INTEGER,
         inventario_id INTEGER,
+        unit_id INTEGER,
         tipo VARCHAR(100) NOT NULL,
+        urgenza VARCHAR(50) DEFAULT 'media',
         messaggio TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         handled_by INTEGER,
@@ -133,8 +135,13 @@ export async function initDatabase() {
         stato VARCHAR(50) DEFAULT 'aperta',
         FOREIGN KEY(user_id) REFERENCES users(id),
         FOREIGN KEY(prestito_id) REFERENCES prestiti(id),
-        FOREIGN KEY(inventario_id) REFERENCES inventario(id)
+        FOREIGN KEY(inventario_id) REFERENCES inventario(id),
+        FOREIGN KEY(unit_id) REFERENCES inventario_unita(id)
       );
+
+      -- Aggiungi colonne se non esistono (per database esistenti)
+      ALTER TABLE segnalazioni ADD COLUMN IF NOT EXISTS unit_id INTEGER;
+      ALTER TABLE segnalazioni ADD COLUMN IF NOT EXISTS urgenza VARCHAR(50) DEFAULT 'media';
       CREATE INDEX IF NOT EXISTS idx_segn_user ON segnalazioni (user_id);
       CREATE INDEX IF NOT EXISTS idx_segn_tipo ON segnalazioni (tipo);
       CREATE INDEX IF NOT EXISTS idx_segn_state ON segnalazioni (stato);
