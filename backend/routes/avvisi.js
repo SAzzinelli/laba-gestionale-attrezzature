@@ -31,7 +31,8 @@ r.get('/', requireAuth, async (req, res) => {
         (CURRENT_DATE - p.data_rientro) as giorni_ritardo
       FROM prestiti p
       JOIN inventario i ON p.inventario_id = i.id
-      WHERE p.data_rientro IS NOT NULL
+      WHERE p.stato = 'attivo'
+      AND p.data_rientro IS NOT NULL
       AND p.data_rientro < CURRENT_DATE
       ORDER BY giorni_ritardo DESC
     `);
@@ -44,7 +45,8 @@ r.get('/', requireAuth, async (req, res) => {
         p.chi as utente_nome
       FROM prestiti p
       JOIN inventario i ON p.inventario_id = i.id
-      WHERE p.data_rientro IS NOT NULL
+      WHERE p.stato = 'attivo'
+      AND p.data_rientro IS NOT NULL
       AND p.data_rientro = CURRENT_DATE
       ORDER BY p.data_rientro
     `);
@@ -57,7 +59,8 @@ r.get('/', requireAuth, async (req, res) => {
         p.chi as utente_nome
       FROM prestiti p
       JOIN inventario i ON p.inventario_id = i.id
-      WHERE p.data_rientro IS NOT NULL
+      WHERE p.stato = 'attivo'
+      AND p.data_rientro IS NOT NULL
       AND p.data_rientro = CURRENT_DATE + INTERVAL '1 day'
       ORDER BY p.data_rientro
     `);
