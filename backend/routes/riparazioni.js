@@ -79,8 +79,8 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       RETURNING *
     `, [stato, id]);
     
-    // If repair is completed, mark units as available again
-    if (stato === 'completata') {
+    // If repair is completed or cancelled, mark units as available again
+    if (stato === 'completata' || stato === 'annullata') {
       try {
         const unitIds = JSON.parse(currentRepair[0].unit_ids_json || '[]');
         if (unitIds.length > 0) {
@@ -90,7 +90,8 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
             WHERE id = ANY($1::int[])
           `, [unitIds]);
           
-          console.log(`✅ Unità ${unitIds.join(', ')} rimesse disponibili dopo completamento riparazione`);
+          const action = stato === 'completata' ? 'completamento' : 'annullamento';
+          console.log(`✅ Unità ${unitIds.join(', ')} rimesse disponibili dopo ${action} riparazione`);
         }
       } catch (jsonError) {
         console.warn('⚠️ Errore parsing unit_ids_json:', jsonError.message);

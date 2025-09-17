@@ -8,7 +8,7 @@ const Repairs = () => {
  const [error, setError] = useState(null);
  const [showAddModal, setShowAddModal] = useState(false);
  const [editingRepair, setEditingRepair] = useState(null);
- const [statusFilter, setStatusFilter] = useState('all');
+ const [activeTab, setActiveTab] = useState('in_corso');
  const [searchTerm, setSearchTerm] = useState('');
  const [step, setStep] = useState(1); // 1: Oggetto, 2: ID Specifico, 3: Dettagli
  const [selectedObject, setSelectedObject] = useState(null);
@@ -83,35 +83,57 @@ const Repairs = () => {
    }
  };
 
- // Handle repair completion
- const handleCompleteRepair = async (repairId) => {
-   try {
-     // Get current repair data
-     const repair = repairs.find(r => r.id === repairId);
-     if (!repair) {
-       throw new Error('Riparazione non trovata');
-     }
+// Handle repair completion
+const handleCompleteRepair = async (repairId) => {
+  try {
+    // Get current repair data
+    const repair = repairs.find(r => r.id === repairId);
+    if (!repair) {
+      throw new Error('Riparazione non trovata');
+    }
 
-     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/riparazioni/${repairId}`, {
-       method: 'PUT',
-       headers: {
-         'Content-Type': 'application/json',
-         'Authorization': `Bearer ${token}`
-       },
-       body: JSON.stringify({ 
-         stato: 'completata'
-       })
-     });
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/riparazioni/${repairId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ 
+        stato: 'completata'
+      })
+    });
 
-     if (!response.ok) {
-       throw new Error('Errore nel completamento riparazione');
-     }
+    if (!response.ok) {
+      throw new Error('Errore nel completamento riparazione');
+    }
 
-     await fetchData(); // Refresh the list
-   } catch (err) {
-     setError(err.message);
-   }
- };
+    await fetchData(); // Refresh the list
+    setShowDetailsModal(false);
+  } catch (err) {
+    setError(err.message);
+  }
+};
+
+// Handle repair cancellation
+const handleCancelRepair = async (repairId) => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/riparazioni/${repairId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ stato: 'annullata' })
+    });
+
+    if (!response.ok) throw new Error('Errore nell\'annullamento riparazione');
+
+    await fetchData();
+    setShowDetailsModal(false);
+  } catch (error) {
+    setError(error.message);
+  }
+};
 
  // Handle form submission
  const handleSubmit = async (e) => {
@@ -190,13 +212,37 @@ const Repairs = () => {
  fetchData();
  }, []);
 
- // Filter repairs
- const filteredRepairs = repairs.filter(repair => {
- const matchesSearch = repair.articolo_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
- repair.note?.toLowerCase().includes(searchTerm.toLowerCase());
- const matchesStatus = statusFilter === 'all' || repair.stato === statusFilter;
- return matchesSearch && matchesStatus;
- });
+ // Filter repairs based on active tab
+ const getFilteredRepairs = () => {
+ let filtered = repairs;
+ 
+ // Filter by tab
+ switch (activeTab) {
+ case 'in_corso':
+ filtered = repairs.filter(r => r.stato === 'in_corso');
+ break;
+ case 'completate':
+ filtered = repairs.filter(r => r.stato === 'completata');
+ break;
+ case 'annullate':
+ filtered = repairs.filter(r => r.stato === 'annullata');
+ break;
+ default:
+ filtered = repairs;
+ }
+ 
+ // Apply search filter
+ if (searchTerm) {
+ filtered = filtered.filter(repair => 
+ repair.articolo_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+ repair.note?.toLowerCase().includes(searchTerm.toLowerCase())
+ );
+ }
+ 
+ return filtered;
+ };
+ 
+ const filteredRepairs = getFilteredRepairs();
 
  // Get status badge
  const getStatusBadge = (status) => {
@@ -293,22 +339,48 @@ const Repairs = () => {
  </svg>
  </div>
  </div>
- <div className="flex gap-2 items-center">
- {['all', 'in_corso', 'completata', 'annullata'].map(status => (
+ {/* Tab Navigation */}
+ <nav className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
  <button
- key={status}
- onClick={() => setStatusFilter(status)}
- className={`btn-small ${
- statusFilter === status ? 'btn-primary' : 'btn-secondary'
- }`}
+ onClick={() => setActiveTab('in_corso')}
+ className={`tab-button ${activeTab === 'in_corso' ? 'active' : ''}`}
  >
- {status === 'all' ? 'Tutte' :
- status === 'in_corso' ? 'In Corso' :
- status === 'completata' ? 'Completate' :
- 'Annullate'}
+ <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+ </svg>
+ <span>In Corso</span>
+ <span className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs px-3 py-1 rounded-full ml-2 font-semibold shadow-sm">
+ {repairs.filter(r => r.stato === 'in_corso').length}
+ </span>
  </button>
- ))}
- </div>
+ 
+ <button
+ onClick={() => setActiveTab('completate')}
+ className={`tab-button ${activeTab === 'completate' ? 'active' : ''}`}
+ >
+ <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+ </svg>
+ <span>Completate</span>
+ <span className="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs px-3 py-1 rounded-full ml-2 font-semibold shadow-sm">
+ {repairs.filter(r => r.stato === 'completata').length}
+ </span>
+ </button>
+ 
+ <button
+ onClick={() => setActiveTab('annullate')}
+ className={`tab-button ${activeTab === 'annullate' ? 'active' : ''}`}
+ >
+ <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+ </svg>
+ <span>Annullate</span>
+ <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1 rounded-full ml-2 font-semibold shadow-sm">
+ {repairs.filter(r => r.stato === 'annullata').length}
+ </span>
+ </button>
+ </nav>
  </div>
  </div>
 
@@ -322,9 +394,13 @@ const Repairs = () => {
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
  </svg>
  <p className="text-secondary">
- {searchTerm || statusFilter !== 'all' 
+ {searchTerm 
  ? 'Nessuna riparazione trovata con i filtri selezionati' 
- : 'Nessuna riparazione in corso'
+ : `Nessuna riparazione ${
+ activeTab === 'in_corso' ? 'in corso' :
+ activeTab === 'completate' ? 'completata' :
+ activeTab === 'annullate' ? 'annullata' : ''
+ }`
  }
  </p>
  </div>
@@ -706,6 +782,30 @@ const Repairs = () => {
            
          </div>
        </div>
+       
+       {/* Action Buttons */}
+       {selectedRepair.stato === 'in_corso' && (
+         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+           <button
+             onClick={() => handleCancelRepair(selectedRepair.id)}
+             className="btn-secondary"
+           >
+             <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+             </svg>
+             Annulla
+           </button>
+           <button
+             onClick={() => handleCompleteRepair(selectedRepair.id)}
+             className="btn-success"
+           >
+             <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+             </svg>
+             Completa
+           </button>
+         </div>
+       )}
      </div>
    </div>
  )}
