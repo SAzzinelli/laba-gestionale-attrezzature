@@ -10,9 +10,10 @@ const Repairs = () => {
  const [editingRepair, setEditingRepair] = useState(null);
  const [statusFilter, setStatusFilter] = useState('all');
  const [searchTerm, setSearchTerm] = useState('');
+ const [step, setStep] = useState(1); // 1: Oggetto, 2: ID Specifico, 3: Dettagli
+ const [selectedObject, setSelectedObject] = useState(null);
+ const [selectedUnit, setSelectedUnit] = useState(null);
  const [formData, setFormData] = useState({
- oggetto_id: '',
- unit_id: '',
  descrizione: '',
  note_tecniche: '',
  priorita: 'media',
@@ -20,6 +21,44 @@ const Repairs = () => {
  });
  const [availableUnits, setAvailableUnits] = useState([]);
  const { token } = useAuth();
+
+ // Handle object selection
+ const handleObjectSelect = (object) => {
+   setSelectedObject(object);
+   fetchAvailableUnits(object.id);
+   setStep(2);
+ };
+
+ // Handle unit selection
+ const handleUnitSelect = (unit) => {
+   setSelectedUnit(unit);
+   setStep(3);
+ };
+
+ // Get step title
+ const getStepTitle = () => {
+   switch (step) {
+     case 1: return 'Seleziona Oggetto';
+     case 2: return 'Seleziona ID Specifico';
+     case 3: return 'Dettagli Riparazione';
+     default: return 'Nuova Riparazione';
+   }
+ };
+
+ // Reset modal when opening
+ const resetModal = () => {
+   setStep(1);
+   setSelectedObject(null);
+   setSelectedUnit(null);
+   setFormData({
+     descrizione: '',
+     note_tecniche: '',
+     priorita: 'media',
+     stato: 'in_corso'
+   });
+   setAvailableUnits([]);
+   setError(null);
+ };
 
  // Fetch available units for selected object
  const fetchAvailableUnits = async (objectId) => {
@@ -45,39 +84,41 @@ const Repairs = () => {
  // Handle form submission
  const handleSubmit = async (e) => {
  e.preventDefault();
+ 
+ if (!selectedObject || !selectedUnit) {
+   setError('Seleziona oggetto e ID specifico');
+   return;
+ }
+ 
  try {
  const url = editingRepair ? `/api/riparazioni/${editingRepair.id}` : '/api/riparazioni';
  const method = editingRepair ? 'PUT' : 'POST';
- 
- const response = await fetch(url, {
+
+ const submitData = {
+   inventario_id: selectedObject.id,
+   unit_id: selectedUnit.id,
+   descrizione: formData.descrizione,
+   note_tecniche: formData.note_tecniche,
+   priorita: formData.priorita,
+   stato: formData.stato
+ };
+
+ const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}${url}`, {
  method,
  headers: {
  'Content-Type': 'application/json',
  'Authorization': `Bearer ${token}`
  },
- body: JSON.stringify({
-   ...formData,
-   inventario_id: formData.oggetto_id,
-   unit_id: formData.unit_id
- })
+ body: JSON.stringify(submitData)
  });
 
  if (!response.ok) {
  throw new Error('Errore nel salvataggio');
  }
 
+ await fetchData();
  setShowAddModal(false);
- setEditingRepair(null);
- setFormData({
- oggetto_id: '',
- unit_id: '',
- descrizione: '',
- note_tecniche: '',
- priorita: 'media',
- stato: 'in_corso'
- });
- setAvailableUnits([]);
- fetchData();
+ resetModal();
  } catch (err) {
  setError(err.message);
  }
@@ -187,7 +228,10 @@ const Repairs = () => {
  </div>
  <div className="flex items-center">
  <button
- onClick={() => setShowAddModal(true)}
+ onClick={() => {
+   setShowAddModal(true);
+   resetModal();
+ }}
  className="btn-primary"
  >
  <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -345,11 +389,15 @@ const Repairs = () => {
  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
  <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
  <div className="flex items-center justify-between p-6 border-b border-gray-200">
- <h2 className="text-xl font-semibold text-gray-900">
- {editingRepair ? 'Modifica Riparazione' : 'Nuova Riparazione'}
- </h2>
+ <div>
+   <h2 className="text-xl font-semibold text-gray-900">{getStepTitle()}</h2>
+   <p className="text-sm text-gray-600 mt-1">Step {step} di 3</p>
+ </div>
  <button
- onClick={() => setShowAddModal(false)}
+ onClick={() => {
+   setShowAddModal(false);
+   resetModal();
+ }}
  className="text-gray-400 hover:text-gray-600 transition-colors"
  >
  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -359,156 +407,200 @@ const Repairs = () => {
  </div>
 
  <div className="p-6">
- <form onSubmit={handleSubmit} className="space-y-6">
- <div>
- <label className="block text-sm font-medium text-gray-700 mb-2">
- Oggetto *
- </label>
- <select
- value={formData.oggetto_id}
- onChange={(e) => {
-   const objectId = e.target.value;
-   setFormData({...formData, oggetto_id: objectId, unit_id: ''});
-   fetchAvailableUnits(objectId);
- }}
- className="select-field"
- required
- >
- <option value="">Seleziona oggetto</option>
- {inventory.map(item => (
- <option key={item.id} value={item.id}>
- {item.nome} - {item.scaffale}
- </option>
- ))}
- </select>
- </div>
+          {/* Step 1: Seleziona Oggetto */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Seleziona l'oggetto da riparare</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {inventory.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleObjectSelect(item)}
+                    className="p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md cursor-pointer transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-gray-900">{item.nome}</h4>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        item.stato_effettivo === 'disponibile' ? 'bg-green-100 text-green-800' :
+                        item.stato_effettivo === 'non_disponibile' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {item.stato_effettivo === 'disponibile' ? 'Disponibile' :
+                         item.stato_effettivo === 'non_disponibile' ? 'Non Disponibile' :
+                         item.stato_effettivo}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <p>Scaffale: {item.posizione || item.scaffale || 'N/A'}</p>
+                      <p>Categoria: {item.categoria_nome}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
- {/* Unit ID Selection */}
- {formData.oggetto_id && (
-   <div>
-     <label className="block text-sm font-medium text-gray-700 mb-2">
-       ID Univoco *
-     </label>
-     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-       {availableUnits.map(unit => (
-         <div
-           key={unit.id}
-           onClick={() => setFormData({...formData, unit_id: unit.id})}
-           className={`p-3 border rounded-lg cursor-pointer transition-all ${
-             formData.unit_id === unit.id
-               ? 'border-blue-500 bg-blue-50'
-               : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-           }`}
-         >
-           <div className="text-center">
-             <div className="font-medium text-gray-900 mb-1">{unit.codice_univoco}</div>
-             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-               unit.stato === 'disponibile' ? 'bg-green-100 text-green-800' :
-               unit.stato === 'prestato' ? 'bg-blue-100 text-blue-800' :
-               unit.stato === 'riservato' ? 'bg-yellow-100 text-yellow-800' :
-               unit.stato === 'in_riparazione' ? 'bg-orange-100 text-orange-800' :
-               'bg-gray-100 text-gray-800'
-             }`}>
-               {unit.stato === 'disponibile' ? 'Disponibile' :
-                unit.stato === 'prestato' ? 'In Prestito' :
-                unit.stato === 'riservato' ? 'Riservato' :
-                unit.stato === 'in_riparazione' ? 'In Riparazione' :
-                unit.stato}
-             </span>
-           </div>
-         </div>
-       ))}
-     </div>
-     {availableUnits.length === 0 && (
-       <p className="text-gray-500 text-sm">Nessuna unità disponibile per questo oggetto</p>
-     )}
-   </div>
- )}
+          {/* Step 2: Seleziona ID Specifico */}
+          {step === 2 && selectedObject && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Seleziona ID Specifico</h3>
+                  <p className="text-sm text-gray-600">Oggetto: <strong>{selectedObject.nome}</strong></p>
+                </div>
+                <button
+                  onClick={() => setStep(1)}
+                  className="text-blue-600 hover:text-blue-800 text-sm"
+                >
+                  ← Cambia oggetto
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
+                {availableUnits.map((unit) => (
+                  <div
+                    key={unit.id}
+                    onClick={() => handleUnitSelect(unit)}
+                    className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md cursor-pointer transition-all"
+                  >
+                    <div className="text-center">
+                      <div className="font-medium text-gray-900 mb-1">{unit.codice_univoco}</div>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        unit.stato === 'disponibile' ? 'bg-green-100 text-green-800' :
+                        unit.stato === 'prestato' ? 'bg-blue-100 text-blue-800' :
+                        unit.stato === 'riservato' ? 'bg-yellow-100 text-yellow-800' :
+                        unit.stato === 'in_riparazione' ? 'bg-orange-100 text-orange-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {unit.stato === 'disponibile' ? 'Disponibile' :
+                         unit.stato === 'prestato' ? 'In Prestito' :
+                         unit.stato === 'riservato' ? 'Riservato' :
+                         unit.stato === 'in_riparazione' ? 'In Riparazione' :
+                         unit.stato}
+                      </span>
+                      {unit.note && (
+                        <p className="text-xs text-gray-500 mt-1">{unit.note}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {availableUnits.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <p>Nessuna unità trovata per questo oggetto</p>
+                </div>
+              )}
+            </div>
+          )}
 
- <div>
- <label className="block text-sm font-medium text-gray-700 mb-2">
- Descrizione Problema *
- </label>
- <textarea
- value={formData.descrizione}
- onChange={(e) => setFormData({...formData, descrizione: e.target.value})}
- className="input-field"
- rows="3"
- placeholder="Descrivi il problema riscontrato"
- required
- />
- </div>
+          {/* Step 3: Dettagli Riparazione */}
+          {step === 3 && selectedObject && selectedUnit && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Dettagli Riparazione</h3>
+                  <p className="text-sm text-gray-600">
+                    Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="text-blue-600 hover:text-blue-800 text-sm"
+                >
+                  ← Cambia ID
+                </button>
+              </div>
 
- <div>
- <label className="block text-sm font-medium text-gray-700 mb-2">
- Note Tecniche
- </label>
- <textarea
- value={formData.note_tecniche}
- onChange={(e) => setFormData({...formData, note_tecniche: e.target.value})}
- className="input-field"
- rows="2"
- placeholder="Note aggiuntive per il tecnico"
- />
- </div>
+              {/* Descrizione */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Descrizione Problema *
+                </label>
+                <textarea
+                  value={formData.descrizione}
+                  onChange={(e) => setFormData({...formData, descrizione: e.target.value})}
+                  className="input-field"
+                  rows="3"
+                  placeholder="Descrivi il problema riscontrato"
+                  required
+                />
+              </div>
 
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div>
- <label className="block text-sm font-medium text-gray-700 mb-2">
- Priorità
- </label>
- <select
- value={formData.priorita}
- onChange={(e) => setFormData({...formData, priorita: e.target.value})}
- className="select-field"
- >
- <option value="bassa">Bassa</option>
- <option value="media">Media</option>
- <option value="alta">Alta</option>
- <option value="critica">Critica</option>
- </select>
- </div>
+              {/* Note Tecniche */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Note Tecniche
+                </label>
+                <textarea
+                  value={formData.note_tecniche}
+                  onChange={(e) => setFormData({...formData, note_tecniche: e.target.value})}
+                  className="input-field"
+                  rows="2"
+                  placeholder="Note aggiuntive per il tecnico"
+                />
+              </div>
 
- <div>
- <label className="block text-sm font-medium text-gray-700 mb-2">
- Stato
- </label>
- <select
- value={formData.stato}
- onChange={(e) => setFormData({...formData, stato: e.target.value})}
- className="select-field"
- >
- <option value="in_corso">In Corso</option>
- <option value="completata">Completata</option>
- <option value="annullata">Annullata</option>
- </select>
- </div>
- </div>
+              {/* Priorità e Stato */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Priorità
+                  </label>
+                  <select
+                    value={formData.priorita}
+                    onChange={(e) => setFormData({...formData, priorita: e.target.value})}
+                    className="select-field"
+                  >
+                    <option value="bassa">Bassa</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                    <option value="critica">Critica</option>
+                  </select>
+                </div>
 
-           {/* Error Message */}
-           {error && (
-             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-               {error}
-             </div>
-           )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Stato
+                  </label>
+                  <select
+                    value={formData.stato}
+                    onChange={(e) => setFormData({...formData, stato: e.target.value})}
+                    className="select-field"
+                  >
+                    <option value="in_corso">In Corso</option>
+                    <option value="completata">Completata</option>
+                    <option value="annullata">Annullata</option>
+                  </select>
+                </div>
+              </div>
 
-           {/* Actions */}
-           <div className="flex justify-end space-x-3 pt-4">
-             <button
-               type="button"
-               onClick={() => setShowAddModal(false)}
-               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-             >
-               Annulla
-             </button>
-             <button
-               type="submit"
-               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-             >
-               {editingRepair ? 'Aggiorna' : 'Crea Riparazione'}
-             </button>
-           </div>
-         </form>
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {editingRepair ? 'Aggiorna' : 'Crea Riparazione'}
+                </button>
+              </div>
+            </form>
+          )}
  </div>
  </div>
  </div>
