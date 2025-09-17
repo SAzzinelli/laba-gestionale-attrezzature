@@ -58,33 +58,42 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
 r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { quantita, stato, note, unit_ids_json } = req.body || {};
+    const { stato } = req.body || {};
+    
+    if (!stato) {
+      return res.status(400).json({ error: 'Stato richiesto' });
+    }
     
     // Get current repair to check unit IDs
     const currentRepair = await query('SELECT unit_ids_json FROM riparazioni WHERE id = $1', [id]);
     
-    const result = await query(`
-      UPDATE riparazioni 
-      SET quantita = $1, stato = $2, note = $3, unit_ids_json = $4, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $5
-      RETURNING *
-    `, [quantita, stato, note, JSON.stringify(unit_ids_json || []), id]);
-    
-    if (result.length === 0) {
+    if (currentRepair.length === 0) {
       return res.status(404).json({ error: 'Riparazione non trovata' });
     }
     
+    // Update only the status
+    const result = await query(`
+      UPDATE riparazioni 
+      SET stato = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING *
+    `, [stato, id]);
+    
     // If repair is completed, mark units as available again
-    if (stato === 'completata' && currentRepair.length > 0) {
-      const unitIds = JSON.parse(currentRepair[0].unit_ids_json || '[]');
-      if (unitIds.length > 0) {
-        await query(`
-          UPDATE inventario_unita 
-          SET stato = 'disponibile'
-          WHERE id = ANY($1::int[])
-        `, [unitIds]);
-        
-        console.log(`✅ Unità ${unitIds.join(', ')} rimesse disponibili dopo completamento riparazione`);
+    if (stato === 'completata') {
+      try {
+        const unitIds = JSON.parse(currentRepair[0].unit_ids_json || '[]');
+        if (unitIds.length > 0) {
+          await query(`
+            UPDATE inventario_unita 
+            SET stato = 'disponibile'
+            WHERE id = ANY($1::int[])
+          `, [unitIds]);
+          
+          console.log(`✅ Unità ${unitIds.join(', ')} rimesse disponibili dopo completamento riparazione`);
+        }
+      } catch (jsonError) {
+        console.warn('⚠️ Errore parsing unit_ids_json:', jsonError.message);
       }
     }
     

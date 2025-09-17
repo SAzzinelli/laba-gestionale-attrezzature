@@ -99,16 +99,7 @@ const Repairs = () => {
          'Authorization': `Bearer ${token}`
        },
        body: JSON.stringify({ 
-         quantita: repair.quantita || 1,
-         stato: 'completata',
-         note: repair.note,
-         unit_ids_json: (() => {
-           try {
-             return JSON.parse(repair.unit_ids_json || '[]');
-           } catch (e) {
-             return [];
-           }
-         })()
+         stato: 'completata'
        })
      });
 
@@ -356,8 +347,8 @@ const Repairs = () => {
  
  <div className="grid grid-cols-2 gap-4 text-sm">
  <div>
- <span className="text-tertiary">Tipo:</span>
- <span className="text-primary ml-1 font-medium">{repair.tipo}</span>
+ <span className="text-tertiary">Priorità:</span>
+ <span className="text-primary ml-1 font-medium">{repair.priorita || 'Media'}</span>
  </div>
  <div>
  <span className="text-tertiary">Creata:</span>
