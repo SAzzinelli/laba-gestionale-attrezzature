@@ -12,16 +12,22 @@ const ReportFault = () => {
   // Fetch user's reports
   const fetchReports = async () => {
     try {
+      console.log('🔄 Fetching user reports...');
       setLoading(true);
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/segnalazioni/mie`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (!response.ok) throw new Error('Errore nel caricamento segnalazioni');
+      if (!response.ok) {
+        console.error('❌ Failed to fetch reports:', response.status, response.statusText);
+        throw new Error('Errore nel caricamento segnalazioni');
+      }
 
       const data = await response.json();
+      console.log('✅ User reports loaded:', data.length);
       setReports(data);
     } catch (err) {
+      console.error('❌ Error loading reports:', err);
       setError(err.message);
     } finally {
       setLoading(false);

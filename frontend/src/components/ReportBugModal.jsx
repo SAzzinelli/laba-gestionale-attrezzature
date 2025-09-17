@@ -31,10 +31,11 @@ const ReportBugModal = ({ isOpen, onClose, onSuccess, prefillData = {} }) => {
       });
       setError(null);
     }
-  }, [isOpen, prefillData]);
+  }, [isOpen]);
 
   const fetchMyLoans = async () => {
     try {
+      console.log('🔄 Fetching user loans...');
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/mie`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -42,11 +43,14 @@ const ReportBugModal = ({ isOpen, onClose, onSuccess, prefillData = {} }) => {
       });
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ User loans loaded:', data.length);
         // Include both active and completed loans
         setMyLoans(data);
+      } else {
+        console.error('❌ Failed to fetch loans:', response.status, response.statusText);
       }
     } catch (err) {
-      console.error('Errore caricamento prestiti:', err);
+      console.error('❌ Error loading loans:', err);
     }
   };
 
