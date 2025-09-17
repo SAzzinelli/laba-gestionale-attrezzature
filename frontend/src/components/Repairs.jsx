@@ -83,6 +83,39 @@ const Repairs = () => {
    }
  };
 
+ // Handle repair completion
+ const handleCompleteRepair = async (repairId) => {
+   try {
+     // Get current repair data
+     const repair = repairs.find(r => r.id === repairId);
+     if (!repair) {
+       throw new Error('Riparazione non trovata');
+     }
+
+     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/riparazioni/${repairId}`, {
+       method: 'PUT',
+       headers: {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${token}`
+       },
+       body: JSON.stringify({ 
+         quantita: repair.quantita || 1,
+         stato: 'completata',
+         note: repair.note,
+         unit_ids_json: JSON.parse(repair.unit_ids_json || '[]')
+       })
+     });
+
+     if (!response.ok) {
+       throw new Error('Errore nel completamento riparazione');
+     }
+
+     await fetchData(); // Refresh the list
+   } catch (err) {
+     setError(err.message);
+   }
+ };
+
  // Handle form submission
  const handleSubmit = async (e) => {
  e.preventDefault();
@@ -342,25 +375,12 @@ const Repairs = () => {
  <p className="text-sm text-tertiary">{repair.descrizione}</p>
  )}
 
- <div className="flex justify-between items-center">
- <button
- onClick={(e) => {
- e.stopPropagation();
- setSelectedRepair(repair);
- setShowDetailsModal(true);
- }}
- className="btn-secondary btn-small"
- >
- <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
- </svg>
- Modifica
- </button>
+ <div className="flex justify-end items-center">
  {repair.stato === 'in_corso' && (
  <button
  onClick={(e) => {
  e.stopPropagation();
- // Complete repair logic
+ handleCompleteRepair(repair.id);
  }}
  className="btn-success btn-small"
  >
@@ -662,19 +682,6 @@ const Repairs = () => {
              </div>
            )}
            
-           <div className="flex justify-end space-x-3 pt-4">
-             <button
-               onClick={() => {
-                 setShowDetailsModal(false);
-                 setSelectedRepair(null);
-                 setEditingRepair(selectedRepair);
-                 setShowAddModal(true);
-               }}
-               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-             >
-               Modifica
-             </button>
-           </div>
          </div>
        </div>
      </div>
