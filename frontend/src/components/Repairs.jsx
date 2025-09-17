@@ -340,9 +340,9 @@ const handleCancelRepair = async (repairId) => {
  </div>
  </div>
 
- {/* Tab Navigation */}
- <div className="flex justify-center">
- <nav className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+ {/* Tabs for Repairs */}
+ <div className="card p-0 overflow-hidden">
+ <nav className="flex">
  <button
  onClick={() => setActiveTab('in_corso')}
  className={`tab-button ${activeTab === 'in_corso' ? 'active' : ''}`}
