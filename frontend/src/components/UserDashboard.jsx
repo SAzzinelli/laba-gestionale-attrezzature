@@ -80,6 +80,18 @@ const UserDashboard = () => {
     fetchData();
   }, []);
 
+  // Helper function to safely format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Data non specificata';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Data non valida';
+      return date.toLocaleDateString('it-IT');
+    } catch (error) {
+      return 'Data non valida';
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -144,8 +156,8 @@ const UserDashboard = () => {
               {recentData.activeLoans.map((loan, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="font-medium text-gray-900">{loan.nome_oggetto || 'Oggetto'}</p>
-                    <p className="text-sm text-gray-600">Scadenza: {new Date(loan.data_fine).toLocaleDateString('it-IT')}</p>
+                    <p className="font-medium text-gray-900">{loan.articolo_nome || loan.oggetto_nome || 'Oggetto'}</p>
+                    <p className="text-sm text-gray-600">Scadenza: {formatDate(loan.data_rientro || loan.data_fine)}</p>
                   </div>
                   <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
                     Attivo
@@ -169,8 +181,8 @@ const UserDashboard = () => {
               {recentData.recentRequests.map((request, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="font-medium text-gray-900">{request.nome_oggetto || 'Oggetto'}</p>
-                    <p className="text-sm text-gray-600">{new Date(request.data_richiesta).toLocaleDateString('it-IT')}</p>
+                    <p className="font-medium text-gray-900">{request.oggetto_nome || request.articolo_nome || 'Oggetto'}</p>
+                    <p className="text-sm text-gray-600">{formatDate(request.created_at)}</p>
                   </div>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     request.stato === 'approvata' ? 'bg-green-100 text-green-800' :
