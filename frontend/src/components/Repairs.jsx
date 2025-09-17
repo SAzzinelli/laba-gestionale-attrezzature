@@ -160,8 +160,8 @@ const Repairs = () => {
 
  // Filter repairs
  const filteredRepairs = repairs.filter(repair => {
- const matchesSearch = repair.inventario_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
- repair.descrizione?.toLowerCase().includes(searchTerm.toLowerCase());
+ const matchesSearch = repair.articolo_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+ repair.note?.toLowerCase().includes(searchTerm.toLowerCase());
  const matchesStatus = statusFilter === 'all' || repair.stato === statusFilter;
  return matchesSearch && matchesStatus;
  });
