@@ -81,12 +81,19 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(400).json({ error: 'Non è possibile eliminare l\'admin principale' });
     }
     
+    // Prima ottengo l'email dell'utente
+    const userResult = await query('SELECT email FROM users WHERE id = $1', [id]);
+    if (userResult.length === 0) {
+      return res.status(404).json({ error: 'Utente non trovato' });
+    }
+    const userEmail = userResult[0].email;
+
     // Controlla se l'utente ha prestiti attivi
     const activeLoans = await query(`
       SELECT COUNT(*) as count 
       FROM prestiti p 
-      WHERE p.chi LIKE $1 AND p.stato = 'attivo'
-    `, [`%${id}%`]);
+      WHERE (p.chi LIKE $1 OR p.chi = $2) AND p.stato = 'attivo'
+    `, [`%${userEmail}%`, userEmail]);
     
     if (activeLoans[0]?.count > 0) {
       return res.status(400).json({ 
