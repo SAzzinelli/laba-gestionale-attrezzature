@@ -142,6 +142,7 @@ export async function initDatabase() {
       -- Aggiungi colonne se non esistono (per database esistenti)
       ALTER TABLE segnalazioni ADD COLUMN IF NOT EXISTS unit_id INTEGER;
       ALTER TABLE segnalazioni ADD COLUMN IF NOT EXISTS urgenza VARCHAR(50) DEFAULT 'media';
+      ALTER TABLE prestiti ADD COLUMN IF NOT EXISTS richiesta_id INTEGER REFERENCES richieste(id);
       CREATE INDEX IF NOT EXISTS idx_segn_user ON segnalazioni (user_id);
       CREATE INDEX IF NOT EXISTS idx_segn_tipo ON segnalazioni (tipo);
       CREATE INDEX IF NOT EXISTS idx_segn_state ON segnalazioni (stato);

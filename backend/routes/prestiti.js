@@ -21,12 +21,10 @@ r.get('/', requireAuth, async (req, res) => {
       if (!isAdminUser(req.user)) return res.status(403).json({ error: 'Solo admin' });
       result = await query(`
         SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
-               u.name AS utente_nome, u.surname AS utente_cognome, u.email AS utente_email,
-               r.dal, r.al, r.note AS richiesta_note
+               u.name AS utente_nome, u.surname AS utente_cognome, u.email AS utente_email
         FROM prestiti p
         LEFT JOIN inventario i ON i.id = p.inventario_id
         LEFT JOIN users u ON (p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
-        LEFT JOIN richieste r ON r.id = p.richiesta_id
         ORDER BY p.id DESC
       `);
     } else {
