@@ -183,9 +183,10 @@ const UserDashboard = () => {
                   <div>
                     <p className="font-medium text-gray-900">{request.oggetto_nome || request.articolo_nome || 'Oggetto'}</p>
                     <p className="text-sm text-gray-600">
-                      Richiesta: {formatDate(request.created_at)}
-                      {request.stato === 'approvata' && request.dal && request.al && (
-                        <span> - Noleggiato dal: {formatDate(request.dal)} al: {formatDate(request.al)}</span>
+                      {request.stato === 'approvata' && request.dal && request.al ? (
+                        <span>Uscita: {formatDate(request.dal)} - Rientro: {formatDate(request.al)}</span>
+                      ) : (
+                        <span>{formatDate(request.created_at)}</span>
                       )}
                     </p>
                   </div>
