@@ -391,7 +391,13 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 r.get('/:id/units', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await query('SELECT * FROM inventario_unita WHERE inventario_id = $1 ORDER BY codice_univoco', [id]);
+    const result = await query(`
+      SELECT iu.*, i.nome as item_name 
+      FROM inventario_unita iu
+      LEFT JOIN inventario i ON i.id = iu.inventario_id
+      WHERE iu.inventario_id = $1 
+      ORDER BY iu.codice_univoco
+    `, [id]);
     res.json(result);
   } catch (error) {
     console.error('Errore GET units:', error);
