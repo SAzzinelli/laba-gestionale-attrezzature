@@ -462,10 +462,10 @@ const Repairs = () => {
  onChange={(e) => setFormData({...formData, priorita: e.target.value})}
  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
  >
- <option value="bassa">🟢 Bassa</option>
- <option value="media">🟡 Media</option>
- <option value="alta">🟠 Alta</option>
- <option value="critica">🔴 Critica</option>
+ <option value="bassa">Bassa</option>
+ <option value="media">Media</option>
+ <option value="alta">Alta</option>
+ <option value="critica">Critica</option>
  </select>
  </div>
 
@@ -478,9 +478,9 @@ const Repairs = () => {
  onChange={(e) => setFormData({...formData, stato: e.target.value})}
  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
  >
- <option value="in_corso">🔄 In Corso</option>
- <option value="completata">✅ Completata</option>
- <option value="annullata">❌ Annullata</option>
+ <option value="in_corso">In Corso</option>
+ <option value="completata">Completata</option>
+ <option value="annullata">Annullata</option>
  </select>
  </div>
  </div>
