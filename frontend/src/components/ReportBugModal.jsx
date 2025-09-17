@@ -42,8 +42,9 @@ const ReportBugModal = ({ isOpen, onClose, onSuccess, prefillData = {} }) => {
       });
       if (response.ok) {
         const data = await response.json();
-        // Include both active and completed loans
-        setMyLoans(data);
+        // Only include active loans - completed loans cannot be reported for faults
+        const activeLoans = data.filter(loan => loan.stato === 'attivo');
+        setMyLoans(activeLoans);
       }
     } catch (err) {
       console.error('Errore caricamento prestiti:', err);
@@ -228,7 +229,7 @@ const ReportBugModal = ({ isOpen, onClose, onSuccess, prefillData = {} }) => {
                   <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                  <p>Non hai prestiti per cui segnalare problemi</p>
+                  <p>Non hai prestiti attivi per cui segnalare problemi</p>
                 </div>
               )}
             </div>
