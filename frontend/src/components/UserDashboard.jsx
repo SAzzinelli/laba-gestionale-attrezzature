@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import NewRequestModal from './NewRequestModal';
+import ReportBugModal from './ReportBugModal';
 
 const UserDashboard = () => {
   const [stats, setStats] = useState({
@@ -19,6 +20,7 @@ const UserDashboard = () => {
   const [showQuickRequestModal, setShowQuickRequestModal] = useState(false);
   const [showRequestDetailModal, setShowRequestDetailModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [showReportFaultModal, setShowReportFaultModal] = useState(false);
   const { token, user } = useAuth();
 
   // Fetch data
@@ -137,7 +139,7 @@ const UserDashboard = () => {
             Nuova Richiesta
           </button>
           <button
-            onClick={() => {/* Navigate to report fault */}}
+            onClick={() => setShowReportFaultModal(true)}
             className="btn-secondary hover-lift flex items-center justify-center"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,6 +225,17 @@ const UserDashboard = () => {
           onClose={() => setShowQuickRequestModal(false)}
           onSuccess={() => {
             setShowQuickRequestModal(false);
+            fetchData();
+          }}
+        />
+      )}
+
+      {showReportFaultModal && (
+        <ReportBugModal
+          isOpen={showReportFaultModal}
+          onClose={() => setShowReportFaultModal(false)}
+          onSuccess={() => {
+            setShowReportFaultModal(false);
             fetchData();
           }}
         />
