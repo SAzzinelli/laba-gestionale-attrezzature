@@ -297,7 +297,7 @@ const getStatusBadge = (status) => {
  <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
  </svg>
- <span>Processati</span>
+                    <span>Completati</span>
  <span className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1 rounded-full ml-2 font-semibold shadow-sm">
  {requests.filter(r => r.stato !== 'in_attesa').length}
  </span>
@@ -318,7 +318,7 @@ const getStatusBadge = (status) => {
             <p className="text-secondary">
               {searchTerm 
                 ? 'Nessun elemento trovato con i filtri selezionati' 
-                : `Nessuna ${activeTab === 'pending' ? 'richiesta in attesa' : activeTab === 'processed' ? 'richiesta processata' : 'prestito attivo'}`
+                : `Nessuna ${activeTab === 'pending' ? 'richiesta in attesa' : activeTab === 'processed' ? 'richiesta completata' : 'prestito attivo'}`
               }
             </p>
           </div>
@@ -442,7 +442,7 @@ const getStatusBadge = (status) => {
           <p className="text-secondary">
             {searchTerm 
               ? 'Nessun elemento trovato con i filtri selezionati' 
-              : `Nessuna ${activeTab === 'pending' ? 'richiesta in attesa' : activeTab === 'processed' ? 'richiesta processata' : 'prestito attivo'}`
+              : `Nessuna ${activeTab === 'pending' ? 'richiesta in attesa' : activeTab === 'processed' ? 'richiesta completata' : 'prestito attivo'}`
             }
           </p>
         </div>

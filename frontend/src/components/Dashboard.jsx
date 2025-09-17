@@ -704,12 +704,12 @@ const Dashboard = ({ onNavigate }) => {
  >
  <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
  <div className="flex-1 min-w-0">
- <p className="text-sm font-medium text-primary truncate">
- {request.oggetto_nome}
- </p>
- <p className="text-sm text-secondary">
- {request.utente_nome} {request.utente_cognome}
- </p>
+                <p className="text-sm font-medium text-primary truncate">
+                  {request.articolo_nome || request.oggetto_nome || 'Oggetto sconosciuto'}
+                </p>
+                <p className="text-sm text-secondary">
+                  {request.name || request.utente_nome || ''} {request.surname || request.utente_cognome || ''}
+                </p>
  </div>
  <div className="flex-shrink-0">
  <span className={`status-badge ${
