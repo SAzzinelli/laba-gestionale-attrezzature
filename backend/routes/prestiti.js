@@ -58,9 +58,10 @@ r.get('/mie', requireAuth, async (req, res) => {
       FROM prestiti p
       LEFT JOIN inventario i ON i.id = p.inventario_id
       LEFT JOIN categorie_semplici cs ON cs.id = i.categoria_id
-      WHERE p.chi LIKE $1 OR p.chi = $2
+      LEFT JOIN richieste r ON r.id = p.richiesta_id
+      WHERE r.utente_id = $1 OR p.chi LIKE $2 OR p.chi = $3
       ORDER BY p.id DESC
-    `, [`%${req.user.email}%`, req.user.email]);
+    `, [req.user.id, `%${req.user.email}%`, req.user.email]);
     
     res.json(result || []);
   } catch (error) {
