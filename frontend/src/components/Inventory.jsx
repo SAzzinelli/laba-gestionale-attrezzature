@@ -574,7 +574,7 @@ const Inventory = () => {
 
               {/* Card Body */}
               <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                   {/* Category */}
                   <div>
                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Categoria</label>
@@ -600,7 +600,28 @@ const Inventory = () => {
                   {/* Shelf */}
                   <div>
                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Scaffale</label>
-                    <p className="text-sm text-gray-900 mt-1">{item.scaffale || 'N/A'}</p>
+                    <p className="text-sm text-gray-900 mt-1">{item.posizione || 'N/A'}</p>
+                  </div>
+
+                  {/* Image */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Immagine</label>
+                    <div className="mt-1">
+                      {item.immagine_url ? (
+                        <button
+                          onClick={() => window.open(item.immagine_url, '_blank')}
+                          className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full hover:bg-green-200 transition-colors"
+                          title="Visualizza immagine"
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Visualizza
+                        </button>
+                      ) : (
+                        <span className="text-sm text-gray-400">Nessuna</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -619,18 +640,6 @@ const Inventory = () => {
  </svg>
                       QR Code
                       </button>
-                      {item.immagine_url && (
-                        <button
-                          onClick={() => window.open(item.immagine_url, '_blank')}
-                          className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                          title="Visualizza immagine"
-                        >
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          Immagine
-                        </button>
-                      )}
                       <button
                         onClick={() => handleEditItem(item)}
                       className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
