@@ -122,9 +122,16 @@ const ReportBugModal = ({ isOpen, onClose, onSuccess, prefillData = {} }) => {
       }
 
       // Show success notification
-      if (window.showNotification) {
-        window.showNotification('Segnalazione inviata!', 'La tua segnalazione è stata inviata agli amministratori.', 'success');
-      }
+      window.dispatchEvent(new CustomEvent('showNotification', {
+        detail: {
+          type: 'success',
+          data: { 
+            title: 'Segnalazione inviata!', 
+            body: 'La tua segnalazione è stata inviata agli amministratori.',
+            icon: '/favicon.ico'
+          }
+        }
+      }));
 
       onSuccess();
       onClose();

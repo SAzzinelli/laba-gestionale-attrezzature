@@ -134,9 +134,16 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       }
 
       // Show success notification
-      if (window.showNotification) {
-        window.showNotification('Richiesta inviata con successo!', 'La tua richiesta è stata inviata e sarà valutata dagli amministratori.', 'success');
-      }
+      window.dispatchEvent(new CustomEvent('showNotification', {
+        detail: {
+          type: 'success',
+          data: { 
+            title: 'Richiesta inviata con successo!', 
+            body: 'La tua richiesta è stata inviata e sarà valutata dagli amministratori.',
+            icon: '/favicon.ico'
+          }
+        }
+      }));
 
       onSuccess();
       onClose();
