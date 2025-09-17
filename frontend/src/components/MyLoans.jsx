@@ -42,8 +42,14 @@ const MyLoans = () => {
   };
 
   useEffect(() => {
+    console.log('🔄 MyLoans component mounted, fetching data...');
     fetchData();
   }, []);
+
+  // Debug logs
+  console.log('MyLoans render - activeTab:', activeTab);
+  console.log('MyLoans render - loans:', loans.length);
+  console.log('MyLoans render - requests:', requests.length);
 
   const getStatusColor = (status) => {
     switch (status) {
