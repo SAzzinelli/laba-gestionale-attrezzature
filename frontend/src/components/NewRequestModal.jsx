@@ -133,6 +133,11 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
         throw new Error(errorData.error || 'Errore nella creazione della richiesta');
       }
 
+      // Show success notification
+      if (window.showNotification) {
+        window.showNotification('Richiesta inviata con successo!', 'La tua richiesta è stata inviata e sarà valutata dagli amministratori.', 'success');
+      }
+
       onSuccess();
       onClose();
     } catch (err) {
@@ -204,9 +209,6 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                       </span>
                     </div>
                     <p className="text-sm text-gray-600">{item.categoria_nome}</p>
-                    {item.posizione && (
-                      <p className="text-xs text-gray-500 mt-1">📍 {item.posizione}</p>
-                    )}
                   </div>
                 ))}
               </div>

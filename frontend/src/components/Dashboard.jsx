@@ -93,7 +93,7 @@ const Dashboard = ({ onNavigate }) => {
  setNotifications(realNotifications);
  };
  
- // Helper function to calculate time ago
+  // Helper function to calculate time ago
   const getTimeAgo = (dateString) => {
     const now = new Date();
     const date = new Date(dateString);
@@ -103,6 +103,18 @@ const Dashboard = ({ onNavigate }) => {
     if (diffInMinutes < 60) return `${diffInMinutes} minuti fa`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} ore fa`;
     return `${Math.floor(diffInMinutes / 1440)} giorni fa`;
+  };
+
+  // Helper function to safely format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Data non specificata';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Data non valida';
+      return date.toLocaleDateString('it-IT');
+    } catch (error) {
+      return 'Data non valida';
+    }
   };
 
   // Handle password reset
@@ -656,7 +668,7 @@ const Dashboard = ({ onNavigate }) => {
                   </p>
                   <p className="text-sm text-gray-600">{request.user_email || request.email || 'Email non disponibile'}</p>
                   <p className="text-xs text-gray-500">
-                    Richiesto: {new Date(request.requested_at).toLocaleString()}
+                    Richiesto: {formatDate(request.requested_at)}
                   </p>
                 </div>
               </div>
@@ -751,9 +763,9 @@ const Dashboard = ({ onNavigate }) => {
  <p className="text-sm font-medium text-primary truncate">
  {report.tipo}: {report.messaggio}
  </p>
- <p className="text-sm text-secondary">
- {new Date(report.created_at).toLocaleDateString('it-IT')}
- </p>
+                <p className="text-sm text-secondary">
+                  {formatDate(report.created_at)}
+                </p>
  </div>
  <div className="flex-shrink-0">
  <span className={`status-badge ${
