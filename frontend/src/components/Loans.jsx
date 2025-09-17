@@ -151,6 +151,37 @@ const formatDate = (dateString) => {
   }
 };
 
+const canTerminateLoan = (loan) => {
+  if (!loan.data_rientro) return false; // Nessuna data di rientro impostata
+  
+  const today = new Date();
+  const returnDate = new Date(loan.data_rientro);
+  
+  // Resetta le ore per confrontare solo le date
+  today.setHours(0, 0, 0, 0);
+  returnDate.setHours(0, 0, 0, 0);
+  
+  // Può terminare solo dal giorno di rientro in poi
+  return today >= returnDate;
+};
+
+const getTerminateButtonTooltip = (loan) => {
+  if (!loan.data_rientro) return 'Data di rientro non impostata';
+  
+  const today = new Date();
+  const returnDate = new Date(loan.data_rientro);
+  today.setHours(0, 0, 0, 0);
+  returnDate.setHours(0, 0, 0, 0);
+  
+  if (today < returnDate) {
+    const diffTime = returnDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return `Disponibile dal ${formatDate(loan.data_rientro)} (tra ${diffDays} giorni)`;
+  }
+  
+  return 'Termina il prestito';
+};
+
 const getStatusBadge = (status) => {
  const statusConfig = {
  'in_attesa': { 
@@ -413,9 +444,13 @@ const getStatusBadge = (status) => {
  <button
  onClick={(e) => {
  e.stopPropagation();
- handleReturn(item.id);
+ if (canTerminateLoan(item)) {
+   handleReturn(item.id);
+ }
  }}
- className="btn-success btn-small"
+ disabled={!canTerminateLoan(item)}
+ className={`btn-small ${canTerminateLoan(item) ? 'btn-success' : 'btn-secondary opacity-50 cursor-not-allowed'}`}
+ title={getTerminateButtonTooltip(item)}
  >
  <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
