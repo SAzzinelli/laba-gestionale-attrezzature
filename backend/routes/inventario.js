@@ -190,13 +190,23 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     
     const newItem = result[0];
     
-    // Create units if provided
+    // Create units - either provided ones or auto-generate
     if (unita && unita.length > 0) {
+      // Use provided units
       for (const unit of unita) {
         await query(`
           INSERT INTO inventario_unita (inventario_id, codice_univoco, note)
           VALUES ($1, $2, $3)
         `, [newItem.id, unit.codice_univoco, unit.note || null]);
+      }
+    } else {
+      // Auto-generate units based on quantita_totale
+      for (let i = 1; i <= quantita_totale; i++) {
+        const codiceUnivoco = `${nome}-${String(i).padStart(3, '0')}`;
+        await query(`
+          INSERT INTO inventario_unita (inventario_id, codice_univoco, stato, note)
+          VALUES ($1, $2, 'disponibile', 'Creata automaticamente')
+        `, [newItem.id, codiceUnivoco]);
       }
     }
     
@@ -257,14 +267,55 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(404).json({ error: 'Elemento inventario non trovato' });
     }
 
-    // Update units: delete existing and re-create
-    await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
+    // Update units: handle carefully to avoid deleting units in use
     if (unita && unita.length > 0) {
+      // Only update if units are explicitly provided
+      // Check if any units are currently in use
+      const unitsInUse = await query(`
+        SELECT COUNT(*) as count FROM inventario_unita 
+        WHERE inventario_id = $1 AND (prestito_corrente_id IS NOT NULL OR stato != 'disponibile')
+      `, [id]);
+      
+      if (unitsInUse[0].count > 0) {
+        return res.status(400).json({ 
+          error: 'Non è possibile modificare le unità perché alcune sono in uso o non disponibili' 
+        });
+      }
+      
+      // Safe to delete and recreate
+      await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
       for (const unit of unita) {
         await query(`
           INSERT INTO inventario_unita (inventario_id, codice_univoco, note)
           VALUES ($1, $2, $3)
         `, [id, unit.codice_univoco, unit.note || null]);
+      }
+    } else {
+      // Auto-adjust units based on new quantita_totale
+      const currentUnits = await query('SELECT COUNT(*) as count FROM inventario_unita WHERE inventario_id = $1', [id]);
+      const currentCount = currentUnits[0].count;
+      
+      if (quantita_totale > currentCount) {
+        // Add missing units
+        for (let i = currentCount + 1; i <= quantita_totale; i++) {
+          const codiceUnivoco = `${nome}-${String(i).padStart(3, '0')}`;
+          await query(`
+            INSERT INTO inventario_unita (inventario_id, codice_univoco, stato, note)
+            VALUES ($1, $2, 'disponibile', 'Aggiunta automaticamente')
+          `, [id, codiceUnivoco]);
+        }
+      } else if (quantita_totale < currentCount) {
+        // Remove excess units (only if available)
+        const excessUnits = await query(`
+          SELECT id FROM inventario_unita 
+          WHERE inventario_id = $1 AND stato = 'disponibile' AND prestito_corrente_id IS NULL
+          ORDER BY id DESC
+          LIMIT $2
+        `, [id, currentCount - quantita_totale]);
+        
+        for (const unit of excessUnits) {
+          await query('DELETE FROM inventario_unita WHERE id = $1', [unit.id]);
+        }
       }
     }
 
