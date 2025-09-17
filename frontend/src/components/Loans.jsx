@@ -680,18 +680,18 @@ const getStatusBadge = (status) => {
  </div>
  <div>
  <label className="form-label">Dal</label>
- <p className="text-primary">{new Date(selectedLoan.dal).toLocaleDateString('it-IT')}</p>
- </div>
- <div>
- <label className="form-label">Al</label>
- <p className="text-primary">{new Date(selectedLoan.al).toLocaleDateString('it-IT')}</p>
- </div>
- {selectedLoan.data_rientro && (
- <div className="md:col-span-2">
- <label className="form-label">Data Restituzione</label>
- <p className="text-primary">{new Date(selectedLoan.data_rientro).toLocaleDateString('it-IT')}</p>
- </div>
- )}
+                <p className="text-primary">{formatDate(selectedLoan.dal)}</p>
+                </div>
+                <div>
+                  <label className="form-label">Al</label>
+                  <p className="text-primary">{formatDate(selectedLoan.al)}</p>
+                </div>
+                {selectedLoan.data_rientro && (
+                  <div className="md:col-span-2">
+                    <label className="form-label">Data Restituzione</label>
+                    <p className="text-primary">{formatDate(selectedLoan.data_rientro)}</p>
+                  </div>
+                )}
  {selectedLoan.note && (
  <div className="md:col-span-2">
  <label className="form-label">Note</label>
