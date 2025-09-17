@@ -25,17 +25,27 @@ r.get('/', requireAuth, async (req, res) => {
 // POST /api/riparazioni
 r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
   try {
-    const { inventario_id, quantita, stato, note, unit_ids_json } = req.body || {};
+    const { inventario_id, unit_id, descrizione, note_tecniche, priorita, stato } = req.body || {};
     
-    if (!inventario_id || !stato) {
+    if (!inventario_id || !unit_id || !descrizione) {
       return res.status(400).json({ error: 'Campi mancanti' });
     }
     
+    // Create repair record
     const result = await query(`
       INSERT INTO riparazioni (inventario_id, quantita, stato, note, unit_ids_json)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING *
-    `, [inventario_id, quantita || 0, stato, note || null, JSON.stringify(unit_ids_json || [])]);
+    `, [inventario_id, 1, stato || 'in_corso', `${descrizione}\n\nNote tecniche: ${note_tecniche || 'N/A'}\nPriorità: ${priorita}`, JSON.stringify([unit_id])]);
+    
+    // Mark unit as in repair
+    await query(`
+      UPDATE inventario_unita 
+      SET stato = 'in_riparazione'
+      WHERE id = $1
+    `, [unit_id]);
+    
+    console.log(`✅ Unità ${unit_id} marcata come in riparazione`);
     
     res.status(201).json(result[0]);
   } catch (error) {
@@ -50,6 +60,9 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     const { id } = req.params;
     const { quantita, stato, note, unit_ids_json } = req.body || {};
     
+    // Get current repair to check unit IDs
+    const currentRepair = await query('SELECT unit_ids_json FROM riparazioni WHERE id = $1', [id]);
+    
     const result = await query(`
       UPDATE riparazioni 
       SET quantita = $1, stato = $2, note = $3, unit_ids_json = $4, updated_at = CURRENT_TIMESTAMP
@@ -57,11 +70,25 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       RETURNING *
     `, [quantita, stato, note, JSON.stringify(unit_ids_json || []), id]);
     
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Riparazione non trovata' });
     }
     
-    res.json(result.rows[0]);
+    // If repair is completed, mark units as available again
+    if (stato === 'completata' && currentRepair.length > 0) {
+      const unitIds = JSON.parse(currentRepair[0].unit_ids_json || '[]');
+      if (unitIds.length > 0) {
+        await query(`
+          UPDATE inventario_unita 
+          SET stato = 'disponibile'
+          WHERE id = ANY($1::int[])
+        `, [unitIds]);
+        
+        console.log(`✅ Unità ${unitIds.join(', ')} rimesse disponibili dopo completamento riparazione`);
+      }
+    }
+    
+    res.json(result[0]);
   } catch (error) {
     console.error('Errore PUT riparazione:', error);
     res.status(500).json({ error: 'Errore interno del server' });
