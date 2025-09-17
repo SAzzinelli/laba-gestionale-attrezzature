@@ -258,7 +258,7 @@ function AppInner() {
  <div className="flex items-center justify-between p-4 border-b">
  <div className="flex items-center">
  <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
- <span className="ml-2 text-xl font-bold text-gray-800">Gestione</span>
+              <span className="ml-2 text-xl font-bold text-gray-800">Service</span>
  </div>
  <button 
  onClick={() => setSidebarOpen(false)}
@@ -370,7 +370,7 @@ function AppInner() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h1 className="text-lg font-semibold text-gray-800">LABA Gestione</h1>
+        <h1 className="text-lg font-semibold text-gray-800">LABA Service</h1>
         <div className="flex items-center space-x-2">
           <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
         </div>
