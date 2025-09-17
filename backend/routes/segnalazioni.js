@@ -25,6 +25,25 @@ r.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/segnalazioni/mie
+r.get('/mie', requireAuth, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT s.*, i.nome as inventario_nome, iu.codice_univoco
+      FROM segnalazioni s
+      LEFT JOIN inventario i ON s.inventario_id = i.id
+      LEFT JOIN inventario_unita iu ON s.unit_id = iu.id
+      WHERE s.user_id = $1
+      ORDER BY s.created_at DESC
+    `, [req.user.id]);
+    
+    res.json(result || []);
+  } catch (error) {
+    console.error('Errore GET segnalazioni/mie:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
 // POST /api/segnalazioni
 r.post('/', requireAuth, async (req, res) => {
   try {
