@@ -371,7 +371,7 @@ const Repairs = () => {
    setFormData({...formData, oggetto_id: objectId, unit_id: ''});
    fetchAvailableUnits(objectId);
  }}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="select-field"
  required
  >
  <option value="">Seleziona oggetto</option>
@@ -432,7 +432,7 @@ const Repairs = () => {
  <textarea
  value={formData.descrizione}
  onChange={(e) => setFormData({...formData, descrizione: e.target.value})}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="input-field"
  rows="3"
  placeholder="Descrivi il problema riscontrato"
  required
@@ -446,7 +446,7 @@ const Repairs = () => {
  <textarea
  value={formData.note_tecniche}
  onChange={(e) => setFormData({...formData, note_tecniche: e.target.value})}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="input-field"
  rows="2"
  placeholder="Note aggiuntive per il tecnico"
  />
@@ -460,7 +460,7 @@ const Repairs = () => {
  <select
  value={formData.priorita}
  onChange={(e) => setFormData({...formData, priorita: e.target.value})}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="select-field"
  >
  <option value="bassa">Bassa</option>
  <option value="media">Media</option>
@@ -476,7 +476,7 @@ const Repairs = () => {
  <select
  value={formData.stato}
  onChange={(e) => setFormData({...formData, stato: e.target.value})}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+ className="select-field"
  >
  <option value="in_corso">In Corso</option>
  <option value="completata">Completata</option>
