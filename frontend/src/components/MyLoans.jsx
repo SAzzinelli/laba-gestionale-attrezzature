@@ -8,7 +8,7 @@ const MyLoans = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showNewRequestModal, setShowNewRequestModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('completed');
+  const [activeTab, setActiveTab] = useState('active');
   const { token, user } = useAuth();
 
   // Fetch user's loans and requests
@@ -102,7 +102,23 @@ const MyLoans = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Prestiti Attivi</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {loans.filter(loan => loan.stato === 'attivo').length}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -113,7 +129,7 @@ const MyLoans = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Prestiti Completati</p>
               <p className="text-2xl font-bold text-gray-900">
-                {loans.filter(loan => loan.stato === 'restituito' || loan.stato === 'attivo').length}
+                {loans.filter(loan => loan.stato === 'restituito').length}
               </p>
             </div>
           </div>
@@ -157,14 +173,24 @@ const MyLoans = () => {
         <div className="border-b border-gray-200">
           <nav className="flex -mb-px">
             <button
-              onClick={() => setActiveTab('completed')}
+              onClick={() => setActiveTab('active')}
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'completed'
+                activeTab === 'active'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Prestiti Effettuati ({loans.filter(loan => loan.stato === 'restituito' || loan.stato === 'attivo').length})
+              Prestiti Attivi ({loans.filter(loan => loan.stato === 'attivo').length})
+            </button>
+            <button
+              onClick={() => setActiveTab('completed')}
+              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'completed'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Prestiti Effettuati ({loans.filter(loan => loan.stato === 'restituito').length})
             </button>
             <button
               onClick={() => setActiveTab('pending')}
@@ -193,12 +219,77 @@ const MyLoans = () => {
       {/* Content based on active tab */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {/* Tab Content */}
+        {activeTab === 'active' && (
+          <>
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Prestiti Attivi</h2>
+            </div>
+            {loans.filter(loan => loan.stato === 'attivo').length === 0 ? (
+              <div className="text-center py-12">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">Nessun prestito attivo</h3>
+                <p className="mt-1 text-sm text-gray-500">Non hai prestiti attivi al momento.</p>
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowNewRequestModal(true)}
+                    className="btn-primary hover-lift"
+                  >
+                    Crea una nuova richiesta
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-200">
+                {loans.filter(loan => loan.stato === 'attivo').map((loan) => (
+                  <div key={loan.id} className="px-6 py-4 hover:bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <h3 className="text-sm font-medium text-gray-900">{loan.articolo_nome}</h3>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(loan.stato)}`}>
+                            {getStatusText(loan.stato)}
+                          </span>
+                        </div>
+                        <div className="mt-2 flex items-center space-x-6 text-sm text-gray-500">
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>Uscita: {formatDate(loan.data_uscita)}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>Rientro: {formatDate(loan.data_rientro)}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            <span>Quantità: {loan.quantita}</span>
+                          </div>
+                        </div>
+                        {loan.note && (
+                          <p className="mt-2 text-sm text-gray-600">{loan.note}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
         {activeTab === 'completed' && (
           <>
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Prestiti Effettuati</h2>
             </div>
-            {loans.filter(loan => loan.stato === 'restituito' || loan.stato === 'attivo').length === 0 ? (
+            {loans.filter(loan => loan.stato === 'restituito').length === 0 ? (
               <div className="text-center py-12">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -208,7 +299,7 @@ const MyLoans = () => {
               </div>
             ) : (
               <div className="divide-y divide-gray-200">
-                {loans.filter(loan => loan.stato === 'restituito' || loan.stato === 'attivo').map((loan) => (
+                {loans.filter(loan => loan.stato === 'restituito').map((loan) => (
                   <div key={loan.id} className="px-6 py-4 hover:bg-gray-50">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
