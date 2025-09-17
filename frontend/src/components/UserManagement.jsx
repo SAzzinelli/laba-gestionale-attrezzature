@@ -10,6 +10,7 @@ const UserManagement = () => {
  const [editingUser, setEditingUser] = useState(null);
  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
  const [resetUser, setResetUser] = useState(null);
+ const [activeTab, setActiveTab] = useState('users');
  const { token } = useAuth();
 
  const [formData, setFormData] = useState({
@@ -43,26 +44,39 @@ const UserManagement = () => {
  }, []);
 
  const fetchUsers = async () => {
- try {
- setLoading(true);
- const response = await fetch('/api/auth/users', {
- headers: {
- 'Authorization': `Bearer ${token}`
- }
- });
- 
- if (!response.ok) {
- throw new Error('Errore nel caricamento utenti');
- }
- 
- const data = await response.json();
- setUsers(data);
- } catch (err) {
- setError(err.message);
- } finally {
- setLoading(false);
- }
+   try {
+     setLoading(true);
+     const response = await fetch('/api/auth/users', {
+       headers: {
+         'Authorization': `Bearer ${token}`
+       }
+     });
+     
+     if (!response.ok) {
+       throw new Error('Errore nel caricamento utenti');
+     }
+     
+     const data = await response.json();
+     setUsers(data);
+   } catch (err) {
+     setError(err.message);
+   } finally {
+     setLoading(false);
+   }
  };
+
+ // Filter users based on active tab
+ const getFilteredUsers = () => {
+   if (activeTab === 'admins') {
+     return users.filter(user => user.ruolo === 'admin');
+   } else {
+     return users.filter(user => user.ruolo !== 'admin');
+   }
+ };
+
+ const filteredUsers = getFilteredUsers();
+ const regularUsers = users.filter(user => user.ruolo !== 'admin');
+ const adminUsers = users.filter(user => user.ruolo === 'admin');
 
  const handleInputChange = (e) => {
  const { name, value } = e.target;
@@ -254,10 +268,49 @@ const UserManagement = () => {
 
  {/* Error Message */}
  {error && (
- <div className="bg-red-50 /20 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
- {error}
- </div>
+   <div className="bg-red-50 /20 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+     {error}
+   </div>
  )}
+
+ {/* Tabs */}
+ <div className="border-b border-gray-200">
+   <nav className="flex space-x-8">
+     <button
+       onClick={() => setActiveTab('users')}
+       className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+         activeTab === 'users'
+           ? 'border-blue-500 text-blue-600'
+           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+       }`}
+     >
+       <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+       </svg>
+       Utenti
+       <span className="ml-2 bg-gray-100 text-gray-900 text-xs px-2 py-1 rounded-full">
+         {regularUsers.length}
+       </span>
+     </button>
+     
+     <button
+       onClick={() => setActiveTab('admins')}
+       className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+         activeTab === 'admins'
+           ? 'border-blue-500 text-blue-600'
+           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+       }`}
+     >
+       <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+       </svg>
+       Amministratori
+       <span className="ml-2 bg-gray-100 text-gray-900 text-xs px-2 py-1 rounded-full">
+         {adminUsers.length}
+       </span>
+     </button>
+   </nav>
+ </div>
 
     {/* Desktop Table View */}
     <div className="hidden lg:block bg-white rounded-lg shadow-lg overflow-hidden">
@@ -286,7 +339,27 @@ const UserManagement = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200 ">
-            {users.map((user, index) => (
+            {filteredUsers.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center">
+                    <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">
+                      Nessun {activeTab === 'admins' ? 'amministratore' : 'utente'} trovato
+                    </h3>
+                    <p className="text-gray-500">
+                      {activeTab === 'admins' 
+                        ? 'Non ci sono amministratori nel sistema.' 
+                        : 'Non ci sono utenti registrati.'
+                      }
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              filteredUsers.map((user, index) => (
               <tr key={user.id} className={`hover:bg-gray-50 transition-colors duration-150 ${index % 2 === 0 ? 'bg-white ' : 'bg-gray-50 '}`}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
@@ -352,7 +425,7 @@ const UserManagement = () => {
                   </div>
                 </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>
@@ -360,7 +433,23 @@ const UserManagement = () => {
 
     {/* Mobile Card View */}
     <div className="lg:hidden space-y-4">
-      {users.map((user) => (
+      {filteredUsers.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 text-center">
+          <svg className="w-12 h-12 text-gray-400 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">
+            Nessun {activeTab === 'admins' ? 'amministratore' : 'utente'} trovato
+          </h3>
+          <p className="text-gray-500">
+            {activeTab === 'admins' 
+              ? 'Non ci sono amministratori nel sistema.' 
+              : 'Non ci sono utenti registrati.'
+            }
+          </p>
+        </div>
+      ) : (
+        filteredUsers.map((user) => (
         <div key={user.id} className="bg-white rounded-lg shadow-lg border border-gray-200 p-4">
           {/* User Header */}
           <div className="flex items-center justify-between mb-4">
@@ -437,7 +526,7 @@ const UserManagement = () => {
             )}
           </div>
         </div>
-      ))}
+      )))}
     </div>
 
  {/* Add User Modal */}
