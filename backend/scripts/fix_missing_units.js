@@ -37,7 +37,7 @@ async function fixMissingUnits() {
         try {
           await query(`
             INSERT INTO inventario_unita (inventario_id, codice_univoco, stato, note)
-            VALUES ($1, $2, 'disponibile', 'Creata automaticamente')
+            VALUES ($1, $2, 'disponibile', NULL)
           `, [item.id, codiceUnivoco]);
           
           console.log(`   ✅ Creata unità: ${codiceUnivoco}`);

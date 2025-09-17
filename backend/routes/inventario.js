@@ -149,6 +149,7 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       categoria_id,
       posizione = null, 
       note = null, 
+      immagine_url = null,
       quantita_totale = 1, 
       corsi_assegnati = [],
       unita = [] 
@@ -183,10 +184,10 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     
     // Create inventory item
     const result = await query(`
-      INSERT INTO inventario (nome, categoria_madre, categoria_id, posizione, note, quantita_totale, quantita, in_manutenzione)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO inventario (nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita, in_manutenzione)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
-    `, [nome, categoria_madre, categoria_id, posizione, note, quantita_totale, quantita_totale, false]);
+    `, [nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita_totale, false]);
     
     const newItem = result[0];
     
@@ -205,7 +206,7 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
         const codiceUnivoco = `${nome}-${String(i).padStart(3, '0')}`;
         await query(`
           INSERT INTO inventario_unita (inventario_id, codice_univoco, stato, note)
-          VALUES ($1, $2, 'disponibile', 'Creata automaticamente')
+          VALUES ($1, $2, 'disponibile', NULL)
         `, [newItem.id, codiceUnivoco]);
       }
     }
@@ -238,6 +239,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       categoria_id,
       posizione = null, 
       note = null, 
+      immagine_url = null,
       quantita_totale, 
       in_manutenzione,
       corsi_assegnati = [],
@@ -258,10 +260,10 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     const result = await query(`
       UPDATE inventario 
       SET nome = $1, categoria_madre = $2, categoria_id = $3, posizione = $4, note = $5, 
-          quantita_totale = $6, quantita = $7, in_manutenzione = $8, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9
+          immagine_url = $6, quantita_totale = $7, quantita = $8, in_manutenzione = $9, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $10
       RETURNING *
-    `, [nome, categoria_madre, categoria_id, posizione, note, quantita_totale, quantita_totale, in_manutenzione || false, id]);
+    `, [nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita_totale, in_manutenzione || false, id]);
 
     if (result.length === 0) {
       return res.status(404).json({ error: 'Elemento inventario non trovato' });
@@ -301,7 +303,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
           const codiceUnivoco = `${nome}-${String(i).padStart(3, '0')}`;
           await query(`
             INSERT INTO inventario_unita (inventario_id, codice_univoco, stato, note)
-            VALUES ($1, $2, 'disponibile', 'Aggiunta automaticamente')
+            VALUES ($1, $2, 'disponibile', NULL)
           `, [id, codiceUnivoco]);
         }
       } else if (quantita_totale < currentCount) {

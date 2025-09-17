@@ -61,6 +61,7 @@ export async function initDatabase() {
         categoria_id INTEGER REFERENCES categorie_semplici(id),
         posizione VARCHAR(255),
         note TEXT,
+        immagine_url TEXT,
         in_manutenzione BOOLEAN NOT NULL DEFAULT FALSE,
         unita JSONB DEFAULT '[]',
         quantita INTEGER DEFAULT 0,
@@ -176,6 +177,17 @@ export async function initDatabase() {
         expires_at TIMESTAMP NOT NULL
       );
     `);
+
+    // Aggiungi colonna immagine_url se non esiste
+    try {
+      await client.query(`
+        ALTER TABLE inventario 
+        ADD COLUMN IF NOT EXISTS immagine_url TEXT
+      `);
+      console.log('✅ Colonna immagine_url aggiunta alla tabella inventario');
+    } catch (error) {
+      console.log('ℹ️ Colonna immagine_url già esistente');
+    }
 
     // Inserisci admin user se non esiste
     const adminExists = await client.query('SELECT id FROM users WHERE email = $1', ['admin']);

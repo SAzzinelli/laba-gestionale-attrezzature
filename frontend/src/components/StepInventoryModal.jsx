@@ -13,6 +13,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
     quantita_totale: 1,
     scaffale: '',
     note: '',
+    immagine_url: '',
     corsi_assegnati: [],
     categoria_madre: '',
     categoria_id: '',
@@ -33,6 +34,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
           quantita_totale: editingItem.quantita_totale || 1,
           scaffale: editingItem.posizione || '',
           note: editingItem.note || '',
+          immagine_url: editingItem.immagine_url || '',
           corsi_assegnati: editingItem.corsi_assegnati || [],
           categoria_madre: '', // Non serve, viene derivato automaticamente
           categoria_id: editingItem.categoria_id || '',
@@ -47,6 +49,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
         quantita_totale: 1,
         scaffale: '',
         note: '',
+        immagine_url: '',
         corsi_assegnati: [],
         categoria_madre: '', // Non serve, viene derivato automaticamente
         categoria_id: '',
@@ -340,16 +343,30 @@ setFormData(prev => ({ ...prev, unita: units }));
  />
  </div>
 
- <div className="form-group">
- <label className="form-label">Scaffale</label>
- <input
- type="text"
- value={formData.scaffale}
- onChange={(e) => setFormData(prev => ({ ...prev, scaffale: e.target.value }))}
- className="input-field"
- placeholder="Es. A1, B2, C3"
- />
- </div>
+                <div className="form-group">
+                  <label className="form-label">Scaffale</label>
+                  <input
+                    type="text"
+                    value={formData.scaffale}
+                    onChange={(e) => setFormData(prev => ({ ...prev, scaffale: e.target.value }))}
+                    className="input-field"
+                    placeholder="Es. A1, B2, C3"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Link Immagine</label>
+                  <input
+                    type="url"
+                    value={formData.immagine_url}
+                    onChange={(e) => setFormData(prev => ({ ...prev, immagine_url: e.target.value }))}
+                    className="input-field"
+                    placeholder="https://drive.google.com/... (link diretto immagine)"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Inserisci un link diretto a un'immagine (es. Google Drive). Cliccando si aprirà in una nuova finestra.
+                  </p>
+                </div>
 
  <div className="form-group md:col-span-2">
  <label className="form-label">Note</label>
@@ -456,12 +473,13 @@ setFormData(prev => ({ ...prev, unita: units }));
  
  <div className="card bg-tertiary mb-4">
  <h4 className="font-medium text-primary mb-2">Riepilogo</h4>
- <div className="grid grid-cols-2 gap-4 text-sm">
- <div><strong>Nome:</strong> {formData.nome}</div>
- <div><strong>Quantità:</strong> {formData.quantita_totale}</div>
- <div><strong>Corsi:</strong> {formData.corsi_assegnati.join(', ')}</div>
- <div><strong>Scaffale:</strong> {formData.scaffale || 'Non specificato'}</div>
- </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div><strong>Nome:</strong> {formData.nome}</div>
+                  <div><strong>Quantità:</strong> {formData.quantita_totale}</div>
+                  <div><strong>Corsi:</strong> {formData.corsi_assegnati.join(', ')}</div>
+                  <div><strong>Scaffale:</strong> {formData.scaffale || 'Non specificato'}</div>
+                  <div className="col-span-2"><strong>Immagine:</strong> {formData.immagine_url || 'Nessuna immagine'}</div>
+                </div>
  </div>
 
  <div className="form-group">
