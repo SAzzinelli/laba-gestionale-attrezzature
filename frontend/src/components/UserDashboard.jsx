@@ -182,7 +182,12 @@ const UserDashboard = () => {
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-gray-900">{request.oggetto_nome || request.articolo_nome || 'Oggetto'}</p>
-                    <p className="text-sm text-gray-600">{formatDate(request.created_at)}</p>
+                    <p className="text-sm text-gray-600">
+                      Richiesta: {formatDate(request.created_at)}
+                      {request.stato === 'approvata' && request.dal && request.al && (
+                        <span> - Noleggiato dal: {formatDate(request.dal)} al: {formatDate(request.al)}</span>
+                      )}
+                    </p>
                   </div>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     request.stato === 'approvata' ? 'bg-green-100 text-green-800' :

@@ -304,7 +304,7 @@ function AppInner() {
  <div className="flex items-center">
  <img src="/logoSito.svg" alt="LABA Logo" className="h-12 w-auto" />
  <div className="ml-3">
- <p className="text-sm text-gray-600">Gestione Attrezzature</p>
+ <p className="text-sm text-gray-600">Service</p>
  </div>
  </div>
  {/* Theme toggle removed */}
@@ -381,7 +381,7 @@ function AppInner() {
         <div className="hidden lg:block bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">Gestione Attrezzature</h1>
+              <h1 className="text-xl font-semibold text-gray-900">Service</h1>
             </div>
             <div className="flex items-center space-x-4">
               {/* Notifications Bell */}
@@ -411,7 +411,7 @@ function AppInner() {
      <div className="hidden lg:block bg-white border-b border-gray-200 px-6 py-4">
        <div className="flex items-center justify-between">
          <div className="flex items-center space-x-4">
-           <h1 className="text-xl font-semibold text-gray-900">Gestione Attrezzature</h1>
+           <h1 className="text-xl font-semibold text-gray-900">Service</h1>
          </div>
          <div className="flex items-center space-x-4">
            {/* Notifications Bell */}
@@ -541,7 +541,7 @@ function UserBadge() {
 
 function Gate() {
  const { isAuthenticated } = useAuth();
- if (!isAuthenticated) return <Login branding="LABA – Gestione Attrezzature" />;
+ if (!isAuthenticated) return <Login branding="LABA – Service" />;
  return <AppInner />;
 }
 
