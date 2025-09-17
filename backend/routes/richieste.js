@@ -16,7 +16,9 @@ r.get('/', requireAuth, async (req, res) => {
         return res.status(403).json({ error: 'Solo admin' });
       }
       result = await query(`
-        SELECT r.*, u.name, u.surname, u.email, i.nome as articolo_nome
+        SELECT r.*, 
+               u.name as utente_nome, u.surname as utente_cognome, u.email as utente_email, 
+               i.nome as oggetto_nome, i.nome as articolo_nome
         FROM richieste r
         LEFT JOIN users u ON r.utente_id = u.id
         LEFT JOIN inventario i ON r.inventario_id = i.id
@@ -24,7 +26,7 @@ r.get('/', requireAuth, async (req, res) => {
       `);
     } else {
       result = await query(`
-        SELECT r.*, i.nome as articolo_nome
+        SELECT r.*, i.nome as oggetto_nome, i.nome as articolo_nome
         FROM richieste r
         LEFT JOIN inventario i ON r.inventario_id = i.id
         WHERE r.utente_id = $1
@@ -43,7 +45,7 @@ r.get('/', requireAuth, async (req, res) => {
 r.get('/mie', requireAuth, async (req, res) => {
   try {
     const result = await query(`
-      SELECT r.*, i.nome as articolo_nome
+      SELECT r.*, i.nome as oggetto_nome, i.nome as articolo_nome
       FROM richieste r
       LEFT JOIN inventario i ON r.inventario_id = i.id
       WHERE r.utente_id = $1
