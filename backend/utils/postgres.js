@@ -145,6 +145,8 @@ export async function initDatabase() {
       ALTER TABLE prestiti ADD COLUMN IF NOT EXISTS richiesta_id INTEGER REFERENCES richieste(id);
       ALTER TABLE inventario_unita ADD COLUMN IF NOT EXISTS richiesta_riservata_id INTEGER REFERENCES richieste(id);
       ALTER TABLE richieste ADD COLUMN IF NOT EXISTS unit_id INTEGER REFERENCES inventario_unita(id);
+      ALTER TABLE riparazioni ADD COLUMN IF NOT EXISTS tipo VARCHAR(100) DEFAULT 'riparazione';
+      ALTER TABLE riparazioni ADD COLUMN IF NOT EXISTS priorita VARCHAR(50) DEFAULT 'media';
       CREATE INDEX IF NOT EXISTS idx_segn_user ON segnalazioni (user_id);
       CREATE INDEX IF NOT EXISTS idx_segn_tipo ON segnalazioni (tipo);
       CREATE INDEX IF NOT EXISTS idx_segn_state ON segnalazioni (stato);

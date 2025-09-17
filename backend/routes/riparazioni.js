@@ -33,10 +33,10 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     
     // Create repair record
     const result = await query(`
-      INSERT INTO riparazioni (inventario_id, quantita, stato, note, unit_ids_json)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO riparazioni (inventario_id, quantita, stato, note, unit_ids_json, tipo, priorita)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
-    `, [inventario_id, 1, stato || 'in_corso', `${descrizione}\n\nNote tecniche: ${note_tecniche || 'N/A'}\nPriorità: ${priorita}`, JSON.stringify([unit_id])]);
+    `, [inventario_id, 1, stato || 'in_corso', `${descrizione}\n\nNote tecniche: ${note_tecniche || 'N/A'}`, JSON.stringify([unit_id]), 'riparazione', priorita || 'media']);
     
     // Mark unit as in repair
     await query(`
