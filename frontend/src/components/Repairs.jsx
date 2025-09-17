@@ -342,27 +342,26 @@ const Repairs = () => {
 
  {/* Add/Edit Repair Modal */}
  {showAddModal && (
- <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowAddModal(false)}>
- <div className="modal-content max-w-2xl" onClick={(e) => e.stopPropagation()}>
- <div className="modal-header">
- <h2 className="text-xl font-bold text-primary">
+ <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+ <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+ <div className="flex items-center justify-between p-6 border-b border-gray-200">
+ <h2 className="text-xl font-semibold text-gray-900">
  {editingRepair ? 'Modifica Riparazione' : 'Nuova Riparazione'}
  </h2>
  <button
  onClick={() => setShowAddModal(false)}
- className="text-muted hover:text-primary"
+ className="text-gray-400 hover:text-gray-600 transition-colors"
  >
- <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+ <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
  </svg>
  </button>
  </div>
 
- <div className="modal-body">
- <form onSubmit={handleSubmit}>
- <div className="space-y-4">
+ <div className="p-6">
+ <form onSubmit={handleSubmit} className="space-y-6">
  <div>
- <label className="block text-sm font-medium text-primary mb-2">
+ <label className="block text-sm font-medium text-gray-700 mb-2">
  Oggetto *
  </label>
  <select
@@ -372,7 +371,7 @@ const Repairs = () => {
    setFormData({...formData, oggetto_id: objectId, unit_id: ''});
    fetchAvailableUnits(objectId);
  }}
- className="custom-select"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
  required
  >
  <option value="">Seleziona oggetto</option>
@@ -387,33 +386,53 @@ const Repairs = () => {
  {/* Unit ID Selection */}
  {formData.oggetto_id && (
    <div>
-     <label className="block text-sm font-medium text-primary mb-2">
+     <label className="block text-sm font-medium text-gray-700 mb-2">
        ID Univoco *
      </label>
-     <select
-       value={formData.unit_id}
-       onChange={(e) => setFormData({...formData, unit_id: e.target.value})}
-       className="custom-select"
-       required
-     >
-       <option value="">Seleziona ID univoco</option>
+     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
        {availableUnits.map(unit => (
-         <option key={unit.id} value={unit.id}>
-           {unit.codice_univoco} - {unit.stato}
-         </option>
+         <div
+           key={unit.id}
+           onClick={() => setFormData({...formData, unit_id: unit.id})}
+           className={`p-3 border rounded-lg cursor-pointer transition-all ${
+             formData.unit_id === unit.id
+               ? 'border-blue-500 bg-blue-50'
+               : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+           }`}
+         >
+           <div className="text-center">
+             <div className="font-medium text-gray-900 mb-1">{unit.codice_univoco}</div>
+             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+               unit.stato === 'disponibile' ? 'bg-green-100 text-green-800' :
+               unit.stato === 'prestato' ? 'bg-blue-100 text-blue-800' :
+               unit.stato === 'riservato' ? 'bg-yellow-100 text-yellow-800' :
+               unit.stato === 'in_riparazione' ? 'bg-orange-100 text-orange-800' :
+               'bg-gray-100 text-gray-800'
+             }`}>
+               {unit.stato === 'disponibile' ? 'Disponibile' :
+                unit.stato === 'prestato' ? 'In Prestito' :
+                unit.stato === 'riservato' ? 'Riservato' :
+                unit.stato === 'in_riparazione' ? 'In Riparazione' :
+                unit.stato}
+             </span>
+           </div>
+         </div>
        ))}
-     </select>
+     </div>
+     {availableUnits.length === 0 && (
+       <p className="text-gray-500 text-sm">Nessuna unità disponibile per questo oggetto</p>
+     )}
    </div>
  )}
 
  <div>
- <label className="block text-sm font-medium text-primary mb-2">
+ <label className="block text-sm font-medium text-gray-700 mb-2">
  Descrizione Problema *
  </label>
  <textarea
  value={formData.descrizione}
  onChange={(e) => setFormData({...formData, descrizione: e.target.value})}
- className="input-field"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
  rows="3"
  placeholder="Descrivi il problema riscontrato"
  required
@@ -421,13 +440,13 @@ const Repairs = () => {
  </div>
 
  <div>
- <label className="block text-sm font-medium text-primary mb-2">
+ <label className="block text-sm font-medium text-gray-700 mb-2">
  Note Tecniche
  </label>
  <textarea
  value={formData.note_tecniche}
  onChange={(e) => setFormData({...formData, note_tecniche: e.target.value})}
- className="input-field"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
  rows="2"
  placeholder="Note aggiuntive per il tecnico"
  />
@@ -435,54 +454,61 @@ const Repairs = () => {
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
- <label className="block text-sm font-medium text-primary mb-2">
+ <label className="block text-sm font-medium text-gray-700 mb-2">
  Priorità
  </label>
  <select
  value={formData.priorita}
  onChange={(e) => setFormData({...formData, priorita: e.target.value})}
- className="custom-select"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
  >
- <option value="bassa">Bassa</option>
- <option value="media">Media</option>
- <option value="alta">Alta</option>
- <option value="urgente">Urgente</option>
+ <option value="bassa">🟢 Bassa</option>
+ <option value="media">🟡 Media</option>
+ <option value="alta">🟠 Alta</option>
+ <option value="critica">🔴 Critica</option>
  </select>
  </div>
 
  <div>
- <label className="block text-sm font-medium text-primary mb-2">
+ <label className="block text-sm font-medium text-gray-700 mb-2">
  Stato
  </label>
  <select
  value={formData.stato}
  onChange={(e) => setFormData({...formData, stato: e.target.value})}
- className="custom-select"
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
  >
- <option value="in_corso">In Corso</option>
- <option value="completata">Completata</option>
- <option value="annullata">Annullata</option>
+ <option value="in_corso">🔄 In Corso</option>
+ <option value="completata">✅ Completata</option>
+ <option value="annullata">❌ Annullata</option>
  </select>
  </div>
  </div>
- </div>
 
- <div className="flex gap-3 pt-6 border-t border-border-primary">
- <button
- type="button"
- onClick={() => setShowAddModal(false)}
- className="btn-secondary flex-1"
- >
- Annulla
- </button>
- <button
- type="submit"
- className="btn-primary flex-1"
- >
- {editingRepair ? 'Aggiorna' : 'Crea'} Riparazione
- </button>
- </div>
- </form>
+           {/* Error Message */}
+           {error && (
+             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+               {error}
+             </div>
+           )}
+
+           {/* Actions */}
+           <div className="flex justify-end space-x-3 pt-4">
+             <button
+               type="button"
+               onClick={() => setShowAddModal(false)}
+               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+             >
+               Annulla
+             </button>
+             <button
+               type="submit"
+               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+             >
+               {editingRepair ? 'Aggiorna' : 'Crea Riparazione'}
+             </button>
+           </div>
+         </form>
  </div>
  </div>
  </div>
