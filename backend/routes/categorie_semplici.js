@@ -7,7 +7,8 @@ const r = Router();
 // GET /api/categorie-semplici
 r.get('/', async (req, res) => {
   try {
-    const result = await query('SELECT id, nome FROM categorie_semplici ORDER BY nome');
+    // Escludi la categoria speciale "–" dalle liste pubbliche
+    const result = await query('SELECT id, nome FROM categorie_semplici WHERE nome != $1 ORDER BY nome', ['–']);
     res.json(result);
   } catch (error) {
     console.error('Errore GET categorie semplici:', error);
@@ -69,8 +70,40 @@ r.delete('/:id', async (req, res) => {
     );
 
     if (itemsUsingCategory[0].count > 0) {
-      return res.status(409).json({ 
-        error: `Impossibile eliminare: ci sono ${itemsUsingCategory[0].count} articoli che usano questa categoria` 
+      // Crea o ottieni la categoria speciale "–" (nessuna categoria)
+      let emptyCategoryId;
+      const emptyCategory = await query(
+        'SELECT id FROM categorie_semplici WHERE nome = $1',
+        ['–']
+      );
+      
+      if (emptyCategory.length === 0) {
+        // Crea la categoria speciale se non esiste
+        const newEmptyCategory = await query(
+          'INSERT INTO categorie_semplici (nome) VALUES ($1) RETURNING id',
+          ['–']
+        );
+        emptyCategoryId = newEmptyCategory[0].id;
+      } else {
+        emptyCategoryId = emptyCategory[0].id;
+      }
+      
+      // Sposta tutti gli articoli che usano questa categoria alla categoria "–"
+      await query(
+        'UPDATE inventario SET categoria_id = $1 WHERE categoria_id = $2',
+        [emptyCategoryId, id]
+      );
+    }
+
+    // Impedisci l'eliminazione della categoria speciale "–"
+    const categoryToDelete = await query(
+      'SELECT nome FROM categorie_semplici WHERE id = $1',
+      [id]
+    );
+    
+    if (categoryToDelete.length > 0 && categoryToDelete[0].nome === '–') {
+      return res.status(403).json({ 
+        error: 'La categoria speciale "–" non può essere eliminata' 
       });
     }
 
@@ -80,7 +113,12 @@ r.delete('/:id', async (req, res) => {
       [id]
     );
 
-    res.json({ message: 'Categoria eliminata con successo' });
+    // Messaggio di successo più informativo
+    const message = itemsUsingCategory[0].count > 0 
+      ? `Categoria eliminata con successo. ${itemsUsingCategory[0].count} articoli sono stati spostati nella categoria "nessuna categoria".`
+      : 'Categoria eliminata con successo';
+    
+    res.json({ message });
   } catch (error) {
     console.error('Errore DELETE categorie semplici:', error);
     res.status(500).json({ error: 'Errore interno del server' });
