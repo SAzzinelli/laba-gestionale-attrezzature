@@ -102,7 +102,13 @@ const Repairs = () => {
          quantita: repair.quantita || 1,
          stato: 'completata',
          note: repair.note,
-         unit_ids_json: JSON.parse(repair.unit_ids_json || '[]')
+         unit_ids_json: (() => {
+           try {
+             return JSON.parse(repair.unit_ids_json || '[]');
+           } catch (e) {
+             return [];
+           }
+         })()
        })
      });
 
