@@ -330,4 +330,43 @@ r.get('/unit/:unitId', requireAuth, requireRole('admin'), async (req, res) => {
   }
 });
 
+// GET /api/prestiti/:loanId/units (get units for specific loan) — user only
+r.get('/:loanId/units', requireAuth, async (req, res) => {
+  try {
+    const { loanId } = req.params;
+    
+    // Get loan details first to verify ownership
+    const loan = await query(`
+      SELECT p.*, u.email 
+      FROM prestiti p
+      LEFT JOIN users u ON (p.chi = (u.name || ' ' || u.surname) OR p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
+      WHERE p.id = $1
+    `, [loanId]);
+    
+    if (loan.length === 0) {
+      return res.status(404).json({ error: 'Prestito non trovato' });
+    }
+    
+    // Verify user owns this loan
+    if (loan[0].email !== req.user.email) {
+      return res.status(403).json({ error: 'Non autorizzato per questo prestito' });
+    }
+    
+    // Get units that are currently loaned for this specific loan
+    // For now, we'll get units that are 'prestato' for this inventory item
+    const units = await query(`
+      SELECT iu.*, i.nome as item_name
+      FROM inventario_unita iu
+      LEFT JOIN inventario i ON i.id = iu.inventario_id
+      WHERE iu.inventario_id = $1 AND iu.stato = 'prestato'
+      ORDER BY iu.codice_univoco
+    `, [loan[0].inventario_id]);
+    
+    res.json(units);
+  } catch (error) {
+    console.error('Errore GET loan units:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
 export default r;

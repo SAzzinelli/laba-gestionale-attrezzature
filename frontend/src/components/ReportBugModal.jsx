@@ -52,17 +52,16 @@ const ReportBugModal = ({ isOpen, onClose, onSuccess, prefillData = {} }) => {
 
   const fetchLoanUnits = async (loanId) => {
     try {
-      // For now, we'll use the inventory ID from the loan
-      // In a more complex system, we'd track specific units per loan
-      const loan = myLoans.find(l => l.id === loanId);
-      if (loan && loan.inventario_id) {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario/${loan.inventario_id}/units`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setAvailableUnits(data);
-        }
+      // Get only units that the user has on loan for this specific loan
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/${loanId}/units`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableUnits(data);
+      } else {
+        console.error('Errore caricamento unità prestito:', response.status);
+        setAvailableUnits([]);
       }
     } catch (err) {
       console.error('Errore caricamento unità:', err);
