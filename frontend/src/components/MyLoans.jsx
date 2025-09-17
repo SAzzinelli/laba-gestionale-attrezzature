@@ -190,7 +190,7 @@ const MyLoans = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Prestiti Effettuati ({loans.filter(loan => loan.stato === 'restituito').length})
+              Prestiti Completati ({loans.filter(loan => loan.stato === 'restituito').length})
             </button>
             <button
               onClick={() => setActiveTab('pending')}
@@ -287,7 +287,7 @@ const MyLoans = () => {
         {activeTab === 'completed' && (
           <>
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Prestiti Effettuati</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Prestiti Completati</h2>
             </div>
             {loans.filter(loan => loan.stato === 'restituito').length === 0 ? (
               <div className="text-center py-12">
