@@ -271,7 +271,7 @@ const UserDashboard = () => {
             </h3>
             <div className="space-y-3">
               {recentData.activeLoans.map((loan, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border-2 border-green-200 shadow-lg shadow-green-100 ring-1 ring-green-200 ring-opacity-50">
+                <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200 shadow-md shadow-green-100/30">
                   <div>
                     <p className="font-medium text-gray-900">{loan.articolo_nome || loan.oggetto_nome || 'Oggetto'}</p>
                     <p className="text-sm text-gray-600">Scadenza: {formatDate(loan.data_rientro || loan.data_fine)}</p>
