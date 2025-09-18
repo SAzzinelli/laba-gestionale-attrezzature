@@ -433,13 +433,13 @@ setError(err.message);
                   {user.corso_accademico || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    user.ruolo === 'admin' 
-                    ? 'bg-red-100 text-red-800 '
-                    : 'bg-green-100 text-green-800 '
-                  }`}>
-                    {user.ruolo === 'admin' ? 'Amministratore' : 'Utente'}
-                  </span>
+                  {user.ruolo === 'admin' ? (
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                      Amministratore
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-500">-</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                   <div className="flex flex-col sm:flex-row gap-2 justify-center items-center">
