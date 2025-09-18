@@ -88,19 +88,7 @@ const UserArea = () => {
     }
   ];
 
-  // Listener per navigazione dal footer
-  useEffect(() => {
-    const handleNavigateToSystem = () => {
-      console.log('User: Received navigateToSystem event');
-      setActiveView('sistema');
-    };
-    
-    window.addEventListener('navigateToSystem', handleNavigateToSystem);
-    
-    return () => {
-      window.removeEventListener('navigateToSystem', handleNavigateToSystem);
-    };
-  }, []);
+  // Navigation to system status removed - only admin can access
 
   const renderActiveView = () => {
     switch (activeView) {
@@ -112,8 +100,6 @@ const UserArea = () => {
         return <AvailableItems />;
       case 'report-fault':
         return <ReportFault />;
-      case 'sistema':
-        return <SystemStatus />;
       default:
         return <UserDashboard />;
     }
