@@ -427,16 +427,16 @@ const Inventory = () => {
  
  {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
- <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+ <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 md:p-6 border border-blue-200">
  <div className="flex items-center">
- <div className="p-3 bg-blue-500 rounded-xl shadow-lg">
- <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <div className="p-2 md:p-3 bg-blue-500 rounded-lg md:rounded-xl shadow-lg">
+ <svg className="w-5 h-5 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
  </svg>
  </div>
- <div className="ml-4">
- <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Totale Articoli</p>
- <p className="text-3xl font-bold text-blue-900 mt-1">{inventory.length}</p>
+ <div className="ml-2 md:ml-4">
+ <p className="text-xs md:text-sm font-semibold text-blue-700 uppercase tracking-wide">Totale Articoli</p>
+ <p className="text-xl md:text-3xl font-bold text-blue-900 mt-0.5 md:mt-1">{inventory.length}</p>
  </div>
  </div>
  </div>
