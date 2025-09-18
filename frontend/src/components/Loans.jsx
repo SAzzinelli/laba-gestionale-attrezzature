@@ -430,24 +430,24 @@ const getStatusBadge = (status) => {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                            {item.utente_nome || ''} {item.utente_cognome || ''}
+                          </h3>
+                          <p className="text-sm text-gray-500">{item.utente_email}</p>
+                        </div>
+
+                        {/* Object Info - Top Right */}
+                        <div className="text-right">
+                          <h4 className="text-lg font-semibold text-gray-900">
                             {item.oggetto_nome}
                             {item.unita_seriale && (
                               <span className="text-gray-500"> - {item.unita_seriale}</span>
                             )}
-                          </h3>
+                          </h4>
                           {item.oggetto_id && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-1">
                               ID: {item.oggetto_id}
                             </span>
                           )}
-                        </div>
-
-                        {/* User Info - Top Right */}
-                        <div className="text-right">
-                          <h4 className="text-lg font-semibold text-gray-900">
-                            {item.utente_nome || ''} {item.utente_cognome || ''}
-                          </h4>
-                          <p className="text-sm text-gray-500">{item.utente_email}</p>
                         </div>
                       </div>
                     </div>
