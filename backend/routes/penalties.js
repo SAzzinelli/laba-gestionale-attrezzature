@@ -1,7 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const { requireAuth, requireRole } = require('../middleware/auth');
-const { pool } = require('../utils/postgres');
+import { Router } from 'express';
+import { requireAuth, requireRole } from '../middleware/auth.js';
+import { pool } from '../utils/postgres.js';
+
+const router = Router();
 
 // Funzione per calcolare i giorni di ritardo
 const calculateDelayDays = (dataRientro, dataRestituzione = new Date()) => {
