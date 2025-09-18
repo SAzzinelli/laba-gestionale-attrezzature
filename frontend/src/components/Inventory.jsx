@@ -707,7 +707,7 @@ const Inventory = () => {
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-3 overflow-x-auto pb-2">
-                      {itemUnits[item.id]?.map((unit, index) => {
+{itemUnits[item.id]?.map((unit, index) => {
                       // Determina il colore della pillola in base allo stato
                       const getStatusPillColor = (stato) => {
                         switch (stato) {
@@ -955,76 +955,6 @@ const Inventory = () => {
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 mb-2">Oggetti che usano questa categoria:</p>
-                      <div className="bg-gray-50 rounded-lg p-3 max-h-32 overflow-y-auto">
-                        <ul className="text-sm text-gray-700 space-y-1">
-                          {itemsUsingCategory.map((item, index) => (
-                            <li key={index} className="flex items-center">
-                              <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
-                              {item.nome}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex items-start">
-                        <div className="flex-shrink-0">
-                          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div className="ml-3">
-                          <h4 className="text-sm font-medium text-blue-800">Cosa succederà</h4>
-                          <ul className="text-sm text-blue-700 mt-1 space-y-1">
-                            <li>• La categoria verrà rimossa definitivamente</li>
-                            <li>• Gli oggetti saranno spostati nella categoria "nessuna categoria"</li>
-                            <li>• Potrai riassegnare una categoria agli oggetti in seguito</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-gray-700">
-                      Sei sicuro di voler eliminare la categoria "<span className="font-semibold">{categoryToDelete.nome}</span>"?
-                    </p>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Questa categoria non è attualmente in uso e può essere eliminata senza problemi.
-                    </p>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                <button
-                  onClick={() => {
-                    setShowDeleteCategoryModal(false);
-                    setCategoryToDelete(null);
-                    setItemsUsingCategory([]);
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                >
-                  Annulla
-                </button>
-                <button
-                  onClick={confirmDeleteCategory}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
-                >
-                  {itemsUsingCategory.length > 0 ? 'Elimina e Sposta Oggetti' : 'Elimina Categoria'}
-                </button>
               </div>
             </div>
           </div>
