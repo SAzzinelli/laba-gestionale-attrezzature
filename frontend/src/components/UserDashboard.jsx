@@ -57,7 +57,11 @@ const UserDashboard = () => {
       // Process inventory data
       if (inventoryRes.ok) {
         const inventoryData = await inventoryRes.json();
-        setStats(prev => ({ ...prev, availableItems: inventoryData.length }));
+        // Conta le UNITÀ disponibili totali, non gli articoli
+        const totalAvailableUnits = inventoryData.reduce((total, item) => {
+          return total + (item.unita_disponibili || 0);
+        }, 0);
+        setStats(prev => ({ ...prev, availableItems: totalAvailableUnits }));
       }
 
       // Process requests data

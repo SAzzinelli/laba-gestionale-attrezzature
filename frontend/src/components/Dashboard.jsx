@@ -200,10 +200,13 @@ const Dashboard = ({ onNavigate }) => {
  alertsRes.json()
  ]);
 
- // Calcola statistiche corrette
- const activeLoans = prestitiData.filter(p => p.stato === 'attivo').length;
- const availableItems = inventoryData.filter(i => i.stato_effettivo === 'disponibile').length;
- const inRepairItems = inventoryData.filter(i => i.stato_effettivo === 'in_riparazione').length;
+// Calcola statistiche corrette
+const activeLoans = prestitiData.filter(p => p.stato === 'attivo').length;
+// Conta le UNITÀ disponibili totali, non gli articoli
+const availableItems = inventoryData.reduce((total, item) => {
+  return total + (item.quantita_disponibile || 0);
+}, 0);
+const inRepairItems = inventoryData.filter(i => i.stato_effettivo === 'in_riparazione').length;
  
  // Calcola scorte basse basate sui PRESTITI ATTIVI e sulla SCARSITÀ
  const calculateLowStockItems = () => {
@@ -500,7 +503,9 @@ const Dashboard = ({ onNavigate }) => {
                {alerts.prestiti_scaduti.slice(0, 3).map(prestito => (
                 <div key={prestito.id} className="bg-white rounded-lg p-3 border border-orange-200">
                 <div className="font-semibold text-gray-900 text-sm">
-                 {prestito.utente_nome_reale || prestito.utente_nome} {prestito.utente_cognome || ''}
+                 {prestito.utente_nome_reale && prestito.utente_cognome ? 
+                   `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
+                   prestito.utente_nome}
                 </div>
  <div className="text-orange-600 font-medium text-xs mt-1">
  {Math.floor(prestito.giorni_ritardo)} giorni di ritardo
@@ -536,7 +541,9 @@ const Dashboard = ({ onNavigate }) => {
  {alerts.scadenze_oggi.slice(0, 3).map(prestito => (
  <div key={prestito.id} className="bg-white rounded-lg p-3 border border-yellow-200">
  <div className="font-semibold text-gray-900 text-sm">
- {prestito.utente_nome} {prestito.utente_cognome}
+ {prestito.utente_nome_reale && prestito.utente_cognome ? 
+                   `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
+                   prestito.utente_nome}
  </div>
  <div className="text-yellow-600 font-medium text-xs mt-1">
  {prestito.oggetto_nome}
@@ -572,7 +579,9 @@ const Dashboard = ({ onNavigate }) => {
  {alerts.scadenze_domani.slice(0, 3).map(prestito => (
  <div key={prestito.id} className="bg-white rounded-lg p-3 border border-blue-200">
  <div className="font-semibold text-gray-900 text-sm">
- {prestito.utente_nome} {prestito.utente_cognome}
+ {prestito.utente_nome_reale && prestito.utente_cognome ? 
+                   `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
+                   prestito.utente_nome}
  </div>
  <div className="text-blue-600 font-medium text-xs mt-1">
  {prestito.oggetto_nome}
@@ -822,7 +831,9 @@ const Dashboard = ({ onNavigate }) => {
  <div>
  <h3 className="font-medium text-primary">
  {selectedAlert.type === 'scorte' ? item.nome : 
- `${item.utente_nome} ${item.utente_cognome}`}
+ item.utente_nome_reale && item.utente_cognome ? 
+                   `${item.utente_nome_reale} ${item.utente_cognome}` : 
+                   item.utente_nome}
  </h3>
  <p className="text-sm text-secondary">
  {selectedAlert.type === 'scorte' 

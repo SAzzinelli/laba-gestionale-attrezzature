@@ -99,6 +99,18 @@ console.log('ℹ️ Info penalità:', warningMessage);
 }
 }
 
+// Send approval notification to user
+window.dispatchEvent(new CustomEvent('showNotification', {
+detail: {
+type: 'success',
+data: { 
+title: 'Richiesta Approvata!', 
+body: 'La tua richiesta di noleggio è stata approvata. Puoi ritirare l\'attrezzatura.',
+icon: '/favicon.ico'
+}
+}
+}));
+
 await fetchData();
 } catch (err) {
 setError(err.message);
