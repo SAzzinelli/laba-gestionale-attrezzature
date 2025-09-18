@@ -69,6 +69,13 @@ r.get('/', requireAuth, async (req, res) => {
 // GET /api/prestiti/mie
 r.get('/mie', requireAuth, async (req, res) => {
   try {
+    console.log('User requesting loans:', {
+      id: req.user.id,
+      email: req.user.email,
+      name: req.user.name,
+      surname: req.user.surname
+    });
+    
     const result = await query(`
       SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
              i.categoria_madre, cs.nome as categoria_figlia,
@@ -77,9 +84,11 @@ r.get('/mie', requireAuth, async (req, res) => {
       LEFT JOIN inventario i ON i.id = p.inventario_id
       LEFT JOIN categorie_semplici cs ON cs.id = i.categoria_id
       LEFT JOIN richieste r ON r.id = p.richiesta_id
-      WHERE r.utente_id = $1 OR p.chi LIKE $2 OR p.chi = $3
+      WHERE r.utente_id = $1 OR p.chi LIKE $2 OR p.chi = $3 OR p.chi LIKE $4
       ORDER BY p.id DESC
-    `, [req.user.id, `%${req.user.email}%`, req.user.email]);
+    `, [req.user.id, `%${req.user.email}%`, req.user.email, `%${req.user.name} ${req.user.surname}%`]);
+    
+    console.log('Found loans for user:', result.length);
     
     // Parse JSON fields before sending to frontend
     const processedResult = result.map(item => ({
