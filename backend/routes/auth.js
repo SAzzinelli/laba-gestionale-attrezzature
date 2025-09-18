@@ -87,7 +87,7 @@ r.post('/login', async (req, res) => {
 // POST /api/auth/register
 r.post('/register', async (req, res) => {
   try {
-    const { email, password, name, surname, phone, matricola, corso_accademico } = req.body || {};
+    const { email, password, name, surname, phone, matricola, corso_accademico, ruolo } = req.body || {};
     
     if (!email || !password || !name || !surname) {
       return res.status(400).json({ error: 'Email, password, nome e cognome richiesti' });
@@ -101,11 +101,14 @@ r.post('/register', async (req, res) => {
 
     const hashedPassword = bcrypt.hashSync(password, 10);
     
+    // Valida il ruolo (solo admin può creare admin)
+    const userRole = ruolo === 'admin' ? 'admin' : 'user';
+    
     const result = await query(`
-      INSERT INTO users (email, password_hash, name, surname, phone, matricola, corso_accademico)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO users (email, password_hash, name, surname, phone, matricola, corso_accademico, ruolo)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id, email, name, surname, ruolo, corso_accademico
-    `, [email, hashedPassword, name, surname, phone || null, matricola || null, corso_accademico || null]);
+    `, [email, hashedPassword, name, surname, phone || null, matricola || null, corso_accademico || null, userRole]);
 
     const user = result[0];
     const token = signUser(user);

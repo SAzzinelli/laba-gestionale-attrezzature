@@ -742,6 +742,24 @@ setError(err.message);
  />
  </div>
 
+ <div>
+ <label className="block text-sm font-medium text-gray-700 mb-2">
+ Ruolo *
+ </label>
+ <select
+ name="ruolo"
+ value={formData.ruolo}
+ onChange={handleInputChange}
+ className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+ >
+ <option value="user">Utente</option>
+ <option value="admin">Amministratore</option>
+ </select>
+ <p className="text-xs text-gray-500 mt-1">
+ ⚠️ Gli amministratori hanno accesso completo al sistema
+ </p>
+ </div>
+
  <div className="flex justify-end space-x-3 pt-4">
  <button
  type="button"
