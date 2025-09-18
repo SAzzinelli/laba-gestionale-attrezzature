@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import StepInventoryModal from './StepInventoryModal';
 import QuickRequestModal from './QuickRequestModal';
-import NotificationsPanel from './NotificationsPanel';
-import ActivityLog from './ActivityLog';
 
 const Dashboard = ({ onNavigate }) => {
  const [stats, setStats] = useState({
@@ -27,71 +25,10 @@ const Dashboard = ({ onNavigate }) => {
  const [showAddModal, setShowAddModal] = useState(false);
  const [selectedRequest, setSelectedRequest] = useState(null);
  const [selectedAlert, setSelectedAlert] = useState(null);
- const [showNotifications, setShowNotifications] = useState(false);
- const [notifications, setNotifications] = useState([]);
-  const [showActivityLog, setShowActivityLog] = useState(false);
   const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   const [selectedPasswordRequest, setSelectedPasswordRequest] = useState(null);
   const { token, isAdmin } = useAuth();
 
- // Calculate unread notifications
- const unreadNotifications = notifications.filter(n => !n.isRead).length;
-
- // Generate real notifications based on actual data
- const generateRealNotifications = () => {
- const realNotifications = [];
- let notificationId = 1;
- 
- // Password reset requests notifications
- passwordResetRequests.forEach(request => {
- realNotifications.push({
- id: notificationId++,
- title: "Richiesta Reset Password",
- description: `${request.user_name || 'Utente sconosciuto'} ha richiesto il reset della password`,
- time: getTimeAgo(request.requested_at),
- isRead: false,
- type: "password_reset"
- });
- });
- 
- // Low stock notifications
- alerts.scorte_basse.forEach(item => {
- realNotifications.push({
- id: notificationId++,
- title: "Scorte Basse",
- description: `${item.nome}: ${item.reason}`,
- time: "Ora",
- isRead: false,
- type: "low_stock"
- });
- });
- 
- // Overdue loans notifications
- alerts.prestiti_scaduti.forEach(loan => {
- realNotifications.push({
- id: notificationId++,
- title: "Prestito Scaduto",
- description: `${loan.articolo_nome} - Scaduto da ${Math.floor((new Date() - new Date(loan.data_fine)) / (1000 * 60 * 60 * 24))} giorni`,
- time: getTimeAgo(loan.data_fine),
- isRead: false,
- type: "overdue"
- });
- });
- 
- // Today's due notifications
- alerts.scadenze_oggi.forEach(loan => {
- realNotifications.push({
- id: notificationId++,
- title: "Scadenza Oggi",
- description: `${loan.articolo_nome} deve essere restituito oggi`,
- time: "Oggi",
- isRead: false,
- type: "due_today"
- });
- });
- 
- setNotifications(realNotifications);
- };
  
   // Helper function to calculate time ago
   const getTimeAgo = (dateString) => {
@@ -312,12 +249,9 @@ const inRepairItems = inventoryData.filter(i => i.stato_effettivo === 'in_ripara
  setPasswordResetRequests(passwordResetData);
  }
 
- console.log('Dashboard - requestsData:', requestsData);
- setRecentRequests((requestsData || []).slice(0, 5));
- setRecentReports(reportsData.slice(0, 5));
-
- // Load notifications
- generateRealNotifications();
+console.log('Dashboard - requestsData:', requestsData);
+setRecentRequests((requestsData || []).slice(0, 5));
+setRecentReports(reportsData.slice(0, 5));
  } catch (err) {
  setError(err.message);
  } finally {
@@ -337,66 +271,14 @@ const inRepairItems = inventoryData.filter(i => i.stato_effettivo === 'in_ripara
  );
  }
 
- return (
- <div className="space-y-6">
- {/* Notifications Panel */}
- <NotificationsPanel
- isOpen={showNotifications}
- onClose={() => setShowNotifications(false)}
- notifications={notifications}
- onMarkAsRead={(id) => {
- setNotifications(prev => {
- const updated = prev.map(notif => 
- notif.id === id ? { ...notif, isRead: true } : notif
- );
- localStorage.setItem('dashboard-notifications', JSON.stringify(updated));
- return updated;
- });
- }}
- onDelete={(id) => {
- setNotifications(prev => {
- const updated = prev.filter(notif => notif.id !== id);
- localStorage.setItem('dashboard-notifications', JSON.stringify(updated));
- return updated;
- });
- }}
- />
+return (
+<div className="space-y-6">
  {/* Header */}
  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
  <div>
  <h1 className="text-2xl font-bold text-gray-900">Dashboard {isAdmin ? 'Amministratore' : 'Utente'}</h1>
  <p className="text-gray-600 mt-1">Panoramica del sistema di gestione attrezzature</p>
- </div>
- <div className="flex items-center space-x-3">
- {/* Notifications Bell */}
- <button
- onClick={() => setShowNotifications(true)}
- className="relative p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
- >
- <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
- </svg>
- {unreadNotifications > 0 && (
- <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium animate-bounce notification-badge-pulse">
- {unreadNotifications > 9 ? '9+' : unreadNotifications}
- </span>
- )}
- </button>
- 
-
- {/* Activity Log Button */}
- {isAdmin && (
- <button
- onClick={() => setShowActivityLog(true)}
- className="btn-secondary btn-small"
- >
- <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
- </svg>
- Log Attività
- </button>
- )}
  </div>
  </div>
  </div>
@@ -910,11 +792,6 @@ const inRepairItems = inventoryData.filter(i => i.stato_effettivo === 'in_ripara
  }}
  />
 
-    {/* Activity Log */}
-    <ActivityLog
-      isOpen={showActivityLog}
-      onClose={() => setShowActivityLog(false)}
-    />
 
     {/* Password Reset Modal */}
     {showPasswordResetModal && selectedPasswordRequest && (
