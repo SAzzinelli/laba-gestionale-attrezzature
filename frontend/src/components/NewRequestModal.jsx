@@ -130,7 +130,35 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Errore nella creazione della richiesta');
+        
+        // Handle user blocked error specially
+        if (errorData.blocked) {
+          setError(
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+                </svg>
+                <span className="font-semibold text-red-800">Account Bloccato</span>
+              </div>
+              <p className="text-red-700">{errorData.message}</p>
+              <div className="bg-red-50 border border-red-200 rounded p-3 mt-2">
+                <p className="text-sm text-red-800">
+                  <strong>Motivo:</strong> {errorData.reason}
+                </p>
+                <p className="text-sm text-red-800 mt-1">
+                  <strong>Penalità accumulate:</strong> {errorData.strikes} strike
+                </p>
+                <p className="text-sm text-red-700 mt-2 font-medium">
+                  {errorData.helpMessage}
+                </p>
+              </div>
+            </div>
+          );
+        } else {
+          throw new Error(errorData.error || 'Errore nella creazione della richiesta');
+        }
+        return;
       }
 
       // Show success notification

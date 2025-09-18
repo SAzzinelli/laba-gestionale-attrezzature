@@ -8,10 +8,13 @@ const UserManagement = () => {
  const [showAddModal, setShowAddModal] = useState(false);
  const [showEditModal, setShowEditModal] = useState(false);
  const [editingUser, setEditingUser] = useState(null);
- const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
- const [resetUser, setResetUser] = useState(null);
- const [activeTab, setActiveTab] = useState('users');
- const { token } = useAuth();
+const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
+const [resetUser, setResetUser] = useState(null);
+const [activeTab, setActiveTab] = useState('users');
+const [showPenaltyModal, setShowPenaltyModal] = useState(false);
+const [selectedUserForPenalty, setSelectedUserForPenalty] = useState(null);
+const [userPenalties, setUserPenalties] = useState([]);
+const { token } = useAuth();
 
  const [formData, setFormData] = useState({
  name: '',
@@ -214,29 +217,74 @@ const UserManagement = () => {
  }
  };
 
- const handleDeleteUser = async (userId) => {
- if (!confirm('Sei sicuro di voler eliminare questo utente?')) {
- return;
- }
+const handleDeleteUser = async (userId) => {
+if (!confirm('Sei sicuro di voler eliminare questo utente?')) {
+return;
+}
 
- try {
- const response = await fetch(`/api/auth/users/${userId}`, {
- method: 'DELETE',
- headers: {
- 'Authorization': `Bearer ${token}`
- }
- });
+try {
+const response = await fetch(`/api/auth/users/${userId}`, {
+method: 'DELETE',
+headers: {
+'Authorization': `Bearer ${token}`
+}
+});
 
- if (!response.ok) {
- const errorData = await response.json();
- throw new Error(errorData.error || 'Errore nell\'eliminazione utente');
- }
+if (!response.ok) {
+const errorData = await response.json();
+throw new Error(errorData.error || 'Errore nell\'eliminazione utente');
+}
 
- await fetchUsers();
- } catch (err) {
- setError(err.message);
- }
- };
+await fetchUsers();
+} catch (err) {
+setError(err.message);
+}
+};
+
+// Penalty management functions
+const openPenaltyModal = async (user) => {
+setSelectedUserForPenalty(user);
+setShowPenaltyModal(true);
+await fetchUserPenalties(user.id);
+};
+
+const fetchUserPenalties = async (userId) => {
+try {
+const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/penalties/user/${userId}`, {
+headers: { 'Authorization': `Bearer ${token}` }
+});
+
+if (response.ok) {
+const data = await response.json();
+setUserPenalties(data.penalties || []);
+}
+} catch (err) {
+console.error('Errore nel caricamento penalità:', err);
+}
+};
+
+const handleUnblockUser = async (userId, resetStrikes = false) => {
+try {
+const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/penalties/unblock-user`, {
+method: 'POST',
+headers: {
+'Authorization': `Bearer ${token}`,
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({ userId, resetStrikes })
+});
+
+if (!response.ok) {
+const errorData = await response.json();
+throw new Error(errorData.error || 'Errore nello sblocco utente');
+}
+
+await fetchUsers();
+setShowPenaltyModal(false);
+} catch (err) {
+setError(err.message);
+}
+};
 
  if (loading) {
  return (
@@ -334,6 +382,9 @@ const UserManagement = () => {
                 Ruolo
               </th>
               <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Penalità
+              </th>
+              <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Azioni
               </th>
             </tr>
@@ -391,6 +442,35 @@ const UserManagement = () => {
                     {user.ruolo === 'admin' ? 'Amministratore' : 'Utente'}
                   </span>
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  {user.ruolo !== 'admin' && (
+                    <div className="flex items-center justify-center gap-2">
+                      {user.penalty_strikes > 0 && (
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          user.is_blocked ? 'bg-red-100 text-red-800' :
+                          user.penalty_strikes >= 2 ? 'bg-orange-100 text-orange-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {user.penalty_strikes} Strike
+                        </span>
+                      )}
+                      {user.is_blocked && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+                          </svg>
+                          BLOCCATO
+                        </span>
+                      )}
+                      {user.penalty_strikes === 0 && !user.is_blocked && (
+                        <span className="text-xs text-gray-500">Nessuna penalità</span>
+                      )}
+                    </div>
+                  )}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                   <div className="flex flex-col sm:flex-row gap-2 justify-center items-center">
                     <button
@@ -411,6 +491,17 @@ const UserManagement = () => {
                       </svg>
                       Reset
                     </button>
+                    {user.ruolo !== 'admin' && (
+                      <button
+                        onClick={() => openPenaltyModal(user)}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 transition-colors duration-200"
+                      >
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        Penalità
+                      </button>
+                    )}
                     {user.ruolo !== 'admin' && (
                       <button
                         onClick={() => handleDeleteUser(user.id)}
@@ -867,9 +958,157 @@ const UserManagement = () => {
  </div>
  </div>
  </div>
- )}
- </div>
- );
+)}
+
+{/* Penalty Management Modal */}
+{showPenaltyModal && selectedUserForPenalty && (
+<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+<div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+<div className="flex items-center justify-between p-6 border-b border-gray-200">
+<div className="flex items-center">
+<div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+<svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+</svg>
+</div>
+<div className="ml-4">
+<h3 className="text-lg font-semibold text-gray-900">Gestione Penalità</h3>
+<p className="text-sm text-gray-600">{selectedUserForPenalty.name} {selectedUserForPenalty.surname}</p>
+</div>
+</div>
+<button
+onClick={() => setShowPenaltyModal(false)}
+className="text-gray-400 hover:text-gray-600 transition-colors"
+>
+<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+</svg>
+</button>
+</div>
+
+<div className="p-6">
+{/* User Status */}
+<div className="mb-6 p-4 bg-gray-50 rounded-lg">
+<div className="flex items-center justify-between mb-2">
+<span className="text-sm font-medium text-gray-700">Stato Attuale:</span>
+<div className="flex items-center gap-2">
+{selectedUserForPenalty.penalty_strikes > 0 && (
+<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+selectedUserForPenalty.is_blocked ? 'bg-red-100 text-red-800' :
+selectedUserForPenalty.penalty_strikes >= 2 ? 'bg-orange-100 text-orange-800' :
+'bg-yellow-100 text-yellow-800'
+}`}>
+<svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+<path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+</svg>
+{selectedUserForPenalty.penalty_strikes} Strike
+</span>
+)}
+{selectedUserForPenalty.is_blocked && (
+<span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+<svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+<path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+</svg>
+BLOCCATO
+</span>
+)}
+{selectedUserForPenalty.penalty_strikes === 0 && !selectedUserForPenalty.is_blocked && (
+<span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+<svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+<path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+</svg>
+Nessuna Penalità
+</span>
+)}
+</div>
+</div>
+{selectedUserForPenalty.is_blocked && (
+<p className="text-sm text-gray-600">
+<strong>Motivo blocco:</strong> {selectedUserForPenalty.blocked_reason || 'Non specificato'}
+</p>
+)}
+</div>
+
+{/* Penalties History */}
+<div className="mb-6">
+<h4 className="text-md font-semibold text-gray-900 mb-3">Storico Penalità</h4>
+{userPenalties.length === 0 ? (
+<div className="text-center py-8">
+<svg className="w-12 h-12 text-gray-400 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+</svg>
+<p className="text-gray-500">Nessuna penalità registrata</p>
+</div>
+) : (
+<div className="space-y-3 max-h-64 overflow-y-auto">
+{userPenalties.map((penalty) => (
+<div key={penalty.id} className="bg-white border border-gray-200 rounded-lg p-4">
+<div className="flex items-start justify-between mb-2">
+<div>
+<p className="font-medium text-gray-900">{penalty.articolo_nome}</p>
+<p className="text-sm text-gray-600">{penalty.motivo}</p>
+</div>
+<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+penalty.strike_assegnati >= 2 ? 'bg-red-100 text-red-800' :
+penalty.strike_assegnati === 1 ? 'bg-orange-100 text-orange-800' :
+'bg-yellow-100 text-yellow-800'
+}`}>
+{penalty.strike_assegnati} Strike
+</span>
+</div>
+<div className="text-xs text-gray-500 flex items-center justify-between">
+<span>Ritardo: {penalty.giorni_ritardo} giorni</span>
+<span>{new Date(penalty.created_at).toLocaleDateString('it-IT')}</span>
+</div>
+{penalty.created_by_name && (
+<div className="text-xs text-gray-500 mt-1">
+Assegnata da: {penalty.created_by_name} {penalty.created_by_surname}
+</div>
+)}
+</div>
+))}
+</div>
+)}
+</div>
+
+{/* Actions */}
+{selectedUserForPenalty.is_blocked && (
+<div className="bg-red-50 border border-red-200 rounded-lg p-4">
+<h4 className="text-md font-semibold text-red-900 mb-3">Azioni di Sblocco</h4>
+<div className="space-y-2">
+<button
+onClick={() => handleUnblockUser(selectedUserForPenalty.id, false)}
+className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+>
+Sblocca Utente (Mantieni Strike)
+</button>
+<button
+onClick={() => handleUnblockUser(selectedUserForPenalty.id, true)}
+className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+>
+Sblocca Utente e Azzera Strike
+</button>
+</div>
+<p className="text-xs text-red-700 mt-2">
+⚠️ Dopo lo sblocco, l'utente potrà nuovamente effettuare richieste di noleggio.
+</p>
+</div>
+)}
+</div>
+
+<div className="flex justify-end p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+<button
+onClick={() => setShowPenaltyModal(false)}
+className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+>
+Chiudi
+</button>
+</div>
+</div>
+</div>
+)}
+</div>
+);
 };
 
 export default UserManagement;

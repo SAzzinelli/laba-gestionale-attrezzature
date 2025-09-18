@@ -17,6 +17,7 @@ import statsRouter from "./routes/stats.js";
 import usersRouter from "./routes/users.js";
 import migrationRouter from "./routes/migration.js";
 import debugRouter from "./routes/debug.js";
+import { router as penaltiesRouter } from "./routes/penalties.js";
 import { initDatabase } from './utils/postgres.js';
 
 const app = express();
@@ -52,6 +53,7 @@ app.use("/api/segnalazioni", segnalazioniRouter);
 app.use("/api/avvisi", avvisiRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/penalties", penaltiesRouter);
 app.use("/api/migration", migrationRouter);
 
 // serve frontend build if built

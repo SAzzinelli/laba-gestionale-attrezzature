@@ -17,7 +17,8 @@ r.get('/', requireAuth, async (req, res) => {
       }
       result = await query(`
         SELECT r.*, 
-               u.name as utente_nome, u.surname as utente_cognome, u.email as utente_email, 
+               u.name as utente_nome, u.surname as utente_cognome, u.email as utente_email,
+               u.penalty_strikes, u.is_blocked, u.blocked_reason,
                i.nome as oggetto_nome, i.nome as articolo_nome
         FROM richieste r
         LEFT JOIN users u ON r.utente_id = u.id
@@ -62,6 +63,23 @@ r.get('/mie', requireAuth, async (req, res) => {
 // POST /api/richieste
 r.post('/', requireAuth, async (req, res) => {
   try {
+    // Check if user is blocked before allowing new requests
+    const userCheck = await query(`
+      SELECT penalty_strikes, is_blocked, blocked_reason
+      FROM users WHERE id = $1
+    `, [req.user.id]);
+    
+    if (userCheck.length > 0 && userCheck[0].is_blocked) {
+      return res.status(403).json({
+        error: 'Accesso negato',
+        message: 'Non puoi effettuare nuove richieste perché hai accumulato 3 o più penalità per ritardi.',
+        reason: userCheck[0].blocked_reason,
+        strikes: userCheck[0].penalty_strikes,
+        blocked: true,
+        helpMessage: 'Recati di persona per sbloccare il tuo account.'
+      });
+    }
+    
     const { unit_id, inventario_id, dal, al, motivo, note } = req.body || {};
     
     // Support both unit_id (new) and inventario_id (legacy)

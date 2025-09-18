@@ -264,7 +264,8 @@ r.get('/users', requireAuth, requireRole('admin'), async (req, res) => {
     const result = await query(`
       SELECT 
         id, email, name, surname, phone, matricola, 
-        ruolo, corso_accademico, created_at, updated_at
+        ruolo, corso_accademico, created_at, updated_at,
+        penalty_strikes, is_blocked, blocked_reason, blocked_at
       FROM users 
       ORDER BY created_at DESC
     `);

@@ -147,6 +147,28 @@ export async function initDatabase() {
       ALTER TABLE richieste ADD COLUMN IF NOT EXISTS unit_id INTEGER REFERENCES inventario_unita(id);
       ALTER TABLE riparazioni ADD COLUMN IF NOT EXISTS tipo VARCHAR(100) DEFAULT 'riparazione';
       ALTER TABLE riparazioni ADD COLUMN IF NOT EXISTS priorita VARCHAR(50) DEFAULT 'media';
+      
+      -- Sistema di penalità per ritardi
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS penalty_strikes INTEGER DEFAULT 0;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS blocked_reason TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS blocked_at TIMESTAMP;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS blocked_by INTEGER REFERENCES users(id);
+      
+      -- Tabella penalità dettagliate
+      CREATE TABLE IF NOT EXISTS user_penalties (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        prestito_id INTEGER NOT NULL REFERENCES prestiti(id) ON DELETE CASCADE,
+        tipo VARCHAR(50) DEFAULT 'ritardo',
+        giorni_ritardo INTEGER DEFAULT 0,
+        strike_assegnati INTEGER DEFAULT 1,
+        motivo TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by INTEGER REFERENCES users(id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_penalties_user ON user_penalties (user_id);
+      CREATE INDEX IF NOT EXISTS idx_penalties_prestito ON user_penalties (prestito_id);
       CREATE INDEX IF NOT EXISTS idx_segn_user ON segnalazioni (user_id);
       CREATE INDEX IF NOT EXISTS idx_segn_tipo ON segnalazioni (tipo);
       CREATE INDEX IF NOT EXISTS idx_segn_state ON segnalazioni (stato);

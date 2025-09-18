@@ -67,26 +67,43 @@ const Loans = ({ selectedRequestFromNotification, onRequestHandled }) => {
    }
  }, [selectedRequestFromNotification, requests, onRequestHandled]);
 
- const handleApprove = async (requestId) => {
- try {
- const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/${requestId}/approva`, {
- method: 'PUT',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- }
- });
+const handleApprove = async (requestId) => {
+try {
+const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/${requestId}/approva`, {
+method: 'PUT',
+headers: {
+'Authorization': `Bearer ${token}`,
+'Content-Type': 'application/json'
+}
+});
 
- if (!response.ok) {
- const errorData = await response.json();
- throw new Error(errorData.error || 'Errore nell\'approvazione');
- }
+const responseData = await response.json();
 
- await fetchData();
- } catch (err) {
- setError(err.message);
- }
- };
+if (!response.ok) {
+// Handle user blocked error specially
+if (responseData.userBlocked) {
+setError(`❌ UTENTE BLOCCATO: ${responseData.message}\n\nMotivo: ${responseData.reason}\n\nL'utente deve presentarsi di persona per sbloccare l'account.`);
+} else {
+throw new Error(responseData.error || 'Errore nell\'approvazione');
+}
+return;
+}
+
+// Show penalty warning if user has strikes
+if (responseData.penaltyInfo && responseData.penaltyInfo.hasStrikes) {
+const warningMessage = responseData.penaltyInfo.warning;
+if (responseData.penaltyInfo.strikes >= 2) {
+alert(`⚠️ ATTENZIONE PENALITÀ\n\n${warningMessage}`);
+} else {
+console.log('ℹ️ Info penalità:', warningMessage);
+}
+}
+
+await fetchData();
+} catch (err) {
+setError(err.message);
+}
+};
 
  const handleReject = async (requestId, motivazione) => {
  try {
@@ -417,9 +434,26 @@ const getStatusBadge = (status) => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <div>
-                      <p className="font-medium text-primary">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
-                      <p className="text-xs text-tertiary">{item.utente_email}</p>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-primary">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
+                          <p className="text-xs text-tertiary">{item.utente_email}</p>
+                        </div>
+                        {/* Penalty Strikes Badge */}
+                        {item.penalty_strikes > 0 && (
+                          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                            item.is_blocked ? 'bg-red-100 text-red-800' :
+                            item.penalty_strikes >= 2 ? 'bg-orange-100 text-orange-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            {item.is_blocked ? 'BLOCCATO' : `${item.penalty_strikes} Strike`}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
  </div>

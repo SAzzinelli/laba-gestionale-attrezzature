@@ -168,9 +168,9 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(404).json({ error: 'Richiesta non trovata' });
     }
     
-    // Get request details with user info
+    // Get request details with user info and penalty status
     const request = await query(`
-      SELECT r.*, u.name, u.surname, u.email 
+      SELECT r.*, u.name, u.surname, u.email, u.penalty_strikes, u.is_blocked, u.blocked_reason
       FROM richieste r 
       LEFT JOIN users u ON r.utente_id = u.id 
       WHERE r.id = $1
@@ -182,6 +182,26 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
     
     const requestData = request[0];
     const userFullName = `${requestData.name} ${requestData.surname}`.trim() || requestData.email;
+    
+    // Check if user is blocked due to penalties
+    if (requestData.is_blocked) {
+      return res.status(403).json({ 
+        error: 'Utente bloccato',
+        message: `L'utente ${userFullName} è attualmente bloccato per i noleggi.`,
+        reason: requestData.blocked_reason || 'Motivo non specificato',
+        penaltyStrikes: requestData.penalty_strikes || 0,
+        userBlocked: true
+      });
+    }
+    
+    // Check if user has penalty strikes (warning for admin)
+    const penaltyInfo = requestData.penalty_strikes > 0 ? {
+      hasStrikes: true,
+      strikes: requestData.penalty_strikes,
+      warning: requestData.penalty_strikes >= 2 ? 
+        `ATTENZIONE: L'utente ${userFullName} ha ${requestData.penalty_strikes} penalità per ritardi. Un altro ritardo comporterà il blocco automatico.` :
+        `L'utente ${userFullName} ha ${requestData.penalty_strikes} penalità per ritardi.`
+    } : { hasStrikes: false, strikes: 0 };
     
     // Create loan record
     const loanResult = await query(`
@@ -215,7 +235,8 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
     
     res.json({ 
       message: 'Richiesta approvata e prestito creato',
-      loanId: loanResult[0].id 
+      loanId: loanResult[0].id,
+      penaltyInfo: penaltyInfo
     });
   } catch (error) {
     console.error('Errore PUT approva prestito:', error);

@@ -17,6 +17,12 @@ const UserDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userPenalties, setUserPenalties] = useState({
+    strikes: 0,
+    isBlocked: false,
+    blockedReason: null,
+    penalties: []
+  });
   const [showQuickRequestModal, setShowQuickRequestModal] = useState(false);
   const [showRequestDetailModal, setShowRequestDetailModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -30,7 +36,7 @@ const UserDashboard = () => {
       setError(null);
 
       // Fetch all data in parallel
-      const [inventoryRes, requestsRes, reportsRes, loansRes] = await Promise.all([
+      const [inventoryRes, requestsRes, reportsRes, loansRes, penaltiesRes] = await Promise.all([
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario/disponibili`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
@@ -41,6 +47,9 @@ const UserDashboard = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/mie`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/penalties/user/${user.id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
@@ -71,6 +80,17 @@ const UserDashboard = () => {
         const activeLoans = loansData.filter(loan => loan.stato === 'attivo');
         setStats(prev => ({ ...prev, myLoans: activeLoans.length }));
         setRecentData(prev => ({ ...prev, activeLoans: activeLoans.slice(0, 3) }));
+      }
+
+      // Process penalties data
+      if (penaltiesRes.ok) {
+        const penaltiesData = await penaltiesRes.json();
+        setUserPenalties({
+          strikes: penaltiesData.userInfo?.penalty_strikes || 0,
+          isBlocked: penaltiesData.userInfo?.is_blocked || false,
+          blockedReason: penaltiesData.userInfo?.blocked_reason || null,
+          penalties: penaltiesData.penalties || []
+        });
       }
 
     } catch (err) {
@@ -150,6 +170,89 @@ const UserDashboard = () => {
           </button>
         </div>
       </div>
+
+      {/* Penalty Warning */}
+      {(userPenalties.strikes > 0 || userPenalties.isBlocked) && (
+        <div className={`rounded-lg shadow-sm border p-6 mb-8 ${
+          userPenalties.isBlocked ? 'bg-red-50 border-red-200' :
+          userPenalties.strikes >= 2 ? 'bg-orange-50 border-orange-200' :
+          'bg-yellow-50 border-yellow-200'
+        }`}>
+          <div className="flex items-start">
+            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              userPenalties.isBlocked ? 'bg-red-100' :
+              userPenalties.strikes >= 2 ? 'bg-orange-100' :
+              'bg-yellow-100'
+            }`}>
+              <svg className={`w-5 h-5 ${
+                userPenalties.isBlocked ? 'text-red-600' :
+                userPenalties.strikes >= 2 ? 'text-orange-600' :
+                'text-yellow-600'
+              }`} fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-4 flex-1">
+              <h3 className={`text-lg font-semibold ${
+                userPenalties.isBlocked ? 'text-red-900' :
+                userPenalties.strikes >= 2 ? 'text-orange-900' :
+                'text-yellow-900'
+              }`}>
+                {userPenalties.isBlocked ? '🚫 Account Bloccato' :
+                 userPenalties.strikes >= 2 ? '⚠️ Attenzione Penalità' :
+                 '⚠️ Penalità Ricevute'}
+              </h3>
+              <div className={`mt-2 text-sm ${
+                userPenalties.isBlocked ? 'text-red-800' :
+                userPenalties.strikes >= 2 ? 'text-orange-800' :
+                'text-yellow-800'
+              }`}>
+                {userPenalties.isBlocked ? (
+                  <div className="space-y-2">
+                    <p className="font-medium">Non puoi effettuare nuove richieste di noleggio.</p>
+                    <p><strong>Motivo:</strong> {userPenalties.blockedReason}</p>
+                    <p><strong>Penalità accumulate:</strong> {userPenalties.strikes} strike</p>
+                    <div className="mt-3 p-3 bg-red-100 rounded-lg">
+                      <p className="font-medium text-red-900">Per sbloccare il tuo account:</p>
+                      <p className="text-red-800">Recati di persona presso l'ufficio amministrativo per discutere della situazione.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p>Hai accumulato <strong>{userPenalties.strikes} strike</strong> per ritardi nella restituzione.</p>
+                    {userPenalties.strikes >= 2 && (
+                      <div className="mt-2 p-3 bg-orange-100 rounded-lg">
+                        <p className="font-medium text-orange-900">⚠️ Un altro ritardo comporterà il blocco automatico dell'account!</p>
+                        <p className="text-orange-800">Assicurati di restituire i futuri prestiti entro la data stabilita.</p>
+                      </div>
+                    )}
+                    {userPenalties.penalties.length > 0 && (
+                      <details className="mt-3">
+                        <summary className="cursor-pointer font-medium hover:underline">
+                          Visualizza storico penalità ({userPenalties.penalties.length})
+                        </summary>
+                        <div className="mt-2 space-y-2 max-h-32 overflow-y-auto">
+                          {userPenalties.penalties.slice(0, 3).map((penalty, index) => (
+                            <div key={index} className="text-xs bg-white bg-opacity-50 rounded p-2">
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium">{penalty.articolo_nome}</span>
+                                <span className="text-red-600">{penalty.strike_assegnati} strike</span>
+                              </div>
+                              <div className="text-gray-600 mt-1">
+                                {penalty.giorni_ritardo} giorni di ritardo • {new Date(penalty.created_at).toLocaleDateString('it-IT')}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
