@@ -42,18 +42,24 @@ r.get('/', requireAuth, async (req, res) => {
       `, [`%${req.user.email}%`, req.user.email]);
     }
     
-    // Debug: mostra i dati che stiamo inviando al frontend
-    if (result && result.length > 0) {
-      console.log('Sample prestito data:', {
-        id: result[0].id,
-        articolo_nome: result[0].articolo_nome,
-        unita: result[0].unita,
-        unita_type: typeof result[0].unita,
-        unita_parsed: typeof result[0].unita === 'string' ? JSON.parse(result[0].unita) : result[0].unita
+    // Parse JSON fields before sending to frontend
+    const processedResult = result.map(item => ({
+      ...item,
+      unita: typeof item.unita === 'string' ? JSON.parse(item.unita || '[]') : (item.unita || [])
+    }));
+    
+    // Debug: mostra i dati processati
+    if (processedResult && processedResult.length > 0) {
+      console.log('Processed prestito data:', {
+        id: processedResult[0].id,
+        articolo_nome: processedResult[0].articolo_nome,
+        unita: processedResult[0].unita,
+        unita_type: typeof processedResult[0].unita,
+        unita_length: processedResult[0].unita?.length
       });
     }
     
-    res.json(result || []);
+    res.json(processedResult || []);
   } catch (error) {
     console.error('Errore GET prestiti:', error);
     res.status(500).json({ error: 'Errore interno del server' });
@@ -75,7 +81,13 @@ r.get('/mie', requireAuth, async (req, res) => {
       ORDER BY p.id DESC
     `, [req.user.id, `%${req.user.email}%`, req.user.email]);
     
-    res.json(result || []);
+    // Parse JSON fields before sending to frontend
+    const processedResult = result.map(item => ({
+      ...item,
+      unita: typeof item.unita === 'string' ? JSON.parse(item.unita || '[]') : (item.unita || [])
+    }));
+    
+    res.json(processedResult || []);
   } catch (error) {
     console.error('Errore GET mie prestiti:', error);
     res.status(500).json({ error: 'Errore interno del server' });
