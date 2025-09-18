@@ -553,12 +553,11 @@ const getStatusBadge = (status) => {
  </svg>
  Termina prestito
  </button>
- )}
- </div>
- </div>
-        </div>
-      ))
-      )}
+)}
+</div>
+</div>
+     ))
+     )}
     </div>
 
     {/* Mobile Card View */}
