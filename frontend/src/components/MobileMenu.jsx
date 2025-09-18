@@ -4,21 +4,25 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ${
+    <div className={`fixed inset-0 z-40 lg:hidden overflow-hidden transition-opacity duration-300 ease-in-out ${
       isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
     }`}>
-      {/* Overlay with smooth fade animation */}
+      {/* Overlay with smooth fade animation like notifications */}
       <div 
-        className={`absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0'
+        className={`absolute inset-0 bg-black transition-all duration-300 ease-in-out ${
+          isOpen ? 'bg-opacity-50 opacity-100' : 'bg-opacity-0 opacity-0'
         }`}
         onClick={onClose}
       />
       
-      {/* Mobile Menu - Slide from bottom with fade */}
-      <div className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transform transition-all duration-300 ease-out ${
-        isOpen ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
-      }`}>
+      {/* Mobile Menu - Smooth slide from bottom with fade and shadow */}
+      <div className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transform transition-all duration-300 ease-in-out ${
+        isOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-full opacity-0 scale-95'
+      }`}
+      style={{
+        filter: isOpen ? 'blur(0px)' : 'blur(2px)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+      }}>
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
