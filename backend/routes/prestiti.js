@@ -42,14 +42,6 @@ r.get('/', requireAuth, async (req, res) => {
       `, [`%${req.user.email}%`, req.user.email]);
     }
     
-    // Debug: aggiungi log per vedere i dati
-    console.log('Prestiti result sample:', result?.[0] ? {
-      id: result[0].id,
-      articolo_nome: result[0].articolo_nome,
-      unita: result[0].unita,
-      unita_type: typeof result[0].unita
-    } : 'no results');
-    
     res.json(result || []);
   } catch (error) {
     console.error('Errore GET prestiti:', error);
@@ -82,7 +74,7 @@ r.get('/mie', requireAuth, async (req, res) => {
 // POST /api/prestiti (create) — admin only
 r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
   try {
-    const { inventario_id, chi, data_uscita, data_rientro, note = null } = req.body || {};
+    const { inventario_id, chi, data_uscita, data_rientro, note = null, unita_ids = [] } = req.body || {};
     
     if (!inventario_id || !chi || !data_uscita || !data_rientro) {
       return res.status(400).json({ error: 'campi mancanti' });
@@ -108,11 +100,28 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(400).json({ error: 'Oggetto non trovato' });
     }
     
+    // Converti unita_ids in nomi delle unità se forniti
+    let unitaNames = [];
+    if (unita_ids && unita_ids.length > 0) {
+      const unitaResult = await query(`
+        SELECT codice_univoco 
+        FROM inventario_unita 
+        WHERE id = ANY($1) AND inventario_id = $2
+      `, [unita_ids, inventario_id]);
+      
+      unitaNames = unitaResult.map(u => u.codice_univoco);
+      
+      // Verifica che tutte le unità richieste esistano
+      if (unitaNames.length !== unita_ids.length) {
+        return res.status(400).json({ error: 'Una o più unità non trovate' });
+      }
+    }
+    
     const result = await query(`
-      INSERT INTO prestiti (inventario_id, chi, data_uscita, data_rientro, note)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO prestiti (inventario_id, chi, data_uscita, data_rientro, note, unita)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
-    `, [inventario_id, chi, data_uscita, data_rientro, note]);
+    `, [inventario_id, chi, data_uscita, data_rientro, note, JSON.stringify(unitaNames)]);
     
     res.status(201).json(result[0]);
   } catch (error) {
