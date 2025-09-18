@@ -791,13 +791,13 @@ const getStatusBadge = (status) => {
  <label className="form-label">Email</label>
  <p className="text-secondary">{selectedLoan.utente_email}</p>
  </div>
- <div>
- <label className="form-label">Dal</label>
-                <p className="text-primary">{formatDate(selectedLoan.dal)}</p>
+                <div>
+                  <label className="form-label">Dal</label>
+                <p className="text-primary">{formatDate(selectedLoan.dal || selectedLoan.data_uscita)}</p>
                 </div>
                 <div>
                   <label className="form-label">Al</label>
-                  <p className="text-primary">{formatDate(selectedLoan.al)}</p>
+                  <p className="text-primary">{formatDate(selectedLoan.al || selectedLoan.data_rientro)}</p>
                 </div>
                 {selectedLoan.data_rientro && (
                   <div className="md:col-span-2">
