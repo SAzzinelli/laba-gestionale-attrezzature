@@ -481,10 +481,16 @@ const getStatusBadge = (status) => {
  <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Fine</span>
  <span className="text-primary font-semibold text-base">{formatDate(item.al || item.data_rientro)}</span>
  </div>
- {item.data_rientro && (
+ {item.stato === 'restituito' && item.data_rientro && (
  <div className="col-span-2 flex flex-col">
  <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituito</span>
  <span className="text-green-600 font-semibold text-base">{formatDate(item.data_rientro)}</span>
+ </div>
+ )}
+ {item.stato === 'attivo' && (item.al || item.data_rientro) && (
+ <div className="col-span-2 flex flex-col">
+ <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituirà il</span>
+ <span className="text-orange-600 font-semibold text-base">{formatDate(item.al || item.data_rientro)}</span>
  </div>
  )}
  </div>
@@ -604,10 +610,16 @@ const getStatusBadge = (status) => {
                   <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Fine</span>
                   <span className="text-primary font-semibold text-base">{formatDate(item.al || item.data_rientro)}</span>
                 </div>
-                {item.data_rientro && (
+                {item.stato === 'restituito' && item.data_rientro && (
                   <div className="col-span-2 flex flex-col">
                     <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituito</span>
                     <span className="text-green-600 font-semibold text-base">{formatDate(item.data_rientro)}</span>
+                  </div>
+                )}
+                {item.stato === 'attivo' && (item.al || item.data_rientro) && (
+                  <div className="col-span-2 flex flex-col">
+                    <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituirà il</span>
+                    <span className="text-orange-600 font-semibold text-base">{formatDate(item.al || item.data_rientro)}</span>
                   </div>
                 )}
               </div>
