@@ -533,8 +533,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 99999;
+  z-index: 999999;
   padding: 1rem;
+  /* Ensure it covers everything */
+  width: 100vw;
+  height: 100vh;
 }
 
 .modal-content {
@@ -546,6 +549,8 @@ body {
   overflow: hidden;
   width: 100%;
   max-width: 64rem;
+  position: relative;
+  z-index: 1000000;
 }
 
 .modal-header {
