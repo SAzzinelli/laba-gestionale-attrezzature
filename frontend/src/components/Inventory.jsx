@@ -959,11 +959,6 @@ const Inventory = () => {
             </div>
           </div>
         )}
-
-        {/* Delete Category Confirmation Modal */}
-        {showDeleteCategoryModal && categoryToDelete && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999] p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
@@ -1070,6 +1065,98 @@ const Inventory = () => {
                 >
                   {itemsUsingCategory.length > 0 ? 'Elimina e Sposta Oggetti' : 'Elimina Categoria'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Category Confirmation Modal - Outside of other modals */}
+        {showDeleteCategoryModal && categoryToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{zIndex: 999999}}>
+            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full" style={{zIndex: 1000000}}>
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Elimina Categoria</h3>
+                    <p className="text-sm text-gray-600">Questa azione non può essere annullata</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDeleteCategoryModal(false);
+                    setCategoryToDelete(null);
+                    setItemsUsingCategory([]);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="p-6">
+                {itemsUsingCategory.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <h4 className="text-sm font-medium text-amber-800">Attenzione</h4>
+                          <p className="text-sm text-amber-700 mt-1">
+                            La categoria "{categoryToDelete.nome}" è utilizzata da {itemsUsingCategory.length} elemento/i dell'inventario.
+                            Eliminando questa categoria, tutti gli elementi verranno spostati in "Nessuna categoria".
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h5 className="text-sm font-medium text-gray-900 mb-2">Elementi che utilizzano questa categoria:</h5>
+                      <div className="bg-gray-50 rounded-lg p-3 max-h-32 overflow-y-auto">
+                        <ul className="space-y-1">
+                          {itemsUsingCategory.map(item => (
+                            <li key={item.id} className="text-sm text-gray-700">
+                              • {item.nome}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-600">
+                    Sei sicuro di voler eliminare la categoria "{categoryToDelete.nome}"?
+                  </p>
+                )}
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowDeleteCategoryModal(false);
+                      setCategoryToDelete(null);
+                      setItemsUsingCategory([]);
+                    }}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Annulla
+                  </button>
+                  <button
+                    onClick={confirmDeleteCategory}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    {itemsUsingCategory.length > 0 ? 'Elimina e Sposta' : 'Elimina'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
