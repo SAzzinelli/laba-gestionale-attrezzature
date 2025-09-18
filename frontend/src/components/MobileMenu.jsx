@@ -25,11 +25,14 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
+            <div 
+              className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => {
+                onNavigate('dashboard');
+                onClose();
+              }}
+            >
               <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
-              <div className="ml-3">
-                <p className="text-sm font-semibold text-gray-900">Gestione Attrezzature</p>
-              </div>
             </div>
             <button
               onClick={onClose}

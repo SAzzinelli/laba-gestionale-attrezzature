@@ -124,11 +124,11 @@ const UserArea = () => {
         {/* Mobile Header */}
         <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 z-30">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
+            <div 
+              className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => setActiveView('dashboard')}
+            >
               <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
-              <div className="ml-3">
-                <p className="text-sm font-semibold text-gray-900">Gestione Attrezzature</p>
-              </div>
             </div>
             <button
               onClick={() => setMobileMenuOpen(true)}
@@ -144,11 +144,11 @@ const UserArea = () => {
         {/* Sidebar Desktop - Completely hidden on mobile */}
         <div className="sidebar-desktop hidden lg:flex lg:flex-col lg:w-64 bg-white sidebar border-r border-gray-200">
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <div className="flex items-center">
+            <div 
+              className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => setActiveView('dashboard')}
+            >
               <img src="/logoSito.svg" alt="LABA Logo" className="h-12 w-auto" />
-              <div className="ml-3">
-                <p className="text-sm text-gray-600">Gestione Attrezzature</p>
-              </div>
             </div>
           </div>
           

@@ -258,9 +258,11 @@ function AppInner() {
  <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)}></div>
  <div className="relative flex flex-col w-64 h-full bg-white shadow-xl border-r border-gray-200">
  <div className="flex items-center justify-between p-4 border-b">
- <div className="flex items-center">
+ <div 
+   className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+   onClick={() => handleTabChange('dashboard')}
+ >
  <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
-              <span className="ml-2 text-xl font-bold text-gray-800">Service</span>
  </div>
  <button 
  onClick={() => setSidebarOpen(false)}
@@ -303,11 +305,11 @@ function AppInner() {
         {isAdmin && (
           <div className="sidebar-desktop hidden lg:flex lg:flex-col lg:w-64 bg-white sidebar border-r border-gray-200">
  <div className="flex items-center justify-between p-6 border-b border-gray-200">
- <div className="flex items-center">
+ <div 
+   className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+   onClick={() => handleTabChange('dashboard')}
+ >
  <img src="/logoSito.svg" alt="LABA Logo" className="h-12 w-auto" />
- <div className="ml-3">
- <p className="text-sm text-gray-600">Service</p>
- </div>
  </div>
  {/* Theme toggle removed */}
             </div>
@@ -372,8 +374,10 @@ function AppInner() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h1 className="text-lg font-semibold text-gray-800">LABA Service</h1>
-        <div className="flex items-center space-x-2">
+        <div 
+          className="cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => handleTabChange('dashboard')}
+        >
           <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
         </div>
       </div>
@@ -383,7 +387,6 @@ function AppInner() {
         <div className="hidden lg:block bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">Service</h1>
             </div>
             <div className="flex items-center space-x-4">
               {/* Notifications Bell */}
@@ -413,7 +416,6 @@ function AppInner() {
      <div className="hidden lg:block bg-white border-b border-gray-200 px-6 py-4">
        <div className="flex items-center justify-between">
          <div className="flex items-center space-x-4">
-           <h1 className="text-xl font-semibold text-gray-900">Service</h1>
          </div>
          <div className="flex items-center space-x-4">
            {/* Notifications Bell */}
