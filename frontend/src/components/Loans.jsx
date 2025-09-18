@@ -420,143 +420,171 @@ const getStatusBadge = (status) => {
         </div>
       ) : (
         filteredData.map(item => (
-          <div
-            key={item.id}
-            className="card card-clickable"
-            onClick={() => setSelectedLoan(item)}
-          >
-            <div className="flex items-center justify-between w-full">
-              {/* Left section - Object info */}
-              <div className="flex items-center gap-4 flex-1">
-                <div className="flex-shrink-0">
-                  <h3 className="text-lg font-semibold text-primary">{item.oggetto_nome}</h3>
-                  {item.oggetto_id && (
-                    <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full mt-1 inline-block">
-                      ID: {item.oggetto_id}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Center section - User info */}
-              <div className="flex items-center gap-3 flex-1 justify-center">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <div className="text-center">
-                  <p className="font-medium text-primary text-sm">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
-                  <p className="text-xs text-tertiary">{item.utente_email}</p>
-                </div>
-                {/* Penalty Strikes Badge */}
-                {item.penalty_strikes > 0 && (
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                    item.is_blocked ? 'bg-red-100 text-red-800' :
-                    item.penalty_strikes >= 2 ? 'bg-orange-100 text-orange-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {item.is_blocked ? 'BLOCCATO' : `${item.penalty_strikes} Strike`}
+          <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
+            {/* Card Header */}
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        {item.oggetto_nome}
+                      </h3>
+                      {item.oggetto_id && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          ID: {item.oggetto_id}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Status Badge */}
+                    <div className="flex items-center gap-2">
+                      {item.penalty_strikes > 0 && (
+                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                          item.is_blocked ? 'bg-red-100 text-red-800' :
+                          item.penalty_strikes >= 2 ? 'bg-orange-100 text-orange-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {item.is_blocked ? 'BLOCCATO' : `${item.penalty_strikes} Strike`}
+                        </div>
+                      )}
+                      {getStatusBadge(item.stato)}
+                    </div>
                   </div>
-                )}
-              </div>
-
-              {/* Right section - Dates and status */}
-              <div className="flex items-center gap-4 flex-1 justify-end">
-                <div className="text-right">
-                  <div className="text-xs text-tertiary uppercase tracking-wide">Dal</div>
-                  <div className="text-sm font-medium text-primary">{formatDate(item.dal || item.data_uscita)}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-tertiary uppercase tracking-wide">Al</div>
-                  <div className="text-sm font-medium text-primary">{formatDate(item.al || item.data_rientro)}</div>
-                </div>
-                <div className="flex-shrink-0">
-                  {getStatusBadge(item.stato)}
                 </div>
               </div>
             </div>
- 
- <div className="bg-gray-50 rounded-lg p-4">
- <div className="grid grid-cols-2 gap-4 text-sm">
- <div className="flex flex-col">
- <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Inizio</span>
- <span className="text-primary font-semibold text-base">{formatDate(item.dal || item.data_uscita)}</span>
- </div>
- <div className="flex flex-col">
- <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Fine</span>
- <span className="text-primary font-semibold text-base">{formatDate(item.al || item.data_rientro)}</span>
- </div>
- {item.stato === 'restituito' && item.data_rientro && (
- <div className="col-span-2 flex flex-col">
- <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituito</span>
- <span className="text-green-600 font-semibold text-base">{formatDate(item.data_rientro)}</span>
- </div>
- )}
- {item.stato === 'attivo' && (item.al || item.data_rientro) && (
- <div className="col-span-2 flex flex-col">
- <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituirà il</span>
- <span className="text-orange-600 font-semibold text-base">{formatDate(item.al || item.data_rientro)}</span>
- </div>
- )}
- </div>
- </div>
 
- {/* Action Buttons */}
- <div className="flex justify-between items-center pt-2 border-t border-primary">
- {activeTab === 'pending' && (
- <div className="flex gap-2">
- <button
- onClick={(e) => {
- e.stopPropagation();
- handleApprove(item.id);
- }}
- className="btn-success btn-small"
- >
- <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
- </svg>
- Approva
- </button>
- <button
- onClick={(e) => {
- e.stopPropagation();
- openRejectModal(item.id);
- }}
- className="btn-danger btn-small"
- >
- <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
- </svg>
- Rifiuta
- </button>
- </div>
- )}
- 
- {activeTab === 'active' && item.stato === 'attivo' && (
- <button
- onClick={(e) => {
- e.stopPropagation();
- if (canTerminateLoan(item)) {
-   handleReturn(item.id);
- }
- }}
- disabled={!canTerminateLoan(item)}
- className={`btn-small ${canTerminateLoan(item) ? 'btn-success' : 'btn-secondary opacity-50 cursor-not-allowed'}`}
- title={getTerminateButtonTooltip(item)}
- >
- <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
- </svg>
- Termina prestito
- </button>
-)}
-</div>
-</div>
-     ))
+            {/* Card Body */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* User Info */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
+                    <p className="text-sm text-gray-500">{item.utente_email}</p>
+                  </div>
+                </div>
+
+                {/* Date Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Dal</p>
+                    <p className="text-sm font-semibold text-gray-900">{formatDate(item.dal || item.data_uscita)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Al</p>
+                    <p className="text-sm font-semibold text-gray-900">{formatDate(item.al || item.data_rientro)}</p>
+                  </div>
+                </div>
+
+                {/* Return Info */}
+                {item.stato === 'restituito' && item.data_rientro && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Restituito</p>
+                    <p className="text-sm font-semibold text-green-600">{formatDate(item.data_rientro)}</p>
+                  </div>
+                )}
+                {item.stato === 'attivo' && (item.al || item.data_rientro) && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Restituirà il</p>
+                    <p className="text-sm font-semibold text-orange-600">{formatDate(item.al || item.data_rientro)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Card Footer - Actions */}
+            {(activeTab === 'pending' || (activeTab === 'active' && item.stato === 'attivo')) && (
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setSelectedLoan(item)}
+                    className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                  >
+                    Visualizza Dettagli
+                  </button>
+                  
+                  <div className="flex items-center gap-2">
+                    {activeTab === 'pending' && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleApprove(item.id);
+                          }}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors"
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Approva
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openRejectModal(item.id);
+                          }}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Rifiuta
+                        </button>
+                      </>
+                    )}
+                    
+                    {activeTab === 'active' && item.stato === 'attivo' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (canTerminateLoan(item)) {
+                            handleReturn(item.id);
+                          }
+                        }}
+                        disabled={!canTerminateLoan(item)}
+                        className={`inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors ${
+                          canTerminateLoan(item) 
+                            ? 'text-white bg-green-600 hover:bg-green-700' 
+                            : 'text-gray-400 bg-gray-200 cursor-not-allowed'
+                        }`}
+                        title={getTerminateButtonTooltip(item)}
+                      >
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                        Termina prestito
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* For completed loans, just show details button */}
+            {activeTab === 'processed' && (
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setSelectedLoan(item)}
+                    className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                  >
+                    Visualizza Dettagli
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))
      )}
     </div>
 
