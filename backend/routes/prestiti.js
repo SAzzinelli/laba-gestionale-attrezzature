@@ -42,6 +42,14 @@ r.get('/', requireAuth, async (req, res) => {
       `, [`%${req.user.email}%`, req.user.email]);
     }
     
+    // Debug: aggiungi log per vedere i dati
+    console.log('Prestiti result sample:', result?.[0] ? {
+      id: result[0].id,
+      articolo_nome: result[0].articolo_nome,
+      unita: result[0].unita,
+      unita_type: typeof result[0].unita
+    } : 'no results');
+    
     res.json(result || []);
   } catch (error) {
     console.error('Errore GET prestiti:', error);
