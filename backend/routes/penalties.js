@@ -289,4 +289,5 @@ router.get('/stats', requireAuth, requireRole('admin'), async (req, res) => {
   }
 });
 
-module.exports = { router, assignPenalty, calculateDelayDays, calculateStrikes };
+export { router, assignPenalty, calculateDelayDays, calculateStrikes };
+export default router;
