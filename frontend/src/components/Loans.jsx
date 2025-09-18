@@ -205,14 +205,15 @@ setError(err.message);
  }
 
  // Apply search filter
-if (searchTerm) {
-  data = data.filter(item =>
-    item.oggetto_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.utente_nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.utente_cognome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.utente_email || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
-}
+  if (searchTerm) {
+    data = data.filter(item =>
+      (item.articolo_nome || item.oggetto_nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.unita_seriale || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.utente_nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.utente_cognome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.utente_email || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
 
  return data;
  };
@@ -430,7 +431,7 @@ const getStatusBadge = (status) => {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                            {item.oggetto_nome}
+                            {item.articolo_nome || item.oggetto_nome}
                             {item.unita_seriale && (
                               <span className="text-gray-500"> - {item.unita_seriale}</span>
                             )}
@@ -636,7 +637,12 @@ const getStatusBadge = (status) => {
 
             {/* Object Info */}
             <div className="mb-4">
-              <h3 className="text-lg font-semibold text-primary mb-2">{item.oggetto_nome}</h3>
+              <h3 className="text-lg font-semibold text-primary mb-2">
+                {item.articolo_nome || item.oggetto_nome}
+                {item.unita_seriale && (
+                  <span className="text-gray-500"> - {item.unita_seriale}</span>
+                )}
+              </h3>
               {item.oggetto_id && (
                 <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full">
                   ID: {item.oggetto_id}
@@ -737,7 +743,10 @@ const getStatusBadge = (status) => {
 <div className="modal-overlay" onClick={() => setSelectedLoan(null)}>
 <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{maxWidth: '48rem', width: '95vw'}}>
  <div className="modal-header">
- <h2 className="text-xl font-bold text-primary">Dettagli {selectedLoan.oggetto_nome}</h2>
+ <h2 className="text-xl font-bold text-primary">
+   Dettagli {selectedLoan.articolo_nome || selectedLoan.oggetto_nome}
+   {selectedLoan.unita_seriale && ` - ${selectedLoan.unita_seriale}`}
+ </h2>
  <button
  onClick={() => setSelectedLoan(null)}
  className="text-muted hover:text-primary"

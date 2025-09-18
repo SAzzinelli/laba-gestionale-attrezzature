@@ -22,9 +22,12 @@ r.get('/', requireAuth, async (req, res) => {
       result = await query(`
         SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
                u.name AS utente_nome, u.surname AS utente_cognome, u.email AS utente_email,
-               r.dal, r.al, r.note AS richiesta_note
+               u.penalty_strikes, u.is_blocked, u.blocked_reason,
+               r.dal, r.al, r.note AS richiesta_note,
+               iu.seriale AS unita_seriale, iu.id AS oggetto_id
         FROM prestiti p
         LEFT JOIN inventario i ON i.id = p.inventario_id
+        LEFT JOIN inventario_unita iu ON iu.id = p.inventario_unita_id
         LEFT JOIN users u ON (p.chi = (u.name || ' ' || u.surname) OR p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
         LEFT JOIN richieste r ON r.id = p.richiesta_id
         ORDER BY p.id DESC
@@ -32,9 +35,11 @@ r.get('/', requireAuth, async (req, res) => {
     } else {
       result = await query(`
         SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
-               i.categoria_madre, cs.nome as categoria_figlia
+               i.categoria_madre, cs.nome as categoria_figlia,
+               iu.seriale AS unita_seriale, iu.id AS oggetto_id
         FROM prestiti p
         LEFT JOIN inventario i ON i.id = p.inventario_id
+        LEFT JOIN inventario_unita iu ON iu.id = p.inventario_unita_id
         LEFT JOIN categorie_semplici cs ON cs.id = i.categoria_id
         WHERE p.chi LIKE $1 OR p.chi = $2
         ORDER BY p.id DESC
@@ -54,9 +59,11 @@ r.get('/mie', requireAuth, async (req, res) => {
     const result = await query(`
       SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
              i.categoria_madre, cs.nome as categoria_figlia,
-             p.data_uscita AS data_inizio, p.data_rientro AS data_fine
+             p.data_uscita AS data_inizio, p.data_rientro AS data_fine,
+             iu.seriale AS unita_seriale, iu.id AS oggetto_id
       FROM prestiti p
       LEFT JOIN inventario i ON i.id = p.inventario_id
+      LEFT JOIN inventario_unita iu ON iu.id = p.inventario_unita_id
       LEFT JOIN categorie_semplici cs ON cs.id = i.categoria_id
       LEFT JOIN richieste r ON r.id = p.richiesta_id
       WHERE r.utente_id = $1 OR p.chi LIKE $2 OR p.chi = $3
