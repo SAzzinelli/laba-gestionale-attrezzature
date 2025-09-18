@@ -366,6 +366,12 @@ function AppInner() {
     <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
       {/* Top Bar Mobile */}
       <div className="lg:hidden header px-4 py-3 flex items-center justify-between">
+        <div 
+          className="cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => handleTabChange('dashboard')}
+        >
+          <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
+        </div>
         <button 
           onClick={() => setMobileMenuOpen(true)}
           className="p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 ease-in-out hover:scale-105"
@@ -374,12 +380,6 @@ function AppInner() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <div 
-          className="cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => handleTabChange('dashboard')}
-        >
-          <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
-        </div>
       </div>
 
       {/* Top Bar Desktop - For Users */}
