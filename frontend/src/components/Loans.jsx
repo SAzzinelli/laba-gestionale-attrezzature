@@ -430,24 +430,24 @@ const getStatusBadge = (status) => {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                            {item.utente_nome || ''} {item.utente_cognome || ''}
-                          </h3>
-                          <p className="text-sm text-gray-500">{item.utente_email}</p>
-                        </div>
-                        
-                        {/* Object Info - Top Right */}
-                        <div className="text-right">
-                          <h4 className="text-lg font-semibold text-gray-900">
                             {item.oggetto_nome}
                             {item.unita_seriale && (
                               <span className="text-gray-500"> - {item.unita_seriale}</span>
                             )}
-                          </h4>
+                          </h3>
                           {item.oggetto_id && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-1">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                               ID: {item.oggetto_id}
                             </span>
                           )}
+                        </div>
+
+                        {/* User Info - Top Right */}
+                        <div className="text-right">
+                          <h4 className="text-lg font-semibold text-gray-900">
+                            {item.utente_nome || ''} {item.utente_cognome || ''}
+                          </h4>
+                          <p className="text-sm text-gray-500">{item.utente_email}</p>
                         </div>
                       </div>
                     </div>
@@ -475,7 +475,20 @@ const getStatusBadge = (status) => {
 
             {/* Card Body */}
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* User Info */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
+                    <p className="text-sm text-gray-500">{item.utente_email}</p>
+                  </div>
+                </div>
+
                 {/* Date Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
