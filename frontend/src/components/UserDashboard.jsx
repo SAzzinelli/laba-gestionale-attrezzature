@@ -393,7 +393,7 @@ function StatCard({ title, value }) {
         </div>
         <div className="ml-4 flex-1 min-w-0">
           <p className="kpi-label text-gray-600 font-semibold">{title}</p>
-          <p className="kpi-value text-gray-900">{value}</p>
+          <p className="kpi-value text-gray-900">{typeof value === 'number' ? value : parseInt(value) || 0}</p>
         </div>
       </div>
     </div>
