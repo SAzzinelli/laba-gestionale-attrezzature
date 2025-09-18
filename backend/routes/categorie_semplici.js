@@ -7,8 +7,8 @@ const r = Router();
 // GET /api/categorie-semplici
 r.get('/', async (req, res) => {
   try {
-    // Escludi la categoria speciale "–" dalle liste pubbliche
-    const result = await query('SELECT id, nome FROM categorie_semplici WHERE nome != $1 ORDER BY nome', ['–']);
+    // Escludi la categoria speciale "Nessuna categoria" dalle liste pubbliche
+    const result = await query('SELECT id, nome FROM categorie_semplici WHERE nome != $1 ORDER BY nome', ['Nessuna categoria']);
     res.json(result);
   } catch (error) {
     console.error('Errore GET categorie semplici:', error);
@@ -70,40 +70,40 @@ r.delete('/:id', async (req, res) => {
     );
 
     if (itemsUsingCategory[0].count > 0) {
-      // Crea o ottieni la categoria speciale "–" (nessuna categoria)
+      // Crea o ottieni la categoria speciale "Nessuna categoria"
       let emptyCategoryId;
       const emptyCategory = await query(
         'SELECT id FROM categorie_semplici WHERE nome = $1',
-        ['–']
+        ['Nessuna categoria']
       );
       
       if (emptyCategory.length === 0) {
         // Crea la categoria speciale se non esiste
         const newEmptyCategory = await query(
           'INSERT INTO categorie_semplici (nome) VALUES ($1) RETURNING id',
-          ['–']
+          ['Nessuna categoria']
         );
         emptyCategoryId = newEmptyCategory[0].id;
       } else {
         emptyCategoryId = emptyCategory[0].id;
       }
       
-      // Sposta tutti gli articoli che usano questa categoria alla categoria "–"
+      // Sposta tutti gli articoli che usano questa categoria alla categoria "Nessuna categoria"
       await query(
         'UPDATE inventario SET categoria_id = $1 WHERE categoria_id = $2',
         [emptyCategoryId, id]
       );
     }
 
-    // Impedisci l'eliminazione della categoria speciale "–"
+    // Impedisci l'eliminazione della categoria speciale "Nessuna categoria"
     const categoryToDelete = await query(
       'SELECT nome FROM categorie_semplici WHERE id = $1',
       [id]
     );
     
-    if (categoryToDelete.length > 0 && categoryToDelete[0].nome === '–') {
+    if (categoryToDelete.length > 0 && categoryToDelete[0].nome === 'Nessuna categoria') {
       return res.status(403).json({ 
-        error: 'La categoria speciale "–" non può essere eliminata' 
+        error: 'La categoria speciale "Nessuna categoria" non può essere eliminata' 
       });
     }
 

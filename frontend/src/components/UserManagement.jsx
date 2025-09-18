@@ -23,7 +23,8 @@ const { token } = useAuth();
  matricola: '',
  corso_accademico: '',
  phone: '',
- password: ''
+ password: '',
+ ruolo: 'user'
  });
 
  const [resetData, setResetData] = useState({
@@ -125,7 +126,8 @@ const { token } = useAuth();
  matricola: '',
  corso_accademico: '',
  phone: '',
- password: ''
+ password: '',
+ ruolo: 'user'
  });
  } catch (err) {
  setError(err.message);

@@ -4,18 +4,20 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-40 lg:hidden">
-      {/* Overlay - Simple fade */}
+    <div className={`fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ${
+      isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+    }`}>
+      {/* Overlay with fade */}
       <div 
-        className={`absolute inset-0 bg-black transition-opacity duration-300 ${
-          isOpen ? 'opacity-50' : 'opacity-0'
+        className={`absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ${
+          isOpen ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}
       />
       
-      {/* Mobile Menu - Simple slide up */}
-      <div className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl transform transition-transform duration-300 ease-out ${
-        isOpen ? 'translate-y-0' : 'translate-y-full'
+      {/* Mobile Menu - Slide from right like notifications */}
+      <div className={`absolute right-0 top-0 h-full w-80 bg-white shadow-xl transform transition-all duration-300 ease-in-out ${
+        isOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}>
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-2">
