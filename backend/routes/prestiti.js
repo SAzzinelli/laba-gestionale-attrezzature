@@ -42,6 +42,17 @@ r.get('/', requireAuth, async (req, res) => {
       `, [`%${req.user.email}%`, req.user.email]);
     }
     
+    // Debug: mostra i dati che stiamo inviando al frontend
+    if (result && result.length > 0) {
+      console.log('Sample prestito data:', {
+        id: result[0].id,
+        articolo_nome: result[0].articolo_nome,
+        unita: result[0].unita,
+        unita_type: typeof result[0].unita,
+        unita_parsed: typeof result[0].unita === 'string' ? JSON.parse(result[0].unita) : result[0].unita
+      });
+    }
+    
     res.json(result || []);
   } catch (error) {
     console.error('Errore GET prestiti:', error);
