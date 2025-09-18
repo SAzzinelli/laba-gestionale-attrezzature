@@ -103,17 +103,20 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     // Converti unita_ids in nomi delle unità se forniti
     let unitaNames = [];
     if (unita_ids && unita_ids.length > 0) {
+      console.log('Received unita_ids:', unita_ids, 'for inventario_id:', inventario_id);
+      
       const unitaResult = await query(`
         SELECT codice_univoco 
         FROM inventario_unita 
-        WHERE id = ANY($1) AND inventario_id = $2
-      `, [unita_ids, inventario_id]);
+        WHERE id = ANY($1)
+      `, [unita_ids]);
       
+      console.log('Found units:', unitaResult);
       unitaNames = unitaResult.map(u => u.codice_univoco);
       
       // Verifica che tutte le unità richieste esistano
       if (unitaNames.length !== unita_ids.length) {
-        return res.status(400).json({ error: 'Una o più unità non trovate' });
+        return res.status(400).json({ error: `Una o più unità non trovate. Richieste: ${unita_ids.length}, Trovate: ${unitaNames.length}` });
       }
     }
     
