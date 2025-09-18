@@ -23,7 +23,7 @@ const MyLoans = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
-–
+
       if (!loansRes.ok) throw new Error('Errore nel caricamento prestiti');
       if (!requestsRes.ok) throw new Error('Errore nel caricamento richieste');
 
