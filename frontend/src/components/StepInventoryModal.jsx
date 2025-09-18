@@ -246,7 +246,7 @@ const canProceed = () => {
 
  return (
  <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && handleClose()}>
- <div className="modal-content max-w-2xl h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+ <div className="modal-content h-[90vh] flex flex-col" style={{ maxWidth: '42rem', width: '90vw' }} onClick={(e) => e.stopPropagation()}>
  <div className="modal-header">
  <div>
  <h2 className="text-lg font-semibold text-primary">
