@@ -401,9 +401,9 @@ const getStatusBadge = (status) => {
  </div>
 
     {/* Desktop Grid View */}
-    <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="hidden lg:block space-y-4">
       {filteredData.length === 0 ? (
-        <div className="md:col-span-2 lg:col-span-3 xl:col-span-4">
+        <div>
           <div className="card text-center py-12">
             <div className="text-muted text-lg mb-2">
               <svg className="icon-lg mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -425,51 +425,60 @@ const getStatusBadge = (status) => {
             className="card card-clickable"
             onClick={() => setSelectedLoan(item)}
           >
-            <div className="flex flex-col gap-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="text-lg font-semibold text-primary">{item.oggetto_nome}</h3>
-                      {item.oggetto_id && (
-                        <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full">
-                          ID: {item.oggetto_id}
-                        </span>
-                      )}
-                    </div>
-                    {getStatusBadge(item.stato)}
+            <div className="flex items-center justify-between w-full">
+              {/* Left section - Object info */}
+              <div className="flex items-center gap-4 flex-1">
+                <div className="flex-shrink-0">
+                  <h3 className="text-lg font-semibold text-primary">{item.oggetto_nome}</h3>
+                  {item.oggetto_id && (
+                    <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full mt-1 inline-block">
+                      ID: {item.oggetto_id}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Center section - User info */}
+              <div className="flex items-center gap-3 flex-1 justify-center">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <p className="font-medium text-primary text-sm">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
+                  <p className="text-xs text-tertiary">{item.utente_email}</p>
+                </div>
+                {/* Penalty Strikes Badge */}
+                {item.penalty_strikes > 0 && (
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                    item.is_blocked ? 'bg-red-100 text-red-800' :
+                    item.penalty_strikes >= 2 ? 'bg-orange-100 text-orange-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {item.is_blocked ? 'BLOCCATO' : `${item.penalty_strikes} Strike`}
                   </div>
-                  
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-primary">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
-                          <p className="text-xs text-tertiary">{item.utente_email}</p>
-                        </div>
-                        {/* Penalty Strikes Badge */}
-                        {item.penalty_strikes > 0 && (
-                          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                            item.is_blocked ? 'bg-red-100 text-red-800' :
-                            item.penalty_strikes >= 2 ? 'bg-orange-100 text-orange-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                            {item.is_blocked ? 'BLOCCATO' : `${item.penalty_strikes} Strike`}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
- </div>
- </div>
+                )}
+              </div>
+
+              {/* Right section - Dates and status */}
+              <div className="flex items-center gap-4 flex-1 justify-end">
+                <div className="text-right">
+                  <div className="text-xs text-tertiary uppercase tracking-wide">Dal</div>
+                  <div className="text-sm font-medium text-primary">{formatDate(item.dal || item.data_uscita)}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-tertiary uppercase tracking-wide">Al</div>
+                  <div className="text-sm font-medium text-primary">{formatDate(item.al || item.data_rientro)}</div>
+                </div>
+                <div className="flex-shrink-0">
+                  {getStatusBadge(item.stato)}
+                </div>
+              </div>
+            </div>
  
  <div className="bg-gray-50 rounded-lg p-4">
  <div className="grid grid-cols-2 gap-4 text-sm">

@@ -441,48 +441,48 @@ const Inventory = () => {
  </div>
  </div>
 
- <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+ <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 md:p-6 border border-green-200">
  <div className="flex items-center">
- <div className="p-3 bg-green-500 rounded-xl shadow-lg">
- <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <div className="p-2 md:p-3 bg-green-500 rounded-lg md:rounded-xl shadow-lg">
+ <svg className="w-5 h-5 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
  </svg>
  </div>
- <div className="ml-4">
- <p className="text-sm font-semibold text-green-700 uppercase tracking-wide">Oggetti Totali</p>
- <p className="text-3xl font-bold text-green-900 mt-1">
+ <div className="ml-2 md:ml-4">
+ <p className="text-xs md:text-sm font-semibold text-green-700 uppercase tracking-wide">Oggetti Totali</p>
+ <p className="text-xl md:text-3xl font-bold text-green-900 mt-0.5 md:mt-1">
  {inventory.reduce((total, item) => total + (item.quantita_totale || 0), 0)}
  </p>
  </div>
  </div>
  </div>
  
- <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
+ <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 md:p-6 border border-orange-200">
  <div className="flex items-center">
- <div className="p-3 bg-orange-500 rounded-xl shadow-lg">
- <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <div className="p-2 md:p-3 bg-orange-500 rounded-lg md:rounded-xl shadow-lg">
+ <svg className="w-5 h-5 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
  </svg>
  </div>
- <div className="ml-4">
- <p className="text-sm font-bold text-orange-800 uppercase tracking-wide">In Riparazione</p>
- <p className="text-3xl font-bold text-orange-900 mt-1">
+ <div className="ml-2 md:ml-4">
+ <p className="text-xs md:text-sm font-bold text-orange-800 uppercase tracking-wide">In Riparazione</p>
+ <p className="text-xl md:text-3xl font-bold text-orange-900 mt-0.5 md:mt-1">
  {inventory.filter(item => item.stato_effettivo === 'in_riparazione').length}
  </p>
  </div>
  </div>
  </div>
 
- <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 border border-red-200">
+ <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 md:p-6 border border-red-200">
  <div className="flex items-center">
- <div className="p-3 bg-red-500 rounded-xl shadow-lg">
- <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <div className="p-2 md:p-3 bg-red-500 rounded-lg md:rounded-xl shadow-lg">
+ <svg className="w-5 h-5 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
  </svg>
  </div>
- <div className="ml-4">
- <p className="text-sm font-bold text-red-800 uppercase tracking-wide">Scorte Basse</p>
- <p className="text-3xl font-bold text-red-900 mt-1">{lowStockItems.length}</p>
+ <div className="ml-2 md:ml-4">
+ <p className="text-xs md:text-sm font-bold text-red-800 uppercase tracking-wide">Scorte Basse</p>
+ <p className="text-xl md:text-3xl font-bold text-red-900 mt-0.5 md:mt-1">{lowStockItems.length}</p>
  </div>
  </div>
  </div>

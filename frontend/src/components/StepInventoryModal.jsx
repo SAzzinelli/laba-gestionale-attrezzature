@@ -364,7 +364,7 @@ setFormData(prev => ({ ...prev, unita: units }));
                     placeholder="https://drive.google.com/... (link diretto immagine)"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Inserisci un link diretto a un'immagine (es. Google Drive). Cliccando si aprirà in una nuova finestra.
+                    Inserisci un link diretto a un'immagine (es. Google Drive).
                   </p>
                 </div>
 
@@ -444,15 +444,15 @@ setFormData(prev => ({ ...prev, unita: units }));
  </div>
 
 
-        {/* Categoria Semplice */}
+        {/* Categoria */}
         <div className="form-group">
-          <label className="form-label">Categoria Semplice</label>
+          <label className="form-label">Categoria</label>
           <select
             value={formData.categoria_id}
             onChange={(e) => setFormData(prev => ({ ...prev, categoria_id: e.target.value }))}
             className="select-field"
           >
-            <option value="">Seleziona categoria semplice</option>
+            <option value="">Seleziona categoria</option>
             {categories.map(category => (
               <option key={category.id} value={category.id}>
                 {category.nome}
