@@ -375,9 +375,6 @@ setError(err.message);
                 Email
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                Matricola
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Corso
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -425,9 +422,6 @@ setError(err.message);
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
                   {user.email}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
-                  {user.matricola}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
                   {user.corso_accademico || '-'}
