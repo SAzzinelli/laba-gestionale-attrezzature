@@ -206,13 +206,14 @@ setError(err.message);
 
  // Apply search filter
   if (searchTerm) {
-    data = data.filter(item =>
-      (item.articolo_nome || item.oggetto_nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.unita_seriale || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.utente_nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.utente_cognome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.utente_email || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    data = data.filter(item => {
+      const unitaStr = Array.isArray(item.unita) ? item.unita.join(' ') : (item.unita || '');
+      return (item.articolo_nome || item.oggetto_nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+             unitaStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             (item.utente_nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+             (item.utente_cognome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+             (item.utente_email || '').toLowerCase().includes(searchTerm.toLowerCase());
+    });
   }
 
  return data;
@@ -432,13 +433,13 @@ const getStatusBadge = (status) => {
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900 mb-1">
                             {item.articolo_nome || item.oggetto_nome}
-                            {item.unita_seriale && (
-                              <span className="text-gray-500"> - {item.unita_seriale}</span>
+                            {item.unita && item.unita.length > 0 && (
+                              <span className="text-gray-500"> - {Array.isArray(item.unita) ? item.unita.join(', ') : item.unita}</span>
                             )}
                           </h3>
-                          {item.oggetto_id && (
+                          {item.inventario_id && (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              ID: {item.oggetto_id}
+                              ID: {item.inventario_id}
                             </span>
                           )}
                         </div>
@@ -745,7 +746,7 @@ const getStatusBadge = (status) => {
  <div className="modal-header">
  <h2 className="text-xl font-bold text-primary">
    Dettagli {selectedLoan.articolo_nome || selectedLoan.oggetto_nome}
-   {selectedLoan.unita_seriale && ` - ${selectedLoan.unita_seriale}`}
+   {selectedLoan.unita && selectedLoan.unita.length > 0 && ` - ${Array.isArray(selectedLoan.unita) ? selectedLoan.unita.join(', ') : selectedLoan.unita}`}
  </h2>
  <button
  onClick={() => setSelectedLoan(null)}
