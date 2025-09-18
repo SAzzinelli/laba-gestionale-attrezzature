@@ -264,19 +264,19 @@ const UserDashboard = () => {
         {recentData.activeLoans.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Prestiti Attivi
             </h3>
             <div className="space-y-3">
               {recentData.activeLoans.map((loan, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border-2 border-green-200 shadow-lg shadow-green-100 ring-1 ring-green-200 ring-opacity-50">
                   <div>
                     <p className="font-medium text-gray-900">{loan.articolo_nome || loan.oggetto_nome || 'Oggetto'}</p>
                     <p className="text-sm text-gray-600">Scadenza: {formatDate(loan.data_rientro || loan.data_fine)}</p>
                   </div>
-                  <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                  <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                     Attivo
                   </span>
                 </div>
@@ -289,7 +289,7 @@ const UserDashboard = () => {
         {recentData.recentRequests.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Richieste Recenti
@@ -311,11 +311,7 @@ const UserDashboard = () => {
                       )}
                     </p>
                   </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    request.stato === 'approvata' ? 'bg-green-100 text-green-800' :
-                    request.stato === 'in_attesa' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
                     {request.stato === 'approvata' ? 'Approvata' :
                      request.stato === 'in_attesa' ? 'In Attesa' : 'Rifiutata'}
                   </span>
