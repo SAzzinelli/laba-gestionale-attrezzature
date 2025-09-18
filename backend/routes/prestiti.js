@@ -411,4 +411,37 @@ r.get('/:loanId/units', requireAuth, async (req, res) => {
   }
 });
 
+// Endpoint temporaneo per aggiornare prestiti esistenti con unità mancanti
+r.post('/fix-units', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    // Trova prestiti senza unità specificate per FX3
+    const prestiti = await query(`
+      SELECT p.id, p.inventario_id, i.nome, p.chi
+      FROM prestiti p
+      LEFT JOIN inventario i ON i.id = p.inventario_id
+      WHERE p.unita = '[]' OR p.unita IS NULL
+      AND p.data_rientro IS NULL
+      AND i.nome = 'FX3'
+    `);
+    
+    console.log('Prestiti FX3 senza unità:', prestiti);
+    
+    if (prestiti.length > 0) {
+      // Aggiorna il prestito con FX3_001 (che è quella in stato "prestato")
+      await query(`
+        UPDATE prestiti 
+        SET unita = $1 
+        WHERE id = $2
+      `, [JSON.stringify(['FX3_001']), prestiti[0].id]);
+      
+      res.json({ message: 'Prestito aggiornato con unità FX3_001', prestito_id: prestiti[0].id });
+    } else {
+      res.json({ message: 'Nessun prestito da aggiornare' });
+    }
+  } catch (error) {
+    console.error('Errore fix-units:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default r;
