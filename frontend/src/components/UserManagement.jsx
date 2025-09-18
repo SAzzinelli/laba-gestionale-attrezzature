@@ -584,38 +584,91 @@ setError(err.message);
                 <span className="text-sm text-gray-900">{user.phone}</span>
               </div>
             )}
+            {user.ruolo !== 'admin' && (
+              <div className="flex justify-between">
+                <span className="text-sm font-medium text-gray-600">Penalità:</span>
+                <div className="flex items-center gap-2">
+                  {user.penalty_strikes > 0 && (
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      user.is_blocked ? 'bg-red-100 text-red-800' :
+                      user.penalty_strikes >= 2 ? 'bg-orange-100 text-orange-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {user.penalty_strikes} Strike
+                    </span>
+                  )}
+                  {user.is_blocked && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+                      </svg>
+                      BLOCCATO
+                    </span>
+                  )}
+                  {user.penalty_strikes === 0 && !user.is_blocked && (
+                    <span className="text-xs text-gray-500">Nessuna penalità</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col gap-2">
+          {/* Actions - 2x2 Grid Layout */}
+          <div className="grid grid-cols-2 gap-2">
+            {/* Row 1: Modifica + Reset */}
             <button
               onClick={() => openEditModal(user)}
-              className="w-full btn-primary text-center py-2"
+              className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors duration-200"
             >
-              <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-              Modifica Utente
+              Modifica
             </button>
             <button
               onClick={() => openPasswordReset(user)}
-              className="w-full btn-secondary text-center py-2"
+              className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-orange-700 bg-orange-100 rounded-md hover:bg-orange-200 transition-colors duration-200"
             >
-              <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z" />
               </svg>
-              Reset Password
+              Reset
             </button>
+            
+            {/* Row 2: Penalità + Elimina (only for non-admin users) */}
             {user.ruolo !== 'admin' && (
-              <button
-                onClick={() => handleDeleteUser(user.id)}
-                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-lg py-2 transition-colors duration-200"
-              >
-                <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Elimina Utente
-              </button>
+              <>
+                <button
+                  onClick={() => openPenaltyModal(user)}
+                  className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 transition-colors duration-200"
+                >
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  Penalità
+                </button>
+                <button
+                  onClick={() => handleDeleteUser(user.id)}
+                  className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors duration-200"
+                >
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Elimina
+                </button>
+              </>
+            )}
+            
+            {/* For admin users, only show Modifica + Reset in full width */}
+            {user.ruolo === 'admin' && (
+              <div className="col-span-2 text-center">
+                <span className="text-xs text-gray-500 italic">
+                  Gli amministratori non possono essere eliminati
+                </span>
+              </div>
             )}
           </div>
         </div>
