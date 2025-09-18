@@ -1238,19 +1238,201 @@ footer {
   height: 1.5rem;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
+/* Responsive design - Mobile First Approach */
+
+/* Mobile Tiny / Legacy devices (320px+) */
+@media (min-width: 320px) {
+  .btn-primary, .btn-secondary, .btn-success {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    min-height: 40px;
+  }
+  
+  .card {
+    padding: 0.75rem;
+  }
+  
+  .kpi-card {
+    padding: 0.75rem !important;
+  }
+  
+  .modal-content {
+    margin: 0.5rem;
+    max-height: calc(100vh - 1rem);
+  }
+}
+
+/* Android Base (Galaxy S24, S22, etc.) - 360px+ */
+@media (min-width: 360px) {
   .btn-primary, .btn-secondary, .btn-success {
     padding: 0.625rem 1.25rem;
     font-size: 0.875rem;
+    min-height: 42px;
   }
   
   .card {
     padding: 1rem;
   }
   
+  .kpi-card {
+    padding: 1rem !important;
+  }
+  
+  /* Better grid spacing for Android */
+  .grid.gap-4 {
+    gap: 1rem;
+  }
+}
+
+/* iPhone 12/13/14/15/16 Standard (390px+) */
+@media (min-width: 390px) {
+  .btn-primary, .btn-secondary, .btn-success {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+  
+  .card {
+    padding: 1.25rem;
+  }
+  
+  .kpi-card {
+    padding: 1.25rem !important;
+  }
+  
+  /* Better 2-column layout for stats on larger phones */
+  .stats-grid-mobile {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* iPhone Pro models (393px+) */
+@media (min-width: 393px) {
   .modal-content {
-    margin: 0.5rem;
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+  }
+  
+  /* Slightly more spacing for Pro models */
+  .space-y-3 > * + * {
+    margin-top: 0.875rem;
+  }
+}
+
+/* iPhone Plus/Max models (428px+) */
+@media (min-width: 428px) {
+  .card {
+    padding: 1.5rem;
+  }
+  
+  .kpi-card {
+    padding: 1.5rem !important;
+  }
+  
+  /* Better use of space on larger phones */
+  .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  /* Larger text for better readability */
+  .kpi-value {
+    font-size: 2rem !important;
+  }
+}
+
+/* iPhone Pro Max (440px+) */
+@media (min-width: 440px) {
+  /* Even better spacing for the largest phones */
+  .space-y-6 > * + * {
+    margin-top: 2rem;
+  }
+  
+  /* Larger modals for better UX */
+  .modal-content {
+    max-width: 28rem;
+  }
+}
+
+/* Small tablets / Phablets (480px+) */
+@media (min-width: 480px) {
+  /* Start transitioning to tablet-like layout */
+  .stats-grid-tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Compact tablets / Foldables (600px+) */
+@media (min-width: 600px) {
+  .card {
+    padding: 2rem;
+  }
+  
+  .kpi-card {
+    padding: 2rem !important;
+  }
+  
+  /* 3-column layout for stats */
+  .stats-grid-tablet {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Standard tablets (768px+) */
+@media (min-width: 768px) {
+  /* Full 4-column layout */
+  .stats-grid-tablet {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  
+  /* Larger buttons for tablet touch */
+  .btn-primary, .btn-secondary, .btn-success {
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+}
+
+/* Large tablets (834px+) */
+@media (min-width: 834px) {
+  /* iPad-like experience */
+  .sidebar-desktop {
+    width: 16rem;
+  }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+  .sidebar-desktop {
+    display: flex !important;
+    width: 16rem;
+  }
+  
+  /* Desktop-optimized spacing */
+  .card {
+    padding: 2rem;
+  }
+  
+  .kpi-card {
+    padding: 2rem !important;
+  }
+  
+  /* Desktop button sizes */
+  .btn-primary, .btn-secondary, .btn-success {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+}
+
+/* Large Desktop (1280px+) */
+@media (min-width: 1280px) {
+  /* More generous spacing for large screens */
+  .max-w-7xl {
+    max-width: 80rem;
+  }
+  
+  .card {
+    padding: 2.5rem;
   }
 }
 
