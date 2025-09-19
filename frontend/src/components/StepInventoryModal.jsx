@@ -369,13 +369,13 @@ setFormData(prev => ({ ...prev, unita: units }));
                 </div>
 
  <div className="form-group md:col-span-2">
- <label className="form-label">Note</label>
+                <label className="form-label">Descrizione</label>
  <textarea
  value={formData.note}
  onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
  rows={3}
  className="input-field"
- placeholder="Note aggiuntive"
+                  placeholder="Descrizione dell'oggetto"
  />
  </div>
  </div>

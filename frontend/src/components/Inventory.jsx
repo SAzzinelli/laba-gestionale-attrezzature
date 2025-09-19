@@ -29,6 +29,8 @@ const Inventory = () => {
   const [showDeleteCategoryModal, setShowDeleteCategoryModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [itemsUsingCategory, setItemsUsingCategory] = useState([]);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [editCategoryName, setEditCategoryName] = useState('');
  const [selectedCourse, setSelectedCourse] = useState('');
  const [viewMode, setViewMode] = useState('list'); // only list view
  const [showUnitDetailModal, setShowUnitDetailModal] = useState(false);
@@ -376,6 +378,45 @@ const Inventory = () => {
     }
   };
 
+  // Handle edit category
+  const handleEditCategory = (category) => {
+    setEditingCategory(category);
+    setEditCategoryName(category.nome);
+  };
+
+  // Cancel edit category
+  const cancelEditCategory = () => {
+    setEditingCategory(null);
+    setEditCategoryName('');
+  };
+
+  // Save edited category
+  const saveEditCategory = async () => {
+    if (!editingCategory || !editCategoryName.trim()) return;
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categorie-semplici/${editingCategory.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nome: editCategoryName.trim() })
+      });
+
+      if (!response.ok) throw new Error('Errore nella modifica categoria');
+
+      await fetchCategories();
+      await fetchInventory(); // Ricarica l'inventario per aggiornare le categorie
+      
+      // Reset editing state
+      setEditingCategory(null);
+      setEditCategoryName('');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   // Handle apply filters
   const handleApplyFilters = (filters) => {
     setCurrentFilters(filters);
@@ -610,7 +651,7 @@ const Inventory = () => {
                   <div>
                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Categoria</label>
                     <p className="text-sm text-gray-900 mt-1">
-                      {item.categoria_nome || `${item.categoria_madre} - ${item.categoria_figlia}`}
+                      {item.categoria_nome || item.categoria_figlia || 'Nessuna categoria'}
                     </p>
                   </div>
 
@@ -841,15 +882,64 @@ const Inventory = () => {
                     <div className="space-y-2">
                       {categories.map(cat => (
                         <div key={cat.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <span className="text-sm font-medium">{cat.nome}</span>
- <button
-                            onClick={() => handleDeleteCategory(cat.id)}
-                            className="text-red-600 hover:text-red-800"
- >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
- </button>
+                          {editingCategory && editingCategory.id === cat.id ? (
+                            <div className="flex-1 flex items-center space-x-2">
+                              <input
+                                type="text"
+                                value={editCategoryName}
+                                onChange={(e) => setEditCategoryName(e.target.value)}
+                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Nome categoria..."
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') saveEditCategory();
+                                  if (e.key === 'Escape') cancelEditCategory();
+                                }}
+                              />
+                              <button
+                                onClick={saveEditCategory}
+                                className="text-green-600 hover:text-green-800 p-1"
+                                title="Salva"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={cancelEditCategory}
+                                className="text-gray-600 hover:text-gray-800 p-1"
+                                title="Annulla"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="text-sm font-medium">{cat.nome}</span>
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleEditCategory(cat)}
+                                  className="text-blue-600 hover:text-blue-800 p-1"
+                                  title="Modifica categoria"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteCategory(cat.id)}
+                                  className="text-red-600 hover:text-red-800 p-1"
+                                  title="Elimina categoria"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>

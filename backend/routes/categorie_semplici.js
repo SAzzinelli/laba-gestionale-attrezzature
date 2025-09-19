@@ -48,6 +48,56 @@ r.post('/', async (req, res) => {
   }
 });
 
+// PUT /api/categorie-semplici/:id
+r.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nome } = req.body;
+    
+    if (!nome || nome.trim() === '') {
+      return res.status(400).json({ error: 'Nome categoria è obbligatorio' });
+    }
+
+    // Verifica se la categoria esiste
+    const existing = await query(
+      'SELECT id, nome FROM categorie_semplici WHERE id = $1',
+      [id]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Categoria non trovata' });
+    }
+
+    // Impedisci la modifica della categoria speciale "Nessuna categoria"
+    if (existing[0].nome === 'Nessuna categoria') {
+      return res.status(403).json({ 
+        error: 'La categoria speciale "Nessuna categoria" non può essere modificata' 
+      });
+    }
+
+    // Verifica se il nuovo nome è già in uso (da un'altra categoria)
+    const nameExists = await query(
+      'SELECT id FROM categorie_semplici WHERE nome = $1 AND id != $2',
+      [nome.trim(), id]
+    );
+
+    if (nameExists.length > 0) {
+      return res.status(409).json({ error: 'Nome categoria già esistente' });
+    }
+
+    // Aggiorna la categoria
+    const result = await query(
+      'UPDATE categorie_semplici SET nome = $1 WHERE id = $2 RETURNING *',
+      [nome.trim(), id]
+    );
+
+    res.json(result[0]);
+  } catch (error) {
+    console.error('Errore PUT categorie semplici:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
 // DELETE /api/categorie-semplici/:id
 r.delete('/:id', async (req, res) => {
   try {
