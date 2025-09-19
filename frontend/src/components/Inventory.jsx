@@ -198,6 +198,16 @@ const Inventory = () => {
 
   // Filter inventory based on search term and category
   const filteredInventory = groupedInventory.filter(item => {
+    // Debug: mostra la struttura dei dati categoria per il primo item
+    if (groupedInventory.indexOf(item) === 0) {
+      console.log('Debug categoria item:', {
+        nome: item.nome,
+        categoria_nome: item.categoria_nome,
+        categoria_figlia: item.categoria_figlia,
+        categoria_madre: item.categoria_madre,
+        categoria_id: item.categoria_id
+      });
+    }
     // Search term filter
     const matchesSearch = !searchTerm || (
       item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -207,10 +217,9 @@ const Inventory = () => {
       item.categoria_figlia?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Category filter (only for admin)
+    // Category filter (only for admin) - usa il nome della categoria semplice
     const matchesCategory = !selectedCategoryFilter || !isAdmin || (
-      item.categoria_nome === selectedCategoryFilter ||
-      item.categoria_figlia === selectedCategoryFilter
+      selectedCategoryFilter === (item.categoria_figlia || item.categoria_nome?.split(' - ')[1])
     );
 
     return matchesSearch && matchesCategory;
@@ -750,7 +759,9 @@ const Inventory = () => {
                   <div>
                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Categoria</label>
                     <p className="text-sm text-gray-900 mt-1">
-                      {item.categoria_nome || item.categoria_figlia || 'Nessuna categoria'}
+                      {item.categoria_figlia || 
+                       (item.categoria_nome ? item.categoria_nome.split(' - ')[1] : null) || 
+                       'Nessuna categoria'}
                     </p>
                   </div>
 
