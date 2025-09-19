@@ -214,6 +214,10 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 // GET /api/riparazioni/fix-orphaned-units - Fix units stuck in repair status
 r.get('/fix-orphaned-units', async (req, res) => {
   try {
+    // Temporary emergency access with secret parameter
+    if (req.query.emergency !== 'fix-fx3-2025') {
+      return res.status(401).json({ error: 'Emergency parameter required' });
+    }
     // Find units marked as 'in_riparazione' but with no active repair
     const orphanedUnits = await query(`
       SELECT iu.id, iu.codice_univoco, iu.inventario_id, i.nome as articolo_nome
