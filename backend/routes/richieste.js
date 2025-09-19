@@ -82,6 +82,8 @@ r.post('/', requireAuth, async (req, res) => {
     
     const { unit_id, inventario_id, dal, al, motivo, note } = req.body || {};
     
+    console.log(`🔍 Creating request - unit_id: ${unit_id}, inventario_id: ${inventario_id}`);
+    
     // Support both unit_id (new) and inventario_id (legacy)
     let actualInventarioId = inventario_id;
     
