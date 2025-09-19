@@ -774,11 +774,23 @@ const Inventory = () => {
                   {/* Course */}
                   <div>
                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Corso Accademico</label>
-                    <p className="text-sm text-gray-900 mt-1">
-                      {item.corsi_assegnati ? 
-                        item.corsi_assegnati.map(corso => abbreviateCourse(corso)).join(', ') : 
-                        'Non assegnato'}
-                    </p>
+                    <div className="mt-1">
+                      {item.corsi_assegnati && item.corsi_assegnati.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {item.corsi_assegnati.map((corso, index) => (
+                            <span 
+                              key={index}
+                              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                              title={corso} // Mostra il nome completo al hover
+                            >
+                              {abbreviateCourse(corso)}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500 italic">Non assegnato</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Quantity */}
