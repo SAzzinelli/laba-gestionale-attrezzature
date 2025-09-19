@@ -231,8 +231,22 @@ const Inventory = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // Calculate low stock items
-  const lowStockItems = inventory.filter(item => item.quantita_totale <= 2);
+  // Calculate low stock items - Allineato con la dashboard
+  const calculateLowStockItems = () => {
+    return inventory.filter(item => {
+      const totalQuantity = item.quantita_totale || 0;
+      const availableQuantity = item.unita_disponibili || 0;
+      
+      // Usa la stessa logica della dashboard
+      return (
+        availableQuantity === 0 || // ESAURITO
+        (availableQuantity === 1 && totalQuantity > 2) || // ATTENZIONE
+        (availableQuantity <= (totalQuantity * 0.3) && totalQuantity >= 4 && availableQuantity > 0) // SCARSEGGIA
+      );
+    });
+  };
+  
+  const lowStockItems = calculateLowStockItems();
 
   // Toggle expanded state for items with multiple units
   const toggleExpanded = async (itemId) => {

@@ -141,7 +141,7 @@ const Dashboard = ({ onNavigate }) => {
 const activeLoans = prestitiData.filter(p => p.stato === 'attivo').length;
 // Conta le UNITÀ disponibili totali, non gli articoli
 const availableItems = inventoryData.reduce((total, item) => {
-  return total + (item.quantita_disponibile || 0);
+  return total + (item.unita_disponibili || 0);
 }, 0);
 const inRepairItems = inventoryData.filter(i => i.stato_effettivo === 'in_riparazione').length;
  
@@ -151,7 +151,7 @@ const inRepairItems = inventoryData.filter(i => i.stato_effettivo === 'in_ripara
  
  inventoryData.forEach(item => {
  const totalQuantity = item.quantita_totale || 0;
- const availableQuantity = item.quantita_disponibile || 0;
+ const availableQuantity = item.unita_disponibili || 0;
  const loanedQuantity = totalQuantity - availableQuantity;
  
  // REGOLA SPECIALE: Se c'è solo 1 oggetto e è disponibile, NON è scarsità
@@ -714,7 +714,7 @@ return (
  </h3>
  <p className="text-sm text-secondary">
  {selectedAlert.type === 'scorte' 
- ? `${item.reason} - Disponibili: ${item.quantita_disponibile || 0}/${item.quantita_totale}${item.loanedPercentage ? ` (${Math.round(item.loanedPercentage)}% in prestito)` : ''}`
+ ? `${item.reason} - Disponibili: ${item.unita_disponibili || 0}/${item.quantita_totale}${item.loanedPercentage ? ` (${Math.round(item.loanedPercentage)}% in prestito)` : ''}`
  : selectedAlert.type === 'ritardi'
  ? `${item.oggetto_nome} - ${Math.floor(item.giorni_ritardo)} giorni di ritardo`
  : item.oggetto_nome

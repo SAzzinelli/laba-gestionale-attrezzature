@@ -270,7 +270,7 @@ body: JSON.stringify({
  >
                 <h4 className="font-semibold text-gray-900 ">{item.nome}</h4>
                 <p className="text-sm text-gray-600 ">
-                  Disponibili: {item.quantita_disponibile || 1}/{item.quantita_totale || 1}
+                  Disponibili: {item.unita_disponibili || 0}/{item.quantita_totale || 1}
                 </p>
                 {item.scaffale && (
                   <p className="text-sm text-gray-500 ">📍 {item.scaffale}</p>
