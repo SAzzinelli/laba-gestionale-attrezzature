@@ -60,6 +60,9 @@ r.get('/', requireAuth, requireRole('admin'), async (req, res) => {
 r.get('/disponibili', requireAuth, async (req, res) => {
   try {
     const userCourse = getUserCourse(req);
+    console.log(`🔍 User requesting disponibili: ${req.user.nome} ${req.user.cognome} (${req.user.email})`);
+    console.log(`🎓 User course: ${userCourse}`);
+    console.log(`👤 User role: ${req.user.ruolo}`);
     let result;
     
     if (req.user.ruolo === 'admin') {
@@ -99,6 +102,11 @@ r.get('/disponibili', requireAuth, async (req, res) => {
         WHERE EXISTS (SELECT 1 FROM inventario_corsi WHERE inventario_id = i.id AND corso = $1)
         ORDER BY i.nome
       `, [userCourse]);
+    }
+
+    console.log(`📦 Found ${result.length} available items for user`);
+    if (result.length > 0) {
+      console.log(`📋 Items: ${result.map(item => item.nome).join(', ')}`);
     }
 
     res.json(result);
