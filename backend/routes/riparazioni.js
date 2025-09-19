@@ -266,4 +266,58 @@ r.get('/fix-orphaned-units', async (req, res) => {
   }
 });
 
+// TEMPORARY EMERGENCY ENDPOINT - Remove after fix
+r.get('/emergency-fix-fx3', async (req, res) => {
+  try {
+    console.log('🚨 EMERGENCY FIX CALLED');
+    
+    // Find units marked as 'in_riparazione' but with no active repair
+    const orphanedUnits = await query(`
+      SELECT iu.id, iu.codice_univoco, iu.inventario_id, i.nome as articolo_nome
+      FROM inventario_unita iu
+      LEFT JOIN inventario i ON iu.inventario_id = i.id
+      WHERE iu.stato = 'in_riparazione'
+      AND NOT EXISTS (
+        SELECT 1 FROM riparazioni r 
+        WHERE r.stato = 'in_corso' 
+        AND iu.id = ANY(
+          SELECT jsonb_array_elements_text(r.unit_ids_json::jsonb)::int
+        )
+      )
+    `);
+    
+    if (orphanedUnits.length === 0) {
+      return res.json({ 
+        message: 'Nessuna unità orfana trovata',
+        fixed: 0,
+        units: []
+      });
+    }
+    
+    // Fix orphaned units by setting them back to 'disponibile'
+    const unitIds = orphanedUnits.map(u => u.id);
+    const updateResult = await query(`
+      UPDATE inventario_unita 
+      SET stato = 'disponibile'
+      WHERE id = ANY($1::int[])
+    `, [unitIds]);
+    
+    console.log(`🔧 EMERGENCY: Corrette ${orphanedUnits.length} unità orfane:`, orphanedUnits.map(u => u.codice_univoco));
+    
+    res.json({
+      message: `EMERGENCY FIX: Corrette ${orphanedUnits.length} unità rimaste bloccate in riparazione`,
+      fixed: orphanedUnits.length,
+      updated_rows: updateResult.rowCount,
+      units: orphanedUnits.map(u => ({
+        id: u.id,
+        codice: u.codice_univoco,
+        articolo: u.articolo_nome
+      }))
+    });
+  } catch (error) {
+    console.error('❌ EMERGENCY FIX ERROR:', error);
+    res.status(500).json({ error: 'Errore emergency fix: ' + error.message });
+  }
+});
+
 export default r;
