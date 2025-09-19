@@ -331,29 +331,24 @@ return (
  <div className="space-y-2">
  {alerts.scorte_basse.slice(0, 3).map(item => (
  <div key={item.id} className={`bg-white rounded-lg p-3 border ${
- item.status === 'esaurito' ? 'border-red-500' :
- item.status === 'attenzione' ? 'border-orange-500' :
- item.status === 'scarseggia' ? 'border-yellow-500' :
+ item.stato_scorte === 'esaurito' ? 'border-red-500' :
+ item.stato_scorte === 'attenzione' ? 'border-orange-500' :
+ item.stato_scorte === 'scarseggia' ? 'border-yellow-500' :
  'border-blue-500'
  }`}>
  <div className="font-semibold text-gray-900 text-sm">{item.nome}</div>
  <div className={`font-medium text-xs mt-1 ${
- item.status === 'esaurito' ? 'text-red-600' :
- item.status === 'attenzione' ? 'text-orange-600' :
- item.status === 'scarseggia' ? 'text-yellow-600' :
+ item.stato_scorte === 'esaurito' ? 'text-red-600' :
+ item.stato_scorte === 'attenzione' ? 'text-orange-600' :
+ item.stato_scorte === 'scarseggia' ? 'text-yellow-600' :
  'text-blue-600'
  }`}>
- {item.reason}
+ {item.motivo}
  </div>
  <div className="text-gray-500 text-xs mt-1">
- Disponibili: {item.quantita_disponibile || 0}/{item.quantita_totale}
- {item.loanedPercentage && ` (${Math.round(item.loanedPercentage)}% in prestito)`}
+ Disponibili: {item.unita_disponibili || 0}/{item.quantita_totale}
+ {item.percentuale_disponibile !== null && ` (${item.percentuale_disponibile}% disponibili)`}
  </div>
- {item.firstReturnDate && (
- <div className="text-gray-400 text-xs mt-1">
- Primo ritorno: {item.firstReturnDate.toLocaleDateString('it-IT')}
- </div>
- )}
  </div>
  ))}
  {alerts.scorte_basse.length > 3 && (

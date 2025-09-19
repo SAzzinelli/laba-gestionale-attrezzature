@@ -8,18 +8,40 @@ const r = Router();
 // GET /api/avvisi
 r.get('/', requireAuth, async (req, res) => {
   try {
-    // Scorte basse
+    // Scorte basse - Allineato con il calcolo dell'inventario
     const scorteBasse = await query(`
       SELECT 
         i.*,
         COUNT(iu.id) as unita_disponibili,
         i.quantita_totale,
-        ROUND((COUNT(iu.id) * 100.0 / i.quantita_totale), 2) as percentuale_disponibile
+        ROUND((COUNT(iu.id) * 100.0 / NULLIF(i.quantita_totale, 0)), 2) as percentuale_disponibile,
+        CASE 
+          WHEN COUNT(iu.id) = 0 THEN 'ESAURITO - Tutti gli oggetti sono in prestito'
+          WHEN COUNT(iu.id) = 1 AND i.quantita_totale > 1 THEN 'ATTENZIONE - Solo 1 oggetto disponibile'
+          WHEN ROUND((COUNT(iu.id) * 100.0 / NULLIF(i.quantita_totale, 0)), 2) <= 20 AND i.quantita_totale > 1 THEN 'SCARSEGGIA - Pochi oggetti disponibili'
+          ELSE 'NORMALE'
+        END as motivo,
+        CASE 
+          WHEN COUNT(iu.id) = 0 THEN 'esaurito'
+          WHEN COUNT(iu.id) = 1 AND i.quantita_totale > 1 THEN 'attenzione'
+          WHEN ROUND((COUNT(iu.id) * 100.0 / NULLIF(i.quantita_totale, 0)), 2) <= 20 AND i.quantita_totale > 1 THEN 'scarseggia'
+          ELSE 'normale'
+        END as stato_scorte
       FROM inventario i
       LEFT JOIN inventario_unita iu ON iu.inventario_id = i.id AND iu.stato = 'disponibile'
       GROUP BY i.id
-      HAVING COUNT(iu.id) < 1
-      ORDER BY percentuale_disponibile ASC
+      HAVING (
+        COUNT(iu.id) = 0 OR 
+        (COUNT(iu.id) = 1 AND i.quantita_totale > 1) OR 
+        (ROUND((COUNT(iu.id) * 100.0 / NULLIF(i.quantita_totale, 0)), 2) <= 20 AND i.quantita_totale > 1)
+      )
+      ORDER BY 
+        CASE 
+          WHEN COUNT(iu.id) = 0 THEN 1
+          WHEN COUNT(iu.id) = 1 AND i.quantita_totale > 1 THEN 2
+          ELSE 3
+        END,
+        percentuale_disponibile ASC
     `);
 
     // Prestiti scaduti
