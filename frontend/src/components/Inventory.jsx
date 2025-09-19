@@ -613,7 +613,7 @@ const Inventory = () => {
  <select
  value={selectedCategoryFilter}
  onChange={(e) => setSelectedCategoryFilter(e.target.value)}
- className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 bg-white"
+ className="select-field"
  >
  <option value="">Tutte le categorie</option>
  {categories.map(cat => (
