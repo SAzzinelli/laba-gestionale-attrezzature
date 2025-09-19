@@ -31,6 +31,7 @@ const Inventory = () => {
   const [itemsUsingCategory, setItemsUsingCategory] = useState([]);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('');
  const [selectedCourse, setSelectedCourse] = useState('');
  const [viewMode, setViewMode] = useState('list'); // only list view
  const [showUnitDetailModal, setShowUnitDetailModal] = useState(false);
@@ -195,14 +196,25 @@ const Inventory = () => {
     hasMultipleUnits: item.quantita_totale > 1
   }));
 
-  // Filter inventory based on search term
-  const filteredInventory = groupedInventory.filter(item =>
-    item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.note && item.note.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    item.categoria_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.categoria_madre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.categoria_figlia?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter inventory based on search term and category
+  const filteredInventory = groupedInventory.filter(item => {
+    // Search term filter
+    const matchesSearch = !searchTerm || (
+      item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.note && item.note.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      item.categoria_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.categoria_madre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.categoria_figlia?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Category filter (only for admin)
+    const matchesCategory = !selectedCategoryFilter || !isAdmin || (
+      item.categoria_nome === selectedCategoryFilter ||
+      item.categoria_figlia === selectedCategoryFilter
+    );
+
+    return matchesSearch && matchesCategory;
+  });
 
   // Calculate low stock items
   const lowStockItems = inventory.filter(item => item.quantita_totale <= 2);
@@ -593,12 +605,99 @@ const Inventory = () => {
  />
  </div>
  </div>
+
+ {/* Category Filter - Only for Admin */}
+ {isAdmin && (
+ <div className="w-full lg:w-64">
+ <label className="block text-sm font-medium text-gray-700 mb-2">Filtra per Categoria</label>
+ <select
+ value={selectedCategoryFilter}
+ onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+ className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 bg-white"
+ >
+ <option value="">Tutte le categorie</option>
+ {categories.map(cat => (
+ <option key={cat.id} value={cat.nome}>
+ {cat.nome}
+ </option>
+ ))}
+ </select>
+ </div>
+ )}
+
+ {/* Clear Filters Button - Only show if filters are active */}
+ {(searchTerm || selectedCategoryFilter) && (
+ <div className="flex items-end">
+ <button
+ onClick={() => {
+ setSearchTerm('');
+ setSelectedCategoryFilter('');
+ }}
+ className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+ title="Cancella filtri"
+ >
+ <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+ </svg>
+ <span className="hidden sm:inline">Cancella</span>
+ </button>
+ </div>
+ )}
  </div>
  </div>
 
+        {/* Results Counter */}
+        {(searchTerm || selectedCategoryFilter) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+                </svg>
+                <span className="text-blue-800 font-medium">
+                  {filteredInventory.length} {filteredInventory.length === 1 ? 'risultato trovato' : 'risultati trovati'}
+                  {selectedCategoryFilter && ` nella categoria "${selectedCategoryFilter}"`}
+                </span>
+              </div>
+              {filteredInventory.length === 0 && (
+                <span className="text-blue-600 text-sm">Prova a modificare i filtri</span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Inventory Cards */}
         <div className="space-y-4">
-          {filteredInventory.map((item) => (
+          {filteredInventory.length === 0 ? (
+            <div className="bg-gray-50 rounded-xl p-12 text-center">
+              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 009.586 13H7" />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nessun articolo trovato</h3>
+              <p className="text-gray-600 mb-4">
+                {searchTerm && selectedCategoryFilter 
+                  ? `Nessun articolo corrisponde alla ricerca "${searchTerm}" nella categoria "${selectedCategoryFilter}"`
+                  : searchTerm 
+                    ? `Nessun articolo corrisponde alla ricerca "${searchTerm}"`
+                    : selectedCategoryFilter
+                      ? `Nessun articolo nella categoria "${selectedCategoryFilter}"`
+                      : "Nessun articolo disponibile"
+                }
+              </p>
+              {(searchTerm || selectedCategoryFilter) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategoryFilter('');
+                  }}
+                  className="btn-secondary"
+                >
+                  Cancella filtri
+                </button>
+              )}
+            </div>
+          ) : (
+            filteredInventory.map((item) => (
             <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
               {/* Card Header */}
               <div className="p-6 border-b border-gray-100">
@@ -818,7 +917,8 @@ const Inventory = () => {
                 </div>
               )}
             </div>
-          ))}
+          ))
+          )}
         </div>
 
         {/* QR Code Modal */}
