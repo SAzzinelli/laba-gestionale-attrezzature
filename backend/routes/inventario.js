@@ -159,7 +159,7 @@ r.get('/unita-disponibili', requireAuth, async (req, res) => {
 
     console.log(`📦 Found ${result.length} available units for user`);
     if (result.length > 0) {
-      console.log(`📋 Units: ${result.map(unit => `${unit.nome}-${unit.codice_univoco}`).join(', ')}`);
+      console.log(`📋 Units: ${result.map(unit => `${unit.nome}-${unit.codice_univoco} (stato: ${unit.stato})`).join(', ')}`);
     }
 
     res.json(result);
