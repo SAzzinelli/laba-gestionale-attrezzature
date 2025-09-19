@@ -158,6 +158,17 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       RETURNING *
     `, [inventario_id, chi, data_uscita, data_rientro, note, JSON.stringify(unitaNames)]);
     
+    // Se sono state specificate unità, aggiornale da "riservato" a "in_prestito"
+    if (unita_ids && unita_ids.length > 0) {
+      await query(`
+        UPDATE inventario_unita 
+        SET stato = 'in_prestito', prestito_corrente_id = $1, richiesta_riservata_id = NULL
+        WHERE id = ANY($2)
+      `, [result[0].id, unita_ids]);
+      
+      console.log(`✅ ${unita_ids.length} unità aggiornate a "in_prestito" per prestito ${result[0].id}`);
+    }
+    
     res.status(201).json(result[0]);
   } catch (error) {
     console.error('Errore POST prestito:', error);

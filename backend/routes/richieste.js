@@ -148,6 +148,18 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     const { id } = req.params;
     const { stato, motivo, note } = req.body || {};
     
+    // Prima ottieni la richiesta esistente
+    const existingRequest = await query(`
+      SELECT * FROM richieste WHERE id = $1
+    `, [id]);
+    
+    if (existingRequest.length === 0) {
+      return res.status(404).json({ error: 'Richiesta non trovata' });
+    }
+    
+    const request = existingRequest[0];
+    
+    // Aggiorna la richiesta
     const result = await query(`
       UPDATE richieste 
       SET stato = $1, motivo = $2, note = $3, updated_at = CURRENT_TIMESTAMP
@@ -155,11 +167,26 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       RETURNING *
     `, [stato, motivo, note, id]);
     
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Richiesta non trovata' });
+    // Gestisci lo stato dell'unità riservata
+    if (request.unit_id) {
+      if (stato === 'rifiutata') {
+        // Richiesta rifiutata: libera l'unità riservata
+        await query(`
+          UPDATE inventario_unita 
+          SET stato = 'disponibile', richiesta_riservata_id = NULL
+          WHERE id = $1 AND richiesta_riservata_id = $2
+        `, [request.unit_id, id]);
+        
+        console.log(`✅ Unità ${request.unit_id} liberata (richiesta rifiutata)`);
+        
+      } else if (stato === 'approvata') {
+        // Richiesta approvata: l'unità rimane riservata fino alla creazione del prestito
+        // (la gestione del prestito sarà nell'endpoint /prestiti)
+        console.log(`✅ Unità ${request.unit_id} rimane riservata (richiesta approvata)`);
+      }
     }
     
-    res.json(result.rows[0]);
+    res.json(result[0]);
   } catch (error) {
     console.error('Errore PUT richiesta:', error);
     res.status(500).json({ error: 'Errore interno del server' });
@@ -171,14 +198,27 @@ r.delete('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Check if user owns the request or is admin
-    const checkResult = await query('SELECT utente_id FROM richieste WHERE id = $1', [id]);
-    if (checkResult.rows.length === 0) {
+    // Check if user owns the request or is admin e ottieni i dettagli
+    const checkResult = await query('SELECT utente_id, unit_id FROM richieste WHERE id = $1', [id]);
+    if (checkResult.length === 0) {
       return res.status(404).json({ error: 'Richiesta non trovata' });
     }
     
-    if (checkResult.rows[0].utente_id !== req.user.id && req.user.ruolo !== 'admin') {
+    const request = checkResult[0];
+    
+    if (request.utente_id !== req.user.id && req.user.ruolo !== 'admin') {
       return res.status(403).json({ error: 'Non autorizzato' });
+    }
+    
+    // Se c'è un'unità riservata, liberala prima di cancellare la richiesta
+    if (request.unit_id) {
+      await query(`
+        UPDATE inventario_unita 
+        SET stato = 'disponibile', richiesta_riservata_id = NULL
+        WHERE id = $1 AND richiesta_riservata_id = $2
+      `, [request.unit_id, id]);
+      
+      console.log(`✅ Unità ${request.unit_id} liberata (richiesta cancellata)`);
     }
     
     const result = await query('DELETE FROM richieste WHERE id = $1', [id]);

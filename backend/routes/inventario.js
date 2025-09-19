@@ -60,9 +60,6 @@ r.get('/', requireAuth, requireRole('admin'), async (req, res) => {
 r.get('/disponibili', requireAuth, async (req, res) => {
   try {
     const userCourse = getUserCourse(req);
-    console.log(`🔍 User requesting disponibili: ${req.user.nome} ${req.user.cognome} (${req.user.email})`);
-    console.log(`🎓 User course: ${userCourse}`);
-    console.log(`👤 User role: ${req.user.ruolo}`);
     let result;
     
     if (req.user.ruolo === 'admin') {
@@ -71,7 +68,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
-          (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile') AS unita_disponibili,
+          (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS unita_disponibili,
           CASE
             WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') THEN 'in_riparazione'
             WHEN i.in_manutenzione = TRUE OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) = 0 THEN 'non_disponibile'
@@ -91,7 +88,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
-          (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile') AS unita_disponibili,
+          (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS unita_disponibili,
           CASE
             WHEN i.in_manutenzione = TRUE THEN 'in_manutenzione'
             WHEN (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile') = 0 THEN 'non_disponibile'
@@ -102,11 +99,6 @@ r.get('/disponibili', requireAuth, async (req, res) => {
         WHERE EXISTS (SELECT 1 FROM inventario_corsi WHERE inventario_id = i.id AND corso = $1)
         ORDER BY i.nome
       `, [userCourse]);
-    }
-
-    console.log(`📦 Found ${result.length} available items for user`);
-    if (result.length > 0) {
-      console.log(`📋 Items: ${result.map(item => item.nome).join(', ')}`);
     }
 
     res.json(result);
