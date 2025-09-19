@@ -50,7 +50,23 @@ const Inventory = () => {
  unita: []
  });
  
- const { isAdmin, token } = useAuth();
+  const { isAdmin, token } = useAuth();
+
+  // Function to abbreviate course names
+  const abbreviateCourse = (courseName) => {
+    const courseAbbreviations = {
+      'Cinema e Audiovisivi': 'CIN',
+      'Fotografia': 'FOT', 
+      'Graphic Design & Multimedia': 'GD',
+      'Fashion Design': 'FD',
+      'Pittura': 'PIT',
+      'Interior Design': 'INT',
+      'Design': 'DES',
+      'Regia e Videomaking': 'REG'
+    };
+    
+    return courseAbbreviations[courseName] || courseName;
+  };
 
  // Handle unit click to show loan details
  const handleUnitClick = async (unit) => {
@@ -198,16 +214,6 @@ const Inventory = () => {
 
   // Filter inventory based on search term and category
   const filteredInventory = groupedInventory.filter(item => {
-    // Debug: mostra la struttura dei dati categoria per il primo item
-    if (groupedInventory.indexOf(item) === 0) {
-      console.log('Debug categoria item:', {
-        nome: item.nome,
-        categoria_nome: item.categoria_nome,
-        categoria_figlia: item.categoria_figlia,
-        categoria_madre: item.categoria_madre,
-        categoria_id: item.categoria_id
-      });
-    }
     // Search term filter
     const matchesSearch = !searchTerm || (
       item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -769,7 +775,9 @@ const Inventory = () => {
                   <div>
                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Corso Accademico</label>
                     <p className="text-sm text-gray-900 mt-1">
-                      {item.corsi_assegnati ? item.corsi_assegnati.join(', ') : 'Non assegnato'}
+                      {item.corsi_assegnati ? 
+                        item.corsi_assegnati.map(corso => abbreviateCourse(corso)).join(', ') : 
+                        'Non assegnato'}
                     </p>
                   </div>
 
