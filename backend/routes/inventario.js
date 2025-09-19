@@ -116,6 +116,67 @@ r.get('/disponibili', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/inventario/unita-disponibili - Per utenti iOS (singole unità disponibili)
+r.get('/unita-disponibili', requireAuth, async (req, res) => {
+  try {
+    const userCourse = getUserCourse(req);
+    console.log(`🔍 User requesting unita-disponibili: ${req.user.nome} ${req.user.cognome} (${req.user.email})`);
+    console.log(`🎓 User course: ${userCourse}`);
+    console.log(`👤 User role: ${req.user.ruolo}`);
+    
+    let result;
+    
+    if (req.user.ruolo === 'admin') {
+      // Admin vede tutte le unità
+      result = await query(`
+        SELECT
+          iu.id, iu.codice_univoco, iu.stato,
+          i.id as inventario_id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url,
+          CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome
+        FROM inventario_unita iu
+        JOIN inventario i ON i.id = iu.inventario_id
+        LEFT JOIN categorie_semplici cs ON cs.id = i.categoria_id
+        WHERE iu.stato = 'disponibile' 
+          AND iu.prestito_corrente_id IS NULL 
+          AND iu.richiesta_riservata_id IS NULL
+          AND i.in_manutenzione = FALSE
+        ORDER BY i.nome, iu.codice_univoco
+      `);
+    } else {
+      // Utenti vedono solo unità del loro corso
+      if (!userCourse) {
+        return res.status(403).json({ error: 'Corso accademico non assegnato' });
+      }
+
+      result = await query(`
+        SELECT
+          iu.id, iu.codice_univoco, iu.stato,
+          i.id as inventario_id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url,
+          CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome
+        FROM inventario_unita iu
+        JOIN inventario i ON i.id = iu.inventario_id
+        LEFT JOIN categorie_semplici cs ON cs.id = i.categoria_id
+        WHERE iu.stato = 'disponibile' 
+          AND iu.prestito_corrente_id IS NULL 
+          AND iu.richiesta_riservata_id IS NULL
+          AND i.in_manutenzione = FALSE
+          AND EXISTS (SELECT 1 FROM inventario_corsi WHERE inventario_id = i.id AND corso = $1)
+        ORDER BY i.nome, iu.codice_univoco
+      `, [userCourse]);
+    }
+
+    console.log(`📦 Found ${result.length} available units for user`);
+    if (result.length > 0) {
+      console.log(`📋 Units: ${result.map(unit => `${unit.nome}-${unit.codice_univoco}`).join(', ')}`);
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching available units:', error);
+    res.status(500).json({ error: 'Errore nel recupero unità disponibili' });
+  }
+});
+
 // GET /api/inventario/:id
 r.get('/:id', requireAuth, async (req, res) => {
   try {
