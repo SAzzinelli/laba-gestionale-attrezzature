@@ -55,7 +55,9 @@ const fetchUsers = async () => {
     });
     if (response.ok) {
       const data = await response.json();
-      setUsers(data);
+      // Filtra solo gli utenti normali (non admin) per i prestiti
+      const regularUsers = data.filter(user => user.ruolo !== 'admin');
+      setUsers(regularUsers);
     }
   } catch (err) {
     console.error('Errore caricamento utenti:', err);
