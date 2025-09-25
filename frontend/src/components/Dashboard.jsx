@@ -573,14 +573,61 @@ return (
       </div>
     )}
 
+    {/* Statistics Cards */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <StatCard 
+        title="Inventario" 
+        value={stats.inventory} 
+        description="Elementi totali"
+      />
+      <StatCard 
+        title="Richieste" 
+        value={stats.requests} 
+        description="Richieste di prestito"
+      />
+      <StatCard 
+        title="Riparazioni" 
+        value={stats.repairs} 
+        description="In riparazione"
+      />
+      <StatCard 
+        title="Segnalazioni" 
+        value={stats.reports} 
+        description="Segnalazioni attive"
+      />
+    </div>
+
+    {/* Prestiti Attivi Card - Red like alerts */}
+    <div className="bg-white rounded-xl shadow-lg border border-red-200 overflow-hidden mb-6">
+      <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Prestiti Attivi</h2>
+              <p className="text-red-100 text-sm">Prestiti attualmente in corso</p>
+            </div>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
+            <span className="text-white font-bold text-lg">{stats.activeLoans || 0}</span>
+            <span className="text-red-100 ml-1">prestiti</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     {/* Recent Activity */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
- {/* Recent Requests */}
- <div className="card">
- <div className="flex items-center justify-between mb-4">
- <h2 className="text-lg font-semibold text-primary">Richieste Recenti</h2>
- <span className="text-sm text-muted">{recentRequests.length} richieste</span>
- </div>
+    {/* Recent Requests */}
+    <div className="card">
+    <div className="flex items-center justify-between mb-4">
+    <h2 className="text-lg font-semibold text-primary">Richieste Recenti</h2>
+    <span className="text-sm text-muted">{recentRequests.length} richieste</span>
+    </div>
  <div className="space-y-1">
  {recentRequests.length === 0 ? (
  <div className="text-center py-8">
