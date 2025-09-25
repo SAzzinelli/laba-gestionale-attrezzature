@@ -436,43 +436,43 @@ return (
  </div>
  )}
 
- {/* Scadenze Domani */}
- {alerts.scadenze_domani.length > 0 && (
- <div 
- className="bg-blue-50 border border-blue-200 rounded-lg p-4 cursor-pointer hover:bg-blue-100 transition-colors"
- onClick={() => setSelectedAlert({ type: 'domani', data: alerts.scadenze_domani })}
- >
- <div className="flex items-center mb-3">
- <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
- <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
- </svg>
- </div>
- <h3 className="text-lg font-bold text-blue-800">
- Scadenze Domani ({alerts.scadenze_domani.length})
- </h3>
- </div>
- <div className="space-y-2">
- {alerts.scadenze_domani.slice(0, 3).map(prestito => (
- <div key={prestito.id} className="bg-white rounded-lg p-3 border border-blue-200">
- <div className="font-semibold text-gray-900 text-sm">
- {prestito.utente_nome_reale && prestito.utente_cognome ? 
-                   `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
-                   prestito.utente_nome}
- </div>
- <div className="text-blue-600 font-medium text-xs mt-1">
- {prestito.oggetto_nome}
- </div>
- </div>
- ))}
- {alerts.scadenze_domani.length > 3 && (
- <div className="text-center text-blue-600 text-sm font-medium">
- +{alerts.scadenze_domani.length - 3} altri prestiti...
- </div>
- )}
- </div>
- </div>
- )}
+    {/* Scadenze Domani */}
+    {alerts.scadenze_domani.length > 0 && (
+    <div 
+    className="bg-red-50 border border-red-200 rounded-lg p-4 cursor-pointer hover:bg-red-100 transition-colors"
+    onClick={() => setSelectedAlert({ type: 'domani', data: alerts.scadenze_domani })}
+    >
+    <div className="flex items-center mb-3">
+    <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center mr-3">
+    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+    </div>
+    <h3 className="text-lg font-bold text-red-800">
+    Scadenze Domani ({alerts.scadenze_domani.length})
+    </h3>
+    </div>
+    <div className="space-y-2">
+    {alerts.scadenze_domani.slice(0, 3).map(prestito => (
+    <div key={prestito.id} className="bg-white rounded-lg p-3 border border-red-200">
+    <div className="font-semibold text-gray-900 text-sm">
+    {prestito.utente_nome_reale && prestito.utente_cognome ? 
+                  `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
+                  prestito.utente_nome}
+    </div>
+    <div className="text-red-600 font-medium text-xs mt-1">
+    {prestito.oggetto_nome}
+    </div>
+    </div>
+    ))}
+    {alerts.scadenze_domani.length > 3 && (
+    <div className="text-center text-red-600 text-sm font-medium">
+    +{alerts.scadenze_domani.length - 3} altri prestiti...
+    </div>
+    )}
+    </div>
+    </div>
+    )}
  </div>
  </div>
  </div>
