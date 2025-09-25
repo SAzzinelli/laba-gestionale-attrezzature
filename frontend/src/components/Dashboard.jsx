@@ -449,7 +449,7 @@ return (
     </svg>
     </div>
     <h3 className="text-lg font-bold text-red-800">
-    Scadenze Domani ({alerts.scadenze_domani.length})
+    In scadenza domani: ({alerts.scadenze_domani.length})
     </h3>
     </div>
     <div className="space-y-2">
@@ -731,12 +731,12 @@ return (
  <div className="modal-overlay" onClick={() => setSelectedAlert(null)}>
  <div className="modal-content max-w-3xl" onClick={(e) => e.stopPropagation()}>
  <div className="modal-header">
- <h2 className="text-xl font-bold text-primary">
- {selectedAlert.type === 'scorte' ? 'Scorte Basse' :
- selectedAlert.type === 'ritardi' ? 'Prestiti in Ritardo' :
- selectedAlert.type === 'oggi' ? 'Scadenze Oggi' :
- 'Scadenze Domani'}
- </h2>
+    <h2 className="text-xl font-bold text-primary">
+    {selectedAlert.type === 'scorte' ? 'Scorte Basse' :
+    selectedAlert.type === 'ritardi' ? 'Prestiti in Ritardo' :
+    selectedAlert.type === 'oggi' ? 'Scadenze Oggi' :
+    'In scadenza domani:'}
+    </h2>
  <button
  onClick={() => setSelectedAlert(null)}
  className="text-muted hover:text-primary"
