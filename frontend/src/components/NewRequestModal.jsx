@@ -89,10 +89,19 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
   const handleUnitSelect = (unit) => {
     setSelectedUnit(unit);
+    // Debug: controlla il tipo di prestito
+    console.log('🔍 Debug handleUnitSelect:', {
+      selectedObject: selectedObject,
+      tipo_prestito: selectedObject?.tipo_prestito,
+      isEntrambi: selectedObject?.tipo_prestito === 'entrambi'
+    });
+    
     // Se l'oggetto è "entrambi", vai al step 3 (scelta tipo), altrimenti vai direttamente al step 4 (date)
     if (selectedObject.tipo_prestito === 'entrambi') {
+      console.log('✅ Andando al Step 3 (scelta tipo)');
       setStep(3);
     } else {
+      console.log('✅ Andando al Step 4 (date)');
       setStep(4);
     }
   };
