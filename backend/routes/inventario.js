@@ -444,7 +444,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       }
       
       // Update existing units instead of deleting and recreating to avoid foreign key constraints
-      const existingUnits = await query('SELECT id, codice_univoco FROM inventario_unita WHERE inventario_id = $1 ORDER BY id', [id]);
+      // existingUnits already declared above
       
       // If we're only adding new units (not modifying existing ones), just add them
       if (unita.length > existingUnits.length && !isModifyingExistingUnits) {
