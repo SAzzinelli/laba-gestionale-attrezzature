@@ -135,6 +135,11 @@ export const generateInventoryTemplate = async (token) => {
 // Import inventory from Excel - ora gestito dal backend
 export const importInventoryFromExcel = async (file, token) => {
   try {
+    console.log('DEBUG: File to upload:', file);
+    console.log('DEBUG: File name:', file.name);
+    console.log('DEBUG: File type:', file.type);
+    console.log('DEBUG: File size:', file.size);
+    
     const formData = new FormData();
     formData.append('file', file);
 
@@ -142,6 +147,7 @@ export const importInventoryFromExcel = async (file, token) => {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
+        // Non impostare Content-Type, lasciare che il browser lo imposti automaticamente per FormData
       },
       body: formData
     });
