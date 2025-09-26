@@ -56,6 +56,7 @@ export async function initDatabase() {
       unita TEXT DEFAULT '[]',
       quantita INTEGER DEFAULT 0,
       soglia_minima INTEGER DEFAULT 1,
+      tipo_prestito TEXT DEFAULT 'prestito',
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );

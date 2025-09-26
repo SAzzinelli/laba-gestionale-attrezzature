@@ -18,6 +18,7 @@ import usersRouter from "./routes/users.js";
 import migrationRouter from "./routes/migration.js";
 import debugRouter from "./routes/debug.js";
 import penaltiesRouter from "./routes/penalties.js";
+import excelRouter from "./routes/excel.js";
 import { initDatabase } from './utils/postgres.js';
 
 const app = express();
@@ -55,6 +56,7 @@ app.use("/api/stats", statsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/penalties", penaltiesRouter);
 app.use("/api/migration", migrationRouter);
+app.use("/api/excel", excelRouter);
 
 // serve frontend build if built
 const __filename = fileURLToPath(import.meta.url);

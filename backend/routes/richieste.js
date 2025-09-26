@@ -114,10 +114,24 @@ r.post('/', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'La data di fine deve essere successiva alla data di inizio' });
     }
     
-    // Verifica che l'oggetto esista
-    const inventarioCheck = await query('SELECT id FROM inventario WHERE id = $1', [actualInventarioId]);
+    // Verifica che l'oggetto esista e controlla il tipo
+    const inventarioCheck = await query('SELECT id, tipo_prestito FROM inventario WHERE id = $1', [actualInventarioId]);
     if (inventarioCheck.length === 0) {
       return res.status(400).json({ error: 'Oggetto non trovato' });
+    }
+    
+    const item = inventarioCheck[0];
+    
+    // Validazione speciale per uso interno: data massima = stesso giorno
+    if (item.tipo_prestito === 'uso_interno') {
+      const dataInizioDay = new Date(dataInizio).toDateString();
+      const dataFineDay = new Date(dataFine).toDateString();
+      
+      if (dataInizioDay !== dataFineDay) {
+        return res.status(400).json({ 
+          error: 'Per oggetti ad uso interno, la data di fine deve essere lo stesso giorno della data di inizio' 
+        });
+      }
     }
     
     const result = await query(`

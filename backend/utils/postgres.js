@@ -66,6 +66,7 @@ export async function initDatabase() {
         unita JSONB DEFAULT '[]',
         quantita INTEGER DEFAULT 0,
         soglia_minima INTEGER DEFAULT 1,
+        tipo_prestito VARCHAR(20) DEFAULT 'prestito',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -147,6 +148,7 @@ export async function initDatabase() {
       ALTER TABLE richieste ADD COLUMN IF NOT EXISTS unit_id INTEGER REFERENCES inventario_unita(id);
       ALTER TABLE riparazioni ADD COLUMN IF NOT EXISTS tipo VARCHAR(100) DEFAULT 'riparazione';
       ALTER TABLE riparazioni ADD COLUMN IF NOT EXISTS priorita VARCHAR(50) DEFAULT 'media';
+      ALTER TABLE inventario ADD COLUMN IF NOT EXISTS tipo_prestito VARCHAR(20) DEFAULT 'prestito';
       
       -- Sistema di penalità per ritardi
       ALTER TABLE users ADD COLUMN IF NOT EXISTS penalty_strikes INTEGER DEFAULT 0;
@@ -221,6 +223,17 @@ export async function initDatabase() {
       console.log('✅ Colonna immagine_url aggiunta alla tabella inventario');
     } catch (error) {
       console.log('ℹ️ Colonna immagine_url già esistente');
+    }
+
+    // Aggiungi colonna tipo_prestito se non esiste
+    try {
+      await client.query(`
+        ALTER TABLE inventario 
+        ADD COLUMN IF NOT EXISTS tipo_prestito VARCHAR(20) DEFAULT 'prestito'
+      `);
+      console.log('✅ Colonna tipo_prestito aggiunta alla tabella inventario');
+    } catch (error) {
+      console.log('ℹ️ Colonna tipo_prestito già esistente');
     }
 
     // Inserisci admin user se non esiste

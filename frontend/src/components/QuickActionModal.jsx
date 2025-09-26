@@ -5,11 +5,12 @@ const QuickActionModal = ({ isOpen, onClose, action, onSuccess }) => {
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState(null);
  const [formData, setFormData] = useState({
- nome: '',
- quantita_totale: 1,
- scaffale: '',
- categoria_id: '',
- note: ''
+   nome: '',
+   quantita_totale: 1,
+   scaffale: '',
+   categoria_id: '',
+   note: '',
+   tipo_prestito: 'prestito'
  });
  const { token } = useAuth();
 
@@ -58,15 +59,16 @@ const QuickActionModal = ({ isOpen, onClose, action, onSuccess }) => {
  };
 
  const handleClose = () => {
- setFormData({
- nome: '',
- quantita_totale: 1,
- scaffale: '',
- categoria_id: '',
- note: ''
- });
- setError(null);
- onClose();
+   setFormData({
+     nome: '',
+     quantita_totale: 1,
+     scaffale: '',
+     categoria_id: '',
+     note: '',
+     tipo_prestito: 'prestito'
+   });
+   setError(null);
+   onClose();
  };
 
  if (!isOpen) return null;
@@ -176,15 +178,38 @@ const QuickActionModal = ({ isOpen, onClose, action, onSuccess }) => {
  
  <div>
  <label className="block text-sm font-medium text-primary mb-2">
- Note
+   Note
  </label>
  <textarea
- value={formData.note}
- onChange={(e) => setFormData({...formData, note: e.target.value})}
- className="input-field"
- rows="3"
- placeholder="Note aggiuntive"
+   value={formData.note}
+   onChange={(e) => setFormData({...formData, note: e.target.value})}
+   className="input-field"
+   rows="3"
+   placeholder="Note aggiuntive"
  />
+ </div>
+
+ <div className="md:col-span-2">
+   <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+     <input
+       type="checkbox"
+       id="tipo_prestito_quick"
+       checked={formData.tipo_prestito === 'prestito'}
+       onChange={(e) => setFormData({...formData, tipo_prestito: e.target.checked ? 'prestito' : 'uso_interno'})}
+       className="w-5 h-5 text-blue-600 bg-white border-2 border-blue-300 rounded focus:ring-blue-500 focus:ring-2"
+     />
+     <div>
+       <label htmlFor="tipo_prestito_quick" className="text-sm font-medium text-blue-900 cursor-pointer">
+         Abilita prestito multi-giorno
+       </label>
+       <p className="text-xs text-blue-700 mt-1">
+         {formData.tipo_prestito === 'prestito' 
+           ? '✅ Gli studenti possono richiedere prestiti per più giorni'
+           : '🏠 Solo uso interno - prestiti massimo 1 giorno (stesso giorno)'
+         }
+       </p>
+     </div>
+   </div>
  </div>
  </div>
 

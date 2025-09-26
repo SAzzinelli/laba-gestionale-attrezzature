@@ -97,7 +97,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
     // Validazione date frontend
     const dataInizio = new Date(dateRange.dal);
-    const dataFine = new Date(dateRange.al);
+    const dataFine = new Date(selectedObject.tipo_prestito === 'uso_interno' ? dateRange.dal : dateRange.al);
     const oggi = new Date();
     oggi.setHours(0, 0, 0, 0);
 
@@ -113,6 +113,18 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       return;
     }
 
+    // Validazione speciale per uso interno
+    if (selectedObject.tipo_prestito === 'uso_interno') {
+      const dataInizioDay = dataInizio.toDateString();
+      const dataFineDay = dataFine.toDateString();
+      
+      if (dataInizioDay !== dataFineDay) {
+        setError('Per oggetti ad uso interno, la data di fine deve essere lo stesso giorno della data di inizio');
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste`, {
         method: 'POST',
@@ -123,7 +135,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
         body: JSON.stringify({
           unit_id: selectedUnit.id,
           dal: dateRange.dal,
-          al: dateRange.al,
+          al: selectedObject.tipo_prestito === 'uso_interno' ? dateRange.dal : dateRange.al,
           note: note
         })
       });
@@ -185,10 +197,16 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === 'dal' || name === 'al') {
-      setDateRange(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      setDateRange(prev => {
+        const newRange = { ...prev, [name]: value };
+        
+        // Per uso interno, imposta automaticamente la data di fine = data di inizio
+        if (selectedObject?.tipo_prestito === 'uso_interno' && name === 'dal') {
+          newRange.al = value;
+        }
+        
+        return newRange;
+      });
     } else if (name === 'note') {
       setNote(value);
     }
@@ -239,11 +257,25 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-gray-900">{item.nome}</h4>
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                        {item.unita_disponibili} disponibili
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          item.tipo_prestito === 'uso_interno' 
+                            ? 'bg-orange-100 text-orange-800' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {item.tipo_prestito === 'uso_interno' ? '🏠 Uso Interno' : '📅 Prestito'}
+                        </span>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                          {item.unita_disponibili} disponibili
+                        </span>
+                      </div>
                     </div>
                     <p className="text-sm text-gray-600">{item.categoria_nome}</p>
+                    {item.tipo_prestito === 'uso_interno' && (
+                      <p className="text-xs text-orange-600 mt-1">
+                        ⚠️ Solo per lo stesso giorno
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -321,6 +353,23 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                 </button>
               </div>
 
+              {/* Tipo Prestito Info */}
+              {selectedObject.tipo_prestito === 'uso_interno' && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 text-orange-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <h4 className="text-sm font-medium text-orange-800">Uso Interno</h4>
+                      <p className="text-xs text-orange-700 mt-1">
+                        Questo oggetto può essere utilizzato solo per lo stesso giorno. La data di fine sarà automaticamente impostata alla stessa data di inizio.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Date */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -339,14 +388,20 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Data Fine *
+                    {selectedObject.tipo_prestito === 'uso_interno' && (
+                      <span className="text-xs text-orange-600 ml-2">(Automatica per uso interno)</span>
+                    )}
                   </label>
                   <input
                     type="date"
                     name="al"
-                    value={dateRange.al}
+                    value={selectedObject.tipo_prestito === 'uso_interno' ? dateRange.dal : dateRange.al}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={selectedObject.tipo_prestito === 'uso_interno'}
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      selectedObject.tipo_prestito === 'uso_interno' ? 'bg-gray-100 cursor-not-allowed' : ''
+                    }`}
                   />
                 </div>
               </div>

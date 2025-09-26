@@ -210,13 +210,17 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       note = null, 
       immagine_url = null,
       quantita_totale = 1, 
-      corsi_assegnati = [],
+      tipo_prestito = 'prestito',
+      corsi_assegnati = [], 
       unita = [] 
     } = req.body || {};
     
     if (!nome) return res.status(400).json({ error: 'nome richiesto' });
     if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre (corso accademico) richiesta' });
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
+    if (!['prestito', 'uso_interno'].includes(tipo_prestito)) {
+      return res.status(400).json({ error: 'tipo_prestito deve essere "prestito" o "uso_interno"' });
+    }
     
     // Check if nome already exists
     const existing = await query('SELECT id FROM inventario WHERE nome = $1', [nome]);
@@ -243,10 +247,10 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     
     // Create inventory item
     const result = await query(`
-      INSERT INTO inventario (nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita, in_manutenzione)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      INSERT INTO inventario (nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita, in_manutenzione, tipo_prestito)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
-    `, [nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita_totale, false]);
+    `, [nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita_totale, false, tipo_prestito]);
     
     const newItem = result[0];
     
@@ -301,6 +305,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       immagine_url = null,
       quantita_totale, 
       in_manutenzione,
+      tipo_prestito = 'prestito',
       corsi_assegnati = [],
       unita = []
     } = req.body || {};
@@ -308,6 +313,9 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     if (!nome) return res.status(400).json({ error: 'nome richiesto' });
     if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre (corso accademico) richiesta' });
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
+    if (!['prestito', 'uso_interno'].includes(tipo_prestito)) {
+      return res.status(400).json({ error: 'tipo_prestito deve essere "prestito" o "uso_interno"' });
+    }
 
     // Check if nome already exists for another item
     const existing = await query('SELECT id FROM inventario WHERE nome = $1 AND id != $2', [nome, id]);
@@ -319,10 +327,10 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     const result = await query(`
       UPDATE inventario 
       SET nome = $1, categoria_madre = $2, categoria_id = $3, posizione = $4, note = $5, 
-          immagine_url = $6, quantita_totale = $7, quantita = $8, in_manutenzione = $9, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $10
+          immagine_url = $6, quantita_totale = $7, quantita = $8, in_manutenzione = $9, tipo_prestito = $10, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $11
       RETURNING *
-    `, [nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita_totale, in_manutenzione || false, id]);
+    `, [nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita_totale, in_manutenzione || false, tipo_prestito, id]);
 
     if (result.length === 0) {
       return res.status(404).json({ error: 'Elemento inventario non trovato' });

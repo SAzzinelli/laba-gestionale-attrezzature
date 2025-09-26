@@ -14,6 +14,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
     scaffale: '',
     note: '',
     immagine_url: '',
+    tipo_prestito: 'prestito',
     corsi_assegnati: [],
     categoria_madre: '',
     categoria_id: '',
@@ -35,6 +36,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
           scaffale: editingItem.posizione || '',
           note: editingItem.note || '',
           immagine_url: editingItem.immagine_url || '',
+          tipo_prestito: editingItem.tipo_prestito || 'prestito',
           corsi_assegnati: editingItem.corsi_assegnati || [],
           categoria_madre: '', // Non serve, viene derivato automaticamente
           categoria_id: editingItem.categoria_id || '',
@@ -50,6 +52,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
         scaffale: '',
         note: '',
         immagine_url: '',
+        tipo_prestito: 'prestito',
         corsi_assegnati: [],
         categoria_madre: '', // Non serve, viene derivato automaticamente
         categoria_id: '',
@@ -352,6 +355,32 @@ setFormData(prev => ({ ...prev, unita: units }));
                     className="input-field"
                     placeholder="Es. A1, B2, C3"
                   />
+                </div>
+
+                <div className="form-group md:col-span-2">
+                  <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <input
+                      type="checkbox"
+                      id="tipo_prestito"
+                      checked={formData.tipo_prestito === 'prestito'}
+                      onChange={(e) => setFormData(prev => ({ 
+                        ...prev, 
+                        tipo_prestito: e.target.checked ? 'prestito' : 'uso_interno' 
+                      }))}
+                      className="w-5 h-5 text-blue-600 bg-white border-2 border-blue-300 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <div>
+                      <label htmlFor="tipo_prestito" className="text-sm font-medium text-blue-900 cursor-pointer">
+                        Abilita prestito multi-giorno
+                      </label>
+                      <p className="text-xs text-blue-700 mt-1">
+                        {formData.tipo_prestito === 'prestito' 
+                          ? '✅ Gli studenti possono richiedere prestiti per più giorni'
+                          : '🏠 Solo uso interno - prestiti massimo 1 giorno (stesso giorno)'
+                        }
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="form-group">
