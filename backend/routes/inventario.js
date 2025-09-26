@@ -341,7 +341,84 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     // Update units: handle carefully to avoid deleting units in use
     if (unita && unita.length > 0) {
       // Only update if units are explicitly provided
-      // Check if any units are currently in use
+      
+      // Check for active loans
+      const activeLoans = await query(`
+        SELECT COUNT(*) as count FROM prestiti p
+        JOIN inventario_unita iu ON p.inventario_id = iu.inventario_id
+        WHERE p.inventario_id = $1 AND p.stato = 'attivo'
+      `, [id]);
+      
+      if (activeLoans[0].count > 0) {
+        // Get details about active loans for better error message
+        const loanDetails = await query(`
+          SELECT p.id, p.chi, p.data_uscita, p.data_rientro, u.codice_univoco
+          FROM prestiti p
+          JOIN inventario_unita u ON p.inventario_id = u.inventario_id
+          WHERE p.inventario_id = $1 AND p.stato = 'attivo'
+          LIMIT 3
+        `, [id]);
+        
+        const loanInfo = loanDetails.map(loan => 
+          `${loan.chi} (${loan.codice_univoco}) dal ${loan.data_uscita} al ${loan.data_rientro}`
+        ).join(', ');
+        
+        return res.status(400).json({ 
+          error: `Non è possibile modificare le unità perché ci sono prestiti attivi: ${loanInfo}${loanDetails.length === 3 ? '...' : ''}` 
+        });
+      }
+      
+      // Check for pending requests
+      const pendingRequests = await query(`
+        SELECT COUNT(*) as count FROM richieste r
+        WHERE r.inventario_id = $1 AND r.stato IN ('in_attesa', 'approvata')
+      `, [id]);
+      
+      if (pendingRequests[0].count > 0) {
+        // Get details about pending requests
+        const requestDetails = await query(`
+          SELECT r.id, r.stato, r.dal, r.al, u.name, u.surname
+          FROM richieste r
+          JOIN users u ON r.utente_id = u.id
+          WHERE r.inventario_id = $1 AND r.stato IN ('in_attesa', 'approvata')
+          LIMIT 3
+        `, [id]);
+        
+        const requestInfo = requestDetails.map(req => 
+          `${req.name} ${req.surname} (${req.stato}) dal ${req.dal} al ${req.al}`
+        ).join(', ');
+        
+        return res.status(400).json({ 
+          error: `Non è possibile modificare le unità perché ci sono richieste pendenti: ${requestInfo}${requestDetails.length === 3 ? '...' : ''}` 
+        });
+      }
+      
+      // Check for ongoing repairs
+      const ongoingRepairs = await query(`
+        SELECT COUNT(*) as count FROM riparazioni r
+        WHERE r.inventario_id = $1 AND r.stato = 'in_corso'
+      `, [id]);
+      
+      if (ongoingRepairs[0].count > 0) {
+        // Get details about ongoing repairs
+        const repairDetails = await query(`
+          SELECT r.id, r.descrizione, r.data_inizio, u.name, u.surname
+          FROM riparazioni r
+          JOIN users u ON r.utente_id = u.id
+          WHERE r.inventario_id = $1 AND r.stato = 'in_corso'
+          LIMIT 3
+        `, [id]);
+        
+        const repairInfo = repairDetails.map(repair => 
+          `${repair.name} ${repair.surname}: ${repair.descrizione} (dal ${repair.data_inizio})`
+        ).join(', ');
+        
+        return res.status(400).json({ 
+          error: `Non è possibile modificare le unità perché ci sono riparazioni in corso: ${repairInfo}${repairDetails.length === 3 ? '...' : ''}` 
+        });
+      }
+      
+      // Check if any units are currently in use (additional safety check)
       const unitsInUse = await query(`
         SELECT COUNT(*) as count FROM inventario_unita 
         WHERE inventario_id = $1 AND (prestito_corrente_id IS NOT NULL OR stato != 'disponibile')
