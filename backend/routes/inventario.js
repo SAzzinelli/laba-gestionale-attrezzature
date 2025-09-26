@@ -211,7 +211,7 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       note = null, 
       immagine_url = null,
       quantita_totale = 1, 
-      tipo_prestito = 'prestito',
+      tipo_prestito = 'solo_esterno',
       corsi_assegnati = [], 
       unita = [] 
     } = req.body || {};
@@ -219,8 +219,8 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     if (!nome) return res.status(400).json({ error: 'nome richiesto' });
     if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre (corso accademico) richiesta' });
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
-    if (!['prestito', 'uso_interno'].includes(tipo_prestito)) {
-      return res.status(400).json({ error: 'tipo_prestito deve essere "prestito" o "uso_interno"' });
+    if (!['solo_interno', 'solo_esterno', 'entrambi'].includes(tipo_prestito)) {
+      return res.status(400).json({ error: 'tipo_prestito deve essere "solo_interno", "solo_esterno" o "entrambi"' });
     }
     
     // Check if nome already exists
@@ -307,7 +307,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       immagine_url = null,
       quantita_totale, 
       in_manutenzione,
-      tipo_prestito = 'prestito',
+      tipo_prestito = 'solo_esterno',
       corsi_assegnati = [],
       unita = []
     } = req.body || {};
@@ -315,8 +315,8 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     if (!nome) return res.status(400).json({ error: 'nome richiesto' });
     if (!categoria_madre) return res.status(400).json({ error: 'categoria_madre (corso accademico) richiesta' });
     if (!quantita_totale || quantita_totale < 1) return res.status(400).json({ error: 'quantità totale richiesta' });
-    if (!['prestito', 'uso_interno'].includes(tipo_prestito)) {
-      return res.status(400).json({ error: 'tipo_prestito deve essere "prestito" o "uso_interno"' });
+    if (!['solo_interno', 'solo_esterno', 'entrambi'].includes(tipo_prestito)) {
+      return res.status(400).json({ error: 'tipo_prestito deve essere "solo_interno", "solo_esterno" o "entrambi"' });
     }
 
     // Check if nome already exists for another item

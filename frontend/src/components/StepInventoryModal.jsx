@@ -15,7 +15,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
     fornitore: '',
     note: '',
     immagine_url: '',
-    tipo_prestito: 'prestito',
+    tipo_prestito: 'solo_esterno',
     corsi_assegnati: [],
     categoria_madre: '',
     categoria_id: '',
@@ -55,7 +55,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
         fornitore: '',
         note: '',
         immagine_url: '',
-        tipo_prestito: 'prestito',
+        tipo_prestito: 'solo_esterno',
         corsi_assegnati: [],
         categoria_madre: '', // Non serve, viene derivato automaticamente
         categoria_id: '',
@@ -413,28 +413,28 @@ setFormData(prev => ({ ...prev, unita: units }));
    </div>
 
    <div className="form-group">
-     <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-       <input
-         type="checkbox"
-         id="tipo_prestito"
-         checked={formData.tipo_prestito === 'prestito'}
-         onChange={(e) => setFormData(prev => ({ 
-           ...prev, 
-           tipo_prestito: e.target.checked ? 'prestito' : 'uso_interno' 
-         }))}
-         className="w-5 h-5 text-blue-600 bg-white border-2 border-blue-300 rounded focus:ring-blue-500 focus:ring-2"
-       />
-       <div>
-         <label htmlFor="tipo_prestito" className="text-sm font-medium text-blue-900 cursor-pointer">
-           {formData.tipo_prestito === 'prestito' ? 'Disponibile al Prestito' : 'Solo per uso interno'}
-         </label>
-         <p className="text-xs text-blue-700 mt-1">
-           {formData.tipo_prestito === 'prestito' 
-             ? '✅ Gli studenti possono richiedere un prestito per più giorni'
-             : '🏠 Gli studenti sono autorizzati all\'uso interno all\'accademia'
-           }
-         </p>
-       </div>
+     <label className="form-label">Tipo di Utilizzo</label>
+     <select
+       value={formData.tipo_prestito}
+       onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
+       className="input-field"
+     >
+       <option value="solo_esterno">Solo Prestito Esterno</option>
+       <option value="solo_interno">Solo Uso Interno</option>
+       <option value="entrambi">Entrambi (Utente Sceglie)</option>
+     </select>
+     <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+       <p className="text-xs text-blue-700">
+         {formData.tipo_prestito === 'solo_esterno' && (
+           <>📅 <strong>Solo Prestito Esterno:</strong> Gli studenti possono richiedere prestiti per più giorni e portare l'oggetto fuori dall'accademia</>
+         )}
+         {formData.tipo_prestito === 'solo_interno' && (
+           <>🏠 <strong>Solo Uso Interno:</strong> Gli studenti sono autorizzati all'uso interno all'accademia (stesso giorno)</>
+         )}
+         {formData.tipo_prestito === 'entrambi' && (
+           <>🔄 <strong>Entrambi:</strong> Gli studenti possono scegliere se utilizzare l'oggetto internamente (stesso giorno) o esternamente (multi-giorno)</>
+         )}
+       </p>
      </div>
    </div>
  </div>

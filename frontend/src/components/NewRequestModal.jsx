@@ -14,6 +14,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
     al: ''
   });
   const [note, setNote] = useState('');
+  const [tipoUtilizzo, setTipoUtilizzo] = useState('');
   const { token, user } = useAuth();
 
   useEffect(() => {
@@ -29,6 +30,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
         al: ''
       });
       setNote('');
+      setTipoUtilizzo('');
       setError(null);
     }
   }, [isOpen]);
@@ -97,7 +99,16 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
     // Validazione date frontend
     const dataInizio = new Date(dateRange.dal);
-    const dataFine = new Date(selectedObject.tipo_prestito === 'uso_interno' ? dateRange.dal : dateRange.al);
+    let dataFine;
+    
+    if (selectedObject.tipo_prestito === 'solo_interno') {
+      dataFine = new Date(dateRange.dal); // Stesso giorno per uso interno
+    } else if (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno') {
+      dataFine = new Date(dateRange.dal); // Stesso giorno se scelto interno
+    } else {
+      dataFine = new Date(dateRange.al); // Data normale per esterno
+    }
+    
     const oggi = new Date();
     oggi.setHours(0, 0, 0, 0);
 
@@ -114,12 +125,13 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
     }
 
     // Validazione speciale per uso interno
-    if (selectedObject.tipo_prestito === 'uso_interno') {
+    if (selectedObject.tipo_prestito === 'solo_interno' || 
+        (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) {
       const dataInizioDay = dataInizio.toDateString();
       const dataFineDay = dataFine.toDateString();
       
       if (dataInizioDay !== dataFineDay) {
-        setError('Per oggetti ad uso interno all\'accademia, la data di fine deve essere lo stesso giorno della data di inizio');
+        setError('Per utilizzo interno, la data di fine deve essere lo stesso giorno della data di inizio');
         setLoading(false);
         return;
       }
@@ -135,8 +147,9 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
         body: JSON.stringify({
           unit_id: selectedUnit.id,
           dal: dateRange.dal,
-          al: selectedObject.tipo_prestito === 'uso_interno' ? dateRange.dal : dateRange.al,
-          note: note
+          al: dataFine.toISOString().split('T')[0],
+          note: note,
+          tipo_utilizzo: selectedObject.tipo_prestito === 'entrambi' ? tipoUtilizzo : null
         })
       });
 
@@ -201,7 +214,9 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
         const newRange = { ...prev, [name]: value };
         
         // Per uso interno, imposta automaticamente la data di fine = data di inizio
-        if (selectedObject?.tipo_prestito === 'uso_interno' && name === 'dal') {
+        if ((selectedObject?.tipo_prestito === 'solo_interno' || 
+             (selectedObject?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) && 
+            name === 'dal') {
           newRange.al = value;
         }
         
@@ -259,11 +274,15 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                       <h4 className="font-medium text-gray-900">{item.nome}</h4>
                       <div className="flex items-center space-x-2">
                         <span className={`text-xs px-2 py-1 rounded-full ${
-                          item.tipo_prestito === 'uso_interno' 
+                          item.tipo_prestito === 'solo_interno' 
                             ? 'bg-orange-100 text-orange-800' 
-                            : 'bg-blue-100 text-blue-800'
+                            : item.tipo_prestito === 'solo_esterno'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-purple-100 text-purple-800'
                         }`}>
-                          {item.tipo_prestito === 'uso_interno' ? '🏠 Solo per uso interno' : '📅 Disponibile al Prestito'}
+                          {item.tipo_prestito === 'solo_interno' ? '🏠 Solo per uso interno' : 
+                           item.tipo_prestito === 'solo_esterno' ? '📅 Solo prestito esterno' : 
+                           '🔄 Entrambi (tu scegli)'}
                         </span>
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
                           {item.unita_disponibili} disponibili
@@ -271,9 +290,14 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                       </div>
                     </div>
                     <p className="text-sm text-gray-600">{item.categoria_nome}</p>
-                    {item.tipo_prestito === 'uso_interno' && (
+                    {item.tipo_prestito === 'solo_interno' && (
                       <p className="text-xs text-orange-600 mt-1">
-                        ⚠️ Gli studenti sono autorizzati all'uso interno all'accademia
+                        ⚠️ Solo per uso interno all'accademia (stesso giorno)
+                      </p>
+                    )}
+                    {item.tipo_prestito === 'entrambi' && (
+                      <p className="text-xs text-purple-600 mt-1">
+                        🔄 Potrai scegliere se utilizzarlo internamente o esternamente
                       </p>
                     )}
                   </div>
@@ -354,7 +378,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
               </div>
 
               {/* Tipo Prestito Info */}
-              {selectedObject.tipo_prestito === 'uso_interno' && (
+              {selectedObject.tipo_prestito === 'solo_interno' && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
                   <div className="flex items-center">
                     <svg className="w-5 h-5 text-orange-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -363,9 +387,62 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     <div>
                       <h4 className="text-sm font-medium text-orange-800">Solo per uso interno</h4>
                       <p className="text-xs text-orange-700 mt-1">
-                        Gli studenti sono autorizzati all'uso interno all'accademia. La data di fine sarà automaticamente impostata alla stessa data di inizio.
+                        Solo per uso interno all'accademia. La data di fine sarà automaticamente impostata alla stessa data di inizio.
                       </p>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Scelta Tipo Utilizzo per oggetti "entrambi" */}
+              {selectedObject.tipo_prestito === 'entrambi' && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center mb-3">
+                    <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <h4 className="text-sm font-medium text-purple-800">Scegli il tipo di utilizzo</h4>
+                      <p className="text-xs text-purple-700 mt-1">
+                        Questo oggetto può essere utilizzato sia internamente che esternamente. Scegli come intendi utilizzarlo.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-50">
+                      <input
+                        type="radio"
+                        name="tipo_utilizzo"
+                        value="interno"
+                        checked={tipoUtilizzo === 'interno'}
+                        onChange={(e) => {
+                          setTipoUtilizzo(e.target.value);
+                          // Imposta automaticamente la data di fine = data di inizio
+                          setDateRange(prev => ({ ...prev, al: prev.dal }));
+                        }}
+                        className="w-4 h-4 text-purple-600 border-purple-300 focus:ring-purple-500"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-purple-900">🏠 Uso Interno</span>
+                        <p className="text-xs text-purple-700">Utilizzo all'interno dell'accademia (stesso giorno)</p>
+                      </div>
+                    </label>
+                    
+                    <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-50">
+                      <input
+                        type="radio"
+                        name="tipo_utilizzo"
+                        value="esterno"
+                        checked={tipoUtilizzo === 'esterno'}
+                        onChange={(e) => setTipoUtilizzo(e.target.value)}
+                        className="w-4 h-4 text-purple-600 border-purple-300 focus:ring-purple-500"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-purple-900">📅 Prestito Esterno</span>
+                        <p className="text-xs text-purple-700">Prestito per più giorni, puoi portarlo fuori dall'accademia</p>
+                      </div>
+                    </label>
                   </div>
                 </div>
               )}
@@ -388,19 +465,25 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Data Fine *
-                    {selectedObject.tipo_prestito === 'uso_interno' && (
-                      <span className="text-xs text-orange-600 ml-2">(Automatica per uso interno all'accademia)</span>
+                    {(selectedObject.tipo_prestito === 'solo_interno' || 
+                      (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) && (
+                      <span className="text-xs text-orange-600 ml-2">(Automatica per uso interno)</span>
                     )}
                   </label>
                   <input
                     type="date"
                     name="al"
-                    value={selectedObject.tipo_prestito === 'uso_interno' ? dateRange.dal : dateRange.al}
+                    value={(selectedObject.tipo_prestito === 'solo_interno' || 
+                           (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
+                          ? dateRange.dal : dateRange.al}
                     onChange={handleInputChange}
                     required
-                    disabled={selectedObject.tipo_prestito === 'uso_interno'}
+                    disabled={selectedObject.tipo_prestito === 'solo_interno' || 
+                             (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      selectedObject.tipo_prestito === 'uso_interno' ? 'bg-gray-100 cursor-not-allowed' : ''
+                      (selectedObject.tipo_prestito === 'solo_interno' || 
+                       (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
+                      ? 'bg-gray-100 cursor-not-allowed' : ''
                     }`}
                   />
                 </div>
@@ -438,7 +521,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || (selectedObject.tipo_prestito === 'entrambi' && !tipoUtilizzo)}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? (

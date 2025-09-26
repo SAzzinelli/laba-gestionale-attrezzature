@@ -80,7 +80,7 @@ r.post('/', requireAuth, async (req, res) => {
       });
     }
     
-    const { unit_id, inventario_id, dal, al, motivo, note } = req.body || {};
+    const { unit_id, inventario_id, dal, al, motivo, note, tipo_utilizzo } = req.body || {};
     
     console.log(`🔍 Creating request - unit_id: ${unit_id}, inventario_id: ${inventario_id}`);
     
@@ -122,8 +122,9 @@ r.post('/', requireAuth, async (req, res) => {
     
     const item = inventarioCheck[0];
     
-    // Validazione speciale per uso interno: data massima = stesso giorno
-    if (item.tipo_prestito === 'uso_interno') {
+    // Validazione speciale per tipo di utilizzo
+    if (item.tipo_prestito === 'solo_interno') {
+      // Solo interno: data massima = stesso giorno
       const dataInizioDay = new Date(dataInizio).toDateString();
       const dataFineDay = new Date(dataFine).toDateString();
       
@@ -132,13 +133,32 @@ r.post('/', requireAuth, async (req, res) => {
           error: 'Per oggetti ad uso interno all\'accademia, la data di fine deve essere lo stesso giorno della data di inizio' 
         });
       }
+    } else if (item.tipo_prestito === 'entrambi') {
+      // Entrambi: l'utente deve scegliere il tipo di utilizzo
+      if (!tipo_utilizzo || !['interno', 'esterno'].includes(tipo_utilizzo)) {
+        return res.status(400).json({ 
+          error: 'Per oggetti utilizzabili sia internamente che esternamente, devi specificare il tipo di utilizzo (interno o esterno)' 
+        });
+      }
+      
+      // Se interno, valida stesso giorno
+      if (tipo_utilizzo === 'interno') {
+        const dataInizioDay = new Date(dataInizio).toDateString();
+        const dataFineDay = new Date(dataFine).toDateString();
+        
+        if (dataInizioDay !== dataFineDay) {
+          return res.status(400).json({ 
+            error: 'Per utilizzo interno, la data di fine deve essere lo stesso giorno della data di inizio' 
+          });
+        }
+      }
     }
     
     const result = await query(`
-      INSERT INTO richieste (utente_id, inventario_id, dal, al, motivo, note, unit_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO richieste (utente_id, inventario_id, dal, al, motivo, note, unit_id, tipo_utilizzo)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
-    `, [req.user.id, actualInventarioId, dal, al, motivo || null, note || null, unit_id || null]);
+    `, [req.user.id, actualInventarioId, dal, al, motivo || null, note || null, unit_id || null, tipo_utilizzo || null]);
     
     // Se è stata specificata un'unità, riservala
     if (unit_id) {

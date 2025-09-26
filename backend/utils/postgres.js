@@ -67,7 +67,7 @@ export async function initDatabase() {
         unita JSONB DEFAULT '[]',
         quantita INTEGER DEFAULT 0,
         soglia_minima INTEGER DEFAULT 1,
-        tipo_prestito VARCHAR(20) DEFAULT 'prestito',
+        tipo_prestito VARCHAR(20) DEFAULT 'solo_esterno',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -112,6 +112,7 @@ export async function initDatabase() {
         stato VARCHAR(50) DEFAULT 'in_attesa',
         motivo TEXT,
         note TEXT,
+        tipo_utilizzo VARCHAR(20) DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(utente_id) REFERENCES users(id),
@@ -149,8 +150,9 @@ export async function initDatabase() {
       ALTER TABLE richieste ADD COLUMN IF NOT EXISTS unit_id INTEGER REFERENCES inventario_unita(id);
       ALTER TABLE riparazioni ADD COLUMN IF NOT EXISTS tipo VARCHAR(100) DEFAULT 'riparazione';
       ALTER TABLE riparazioni ADD COLUMN IF NOT EXISTS priorita VARCHAR(50) DEFAULT 'media';
-      ALTER TABLE inventario ADD COLUMN IF NOT EXISTS tipo_prestito VARCHAR(20) DEFAULT 'prestito';
+      ALTER TABLE inventario ADD COLUMN IF NOT EXISTS tipo_prestito VARCHAR(20) DEFAULT 'solo_esterno';
       ALTER TABLE inventario ADD COLUMN IF NOT EXISTS fornitore VARCHAR(255);
+      ALTER TABLE richieste ADD COLUMN IF NOT EXISTS tipo_utilizzo VARCHAR(20) DEFAULT NULL;
       
       -- Sistema di penalità per ritardi
       ALTER TABLE users ADD COLUMN IF NOT EXISTS penalty_strikes INTEGER DEFAULT 0;
@@ -231,7 +233,7 @@ export async function initDatabase() {
     try {
       await client.query(`
         ALTER TABLE inventario 
-        ADD COLUMN IF NOT EXISTS tipo_prestito VARCHAR(20) DEFAULT 'prestito'
+        ADD COLUMN IF NOT EXISTS tipo_prestito VARCHAR(20) DEFAULT 'solo_esterno'
       `);
       console.log('✅ Colonna tipo_prestito aggiunta alla tabella inventario');
     } catch (error) {
@@ -247,6 +249,17 @@ export async function initDatabase() {
       console.log('✅ Colonna fornitore aggiunta alla tabella inventario');
     } catch (error) {
       console.log('ℹ️ Colonna fornitore già esistente');
+    }
+
+    // Aggiungi colonna tipo_utilizzo se non esiste
+    try {
+      await client.query(`
+        ALTER TABLE richieste 
+        ADD COLUMN IF NOT EXISTS tipo_utilizzo VARCHAR(20) DEFAULT NULL
+      `);
+      console.log('✅ Colonna tipo_utilizzo aggiunta alla tabella richieste');
+    } catch (error) {
+      console.log('ℹ️ Colonna tipo_utilizzo già esistente');
     }
 
     // Inserisci admin user se non esiste
