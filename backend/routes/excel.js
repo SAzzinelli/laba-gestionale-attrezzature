@@ -94,12 +94,23 @@ r.get('/inventario/export', requireAuth, requireRole('admin'), async (req, res) 
 // POST /api/excel/inventario/import - Import inventario da Excel
 r.post('/inventario/import', requireAuth, requireRole('admin'), upload.any(), async (req, res) => {
   try {
+    // Debug temporaneo per produzione
+    console.log('=== DEBUG IMPORT EXCEL ===');
+    console.log('req.file:', req.file);
+    console.log('req.files:', req.files);
+    console.log('req.body:', req.body);
+    console.log('Content-Type:', req.headers['content-type']);
+    console.log('========================');
+    
     // Cerca il file nei files array
     const file = req.files && req.files.length > 0 ? req.files[0] : req.file;
     
     if (!file) {
+      console.log('ERRORE: Nessun file trovato');
       return res.status(400).json({ error: 'File Excel richiesto' });
     }
+    
+    console.log('File trovato:', file.originalname, file.size, 'bytes');
 
     // Leggi file Excel
     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
