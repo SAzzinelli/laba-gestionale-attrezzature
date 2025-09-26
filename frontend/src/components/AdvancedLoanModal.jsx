@@ -35,6 +35,16 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  }
  }, [isOpen]);
 
+ // Auto-set end date for internal use when reaching step 5
+ useEffect(() => {
+ if (step === 5 && dateRange.dal && !dateRange.al) {
+   if (selectedItem?.tipo_prestito === 'solo_interno' || 
+       (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) {
+     setDateRange(prev => ({ ...prev, al: prev.dal }));
+   }
+ }
+ }, [step, dateRange.dal, selectedItem?.tipo_prestito, tipoUtilizzo]);
+
 const fetchInventory = async () => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/inventario`, {
@@ -724,7 +734,7 @@ body: JSON.stringify({
  ) : (
  <button
  onClick={handleCreateLoan}
- disabled={loading || !dateRange.dal || !dateRange.al}
+ disabled={loading || !dateRange.dal || (!dateRange.al && !(selectedItem?.tipo_prestito === 'solo_interno' || (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')))}
  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
  >
  {loading ? 'Creazione...' : 'Crea Prestito'}
