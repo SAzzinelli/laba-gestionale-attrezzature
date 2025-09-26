@@ -17,7 +17,7 @@ r.get('/', requireAuth, requireRole('admin'), async (req, res) => {
     let queryText = `
       SELECT
         i.id, i.nome, i.quantita_totale, i.categoria_madre, i.categoria_id,
-        i.posizione, i.note, i.immagine_url, i.in_manutenzione, i.created_at, i.updated_at,
+        i.posizione, i.note, i.immagine_url, i.in_manutenzione, i.tipo_prestito, i.created_at, i.updated_at,
         CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
         COALESCE(json_agg(DISTINCT ic.corso) FILTER (WHERE ic.corso IS NOT NULL), '[]') AS corsi_assegnati,
         (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile') AS unita_disponibili,
@@ -66,7 +66,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
       // Admin vede tutti gli oggetti
       result = await query(`
         SELECT
-          i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url,
+          i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url, i.tipo_prestito,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
           (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS unita_disponibili,
           CASE
@@ -86,7 +86,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
 
       result = await query(`
         SELECT
-          i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url,
+          i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url, i.tipo_prestito,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
           (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS unita_disponibili,
           CASE
