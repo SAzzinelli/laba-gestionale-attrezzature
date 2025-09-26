@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
 const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) => {
- const [step, setStep] = useState(1); // 1: Basic Info, 2: Description & Image, 3: Course & Category, 4: Unit Codes
+  const [step, setStep] = useState(1); // 1: Basic Info, 2: Description & Image, 3: Tipo Utilizzo, 4: Course & Category, 5: Unit Codes
  const [courses, setCourses] = useState([]);
  const [categories, setCategories] = useState([]);
  const [loading, setLoading] = useState(false);
@@ -230,22 +230,24 @@ const handleSubmit = async () => {
  onClose();
  };
 
- const getStepTitle = () => {
-   switch (step) {
-     case 1: return 'Informazioni Base';
-     case 2: return 'Descrizione e Immagine';
-     case 3: return 'Corso e Categoria';
-     case 4: return 'Codici Univoci';
-     default: return 'Nuovo Elemento';
-   }
- };
+const getStepTitle = () => {
+  switch (step) {
+    case 1: return 'Informazioni Base';
+    case 2: return 'Descrizione e Immagine';
+    case 3: return 'Tipo di Utilizzo';
+    case 4: return 'Corso e Categoria';
+    case 5: return 'Codici Univoci';
+    default: return 'Nuovo Elemento';
+  }
+};
 
 const canProceed = () => {
   switch (step) {
     case 1: return formData.nome && formData.quantita_totale && formData.quantita_totale > 0;
     case 2: return true; // Descrizione e immagine sono opzionali
-    case 3: return formData.corsi_assegnati.length > 0; // Categoria non obbligatoria
-    case 4: return formData.unita.length > 0;
+    case 3: return true; // Tipo di utilizzo sempre selezionabile
+    case 4: return formData.corsi_assegnati.length > 0; // Categoria non obbligatoria
+    case 5: return formData.unita.length > 0;
     default: return false;
   }
 };
@@ -261,7 +263,7 @@ const canProceed = () => {
  {editingItem ? 'Modifica Elemento' : 'Nuovo Elemento'}
  </h2>
  <p className="text-xs text-secondary mt-1">
-   {getStepTitle()} (Passo {step} di 4)
+   {getStepTitle()} (Passo {step} di 5)
  </p>
  </div>
  <button
@@ -281,8 +283,9 @@ const canProceed = () => {
  {[
    { num: 1, label: 'Info Base', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
    { num: 2, label: 'Descrizione', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
-   { num: 3, label: 'Corsi & Categoria', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
-   { num: 4, label: 'Codici Unità', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg> }
+   { num: 3, label: 'Tipo Utilizzo', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg> },
+   { num: 4, label: 'Corsi & Categoria', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
+   { num: 5, label: 'Codici Unità', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg> }
  ].map((stepData, index) => (
  <React.Fragment key={stepData.num}>
  <div className="flex flex-col items-center">
@@ -299,7 +302,7 @@ const canProceed = () => {
  {stepData.label}
  </span>
  </div>
- {index < 3 && (
+ {index < 4 && (
  <div className={`w-16 h-1 mx-2 rounded transition-all duration-300 ${
  stepData.num < step 
  ? 'bg-blue-600' 
@@ -412,74 +415,86 @@ setFormData(prev => ({ ...prev, unita: units }));
      </p>
    </div>
 
-   <div className="form-group">
-     <label className="form-label">Tipo di Utilizzo</label>
-     <div className="space-y-2">
-       <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
-         <input
-           type="radio"
-           name="tipo_prestito"
-           value="solo_esterno"
-           checked={formData.tipo_prestito === 'solo_esterno'}
-           onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
-           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-         />
-         <div>
-           <span className="text-sm font-medium text-gray-900">📅 Uso Esterno</span>
-           <p className="text-xs text-gray-600">Prestito per più giorni, può essere portato fuori dall'accademia</p>
-         </div>
-       </label>
-       
-       <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
-         <input
-           type="radio"
-           name="tipo_prestito"
-           value="solo_interno"
-           checked={formData.tipo_prestito === 'solo_interno'}
-           onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
-           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-         />
-         <div>
-           <span className="text-sm font-medium text-gray-900">🏠 Uso Interno</span>
-           <p className="text-xs text-gray-600">Solo per uso interno all'accademia (stesso giorno)</p>
-         </div>
-       </label>
-       
-       <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
-         <input
-           type="radio"
-           name="tipo_prestito"
-           value="entrambi"
-           checked={formData.tipo_prestito === 'entrambi'}
-           onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
-           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-         />
-         <div>
-           <span className="text-sm font-medium text-gray-900">🔄 Entrambi</span>
-           <p className="text-xs text-gray-600">L'utente sceglie se utilizzarlo internamente o esternamente</p>
-         </div>
-       </label>
-     </div>
-     <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-       <p className="text-xs text-blue-700">
-         {formData.tipo_prestito === 'solo_esterno' && (
-           <>📅 <strong>Solo Prestito Esterno:</strong> Gli studenti possono richiedere prestiti per più giorni e portare l'oggetto fuori dall'accademia</>
-         )}
-         {formData.tipo_prestito === 'solo_interno' && (
-           <>🏠 <strong>Solo Uso Interno:</strong> Gli studenti sono autorizzati all'uso interno all'accademia (stesso giorno)</>
-         )}
-         {formData.tipo_prestito === 'entrambi' && (
-           <>🔄 <strong>Entrambi:</strong> Gli studenti possono scegliere se utilizzare l'oggetto internamente (stesso giorno) o esternamente (multi-giorno)</>
-         )}
-       </p>
-     </div>
-   </div>
+   {/* Tipo di Utilizzo moved to Step 3 */}
  </div>
  </div>
  )}
 
- {/* Step 3: Course & Category */}
- {step === 3 && (
+{/* Step 3: Tipo di Utilizzo */}
+{step === 3 && (
+<div className="space-y-6">
+<h3 className="text-lg font-semibold text-primary mb-4">
+Tipo di Utilizzo
+</h3>
+
+<div className="form-group">
+  <label className="form-label">Seleziona il tipo di utilizzo</label>
+  <div className="space-y-2">
+    <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
+      <input
+        type="radio"
+        name="tipo_prestito"
+        value="solo_esterno"
+        checked={formData.tipo_prestito === 'solo_esterno'}
+        onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
+        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+      />
+      <div>
+        <span className="text-sm font-medium text-gray-900">📅 Uso Esterno</span>
+        <p className="text-xs text-gray-600">Prestito per più giorni, può essere portato fuori dall'accademia</p>
+      </div>
+    </label>
+    
+    <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
+      <input
+        type="radio"
+        name="tipo_prestito"
+        value="solo_interno"
+        checked={formData.tipo_prestito === 'solo_interno'}
+        onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
+        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+      />
+      <div>
+        <span className="text-sm font-medium text-gray-900">🏠 Uso Interno</span>
+        <p className="text-xs text-gray-600">Solo per uso interno all'accademia (stesso giorno)</p>
+      </div>
+    </label>
+    
+    <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
+      <input
+        type="radio"
+        name="tipo_prestito"
+        value="entrambi"
+        checked={formData.tipo_prestito === 'entrambi'}
+        onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
+        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+      />
+      <div>
+        <span className="text-sm font-medium text-gray-900">🔄 Entrambi</span>
+        <p className="text-xs text-gray-600">L'utente sceglie se utilizzarlo internamente o esternamente</p>
+      </div>
+    </label>
+  </div>
+  <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+    <p className="text-xs text-blue-700">
+      {formData.tipo_prestito === 'solo_esterno' && (
+        <>📅 <strong>Solo Prestito Esterno:</strong> Gli studenti possono richiedere prestiti per più giorni e portare l'oggetto fuori dall'accademia</>
+      )}
+      {formData.tipo_prestito === 'solo_interno' && (
+        <>🏠 <strong>Solo Uso Interno:</strong> Gli studenti sono autorizzati all'uso interno all'accademia (stesso giorno)</>
+      )}
+      {formData.tipo_prestito === 'entrambi' && (
+        <>🔄 <strong>Entrambi:</strong> Gli studenti possono scegliere se utilizzare l'oggetto internamente (stesso giorno) o esternamente (multi-giorno)</>
+      )}
+    </p>
+  </div>
+</div>
+</div>
+</div>
+)}
+
+{/* Step 4: Course & Category */}
+{step === 4 && (
  <div className="space-y-6">
  <h3 className="text-lg font-semibold text-primary mb-4">
  Assegnazione Corsi e Categoria
@@ -560,8 +575,8 @@ setFormData(prev => ({ ...prev, unita: units }));
  </div>
  )}
 
- {/* Step 4: Unit Codes */}
- {step === 4 && (
+{/* Step 5: Unit Codes */}
+{step === 5 && (
  <div className="space-y-4">
  <h3 className="text-lg font-semibold text-primary mb-4">
  Codici Univoci per: <span className="text-brand-primary">{formData.nome}</span>
@@ -640,7 +655,7 @@ setFormData(prev => ({ ...prev, unita: units }));
  </button>
  
  <div className="flex space-x-3">
- {step < 4 ? (
+ {step < 5 ? (
  <button
 onClick={() => {
 if (canProceed()) {
