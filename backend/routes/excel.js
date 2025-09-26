@@ -4,7 +4,7 @@ import { query } from '../utils/postgres.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import multer from 'multer';
 import * as XLSX from 'xlsx';
-import { Readable } from 'stream';
+import { uploadFile, deleteFile } from '../utils/supabaseStorage.js';
 
 const r = Router();
 
@@ -94,65 +94,8 @@ r.get('/inventario/export', requireAuth, requireRole('admin'), async (req, res) 
   }
 });
 
-// Middleware personalizzato per gestire file upload senza multer
-const handleFileUpload = (req, res, next) => {
-  if (req.method !== 'POST') return next();
-  
-  let body = '';
-  req.on('data', chunk => {
-    body += chunk.toString();
-  });
-  
-  req.on('end', () => {
-    try {
-      // Parse multipart form data manualmente
-      const boundary = req.headers['content-type']?.split('boundary=')[1];
-      if (!boundary) {
-        return res.status(400).json({ error: 'Content-Type boundary mancante' });
-      }
-      
-      const parts = body.split(`--${boundary}`);
-      let fileData = null;
-      
-      for (const part of parts) {
-        if (part.includes('Content-Disposition: form-data')) {
-          const lines = part.split('\r\n');
-          const disposition = lines.find(line => line.includes('Content-Disposition'));
-          
-          if (disposition && disposition.includes('filename=')) {
-            const filename = disposition.match(/filename="([^"]+)"/)?.[1];
-            const contentType = lines.find(line => line.startsWith('Content-Type:'))?.split(': ')[1];
-            
-            // Trova i dati del file (dopo le header)
-            const headerEnd = part.indexOf('\r\n\r\n');
-            if (headerEnd !== -1) {
-              const fileContent = part.substring(headerEnd + 4);
-              // Rimuovi l'ultimo \r\n se presente
-              const cleanContent = fileContent.replace(/\r\n$/, '');
-              
-              fileData = {
-                originalname: filename,
-                mimetype: contentType,
-                buffer: Buffer.from(cleanContent, 'binary'),
-                size: cleanContent.length
-              };
-              break;
-            }
-          }
-        }
-      }
-      
-      req.file = fileData;
-      next();
-    } catch (error) {
-      console.log('Errore parsing file:', error.message);
-      res.status(400).json({ error: 'Errore nel parsing del file' });
-    }
-  });
-};
-
 // POST /api/excel/inventario/import - Import inventario da Excel
-r.post('/inventario/import', requireAuth, requireRole('admin'), handleFileUpload, async (req, res) => {
+r.post('/inventario/import', requireAuth, requireRole('admin'), upload.single('file'), async (req, res) => {
   try {
     // Debug temporaneo per produzione
     console.log('=== DEBUG IMPORT EXCEL ===');
@@ -163,28 +106,22 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), handleFileUpload
     console.log('Headers:', req.headers);
     console.log('========================');
     
-    // Gestisci file con upload.any()
-    let file = null;
-    if (req.files && req.files.length > 0) {
-      file = req.files[0]; // Prendi il primo file
-      console.log('File trovato in req.files:', file.originalname, file.size, 'bytes');
-    } else if (req.file) {
-      file = req.file;
-      console.log('File trovato in req.file:', file.originalname, file.size, 'bytes');
-    } else {
+    // Verifica che il file sia stato caricato
+    if (!req.file) {
       console.log('ERRORE: Nessun file trovato');
-      console.log('req.files type:', typeof req.files);
-      console.log('req.file type:', typeof req.file);
-      console.log('req.body keys:', Object.keys(req.body));
-      
-      // Prova a recuperare il file dal body se è presente
-      if (req.body && req.body.file) {
-        console.log('File trovato nel body, ma non processato da multer');
-        return res.status(400).json({ error: 'File non processato correttamente. Assicurati di selezionare un file Excel valido.' });
-      }
-      
       return res.status(400).json({ error: 'File Excel richiesto' });
     }
+
+    const file = req.file;
+    console.log('File caricato:', file.originalname, file.size, 'bytes');
+    
+    // Carica il file su Supabase Storage
+    const fileName = `excel-import-${Date.now()}-${file.originalname}`;
+    const filePath = `inventario/${fileName}`;
+    
+    console.log('Caricamento su Supabase Storage...');
+    const uploadResult = await uploadFile('excel-files', filePath, file.buffer, file.mimetype);
+    console.log('File caricato su Supabase:', uploadResult);
 
     // Leggi file Excel
     console.log('Tentativo di leggere file Excel...');
@@ -310,6 +247,14 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), handleFileUpload
       } catch (error) {
         results.errors.push(`Riga ${rowNum}: ${error.message}`);
       }
+    }
+
+    // Elimina il file temporaneo da Supabase Storage
+    try {
+      await deleteFile('excel-files', filePath);
+      console.log('File temporaneo eliminato da Supabase Storage');
+    } catch (deleteError) {
+      console.log('Errore eliminazione file temporaneo:', deleteError.message);
     }
 
     res.json({
