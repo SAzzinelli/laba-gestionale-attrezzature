@@ -200,12 +200,12 @@ const QuickActionModal = ({ isOpen, onClose, action, onSuccess }) => {
      />
      <div>
        <label htmlFor="tipo_prestito_quick" className="text-sm font-medium text-blue-900 cursor-pointer">
-         Abilita prestito multi-giorno
+         {formData.tipo_prestito === 'prestito' ? 'Disponibile al Prestito' : 'Solo per uso interno'}
        </label>
        <p className="text-xs text-blue-700 mt-1">
          {formData.tipo_prestito === 'prestito' 
-           ? '✅ Gli studenti possono richiedere prestiti per più giorni'
-           : '🏠 Solo uso interno - prestiti massimo 1 giorno (stesso giorno)'
+           ? '✅ Gli studenti possono richiedere un prestito per più giorni'
+           : '🏠 Gli studenti sono autorizzati all\'uso interno all\'accademia'
          }
        </p>
      </div>

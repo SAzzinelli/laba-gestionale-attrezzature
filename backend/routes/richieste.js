@@ -129,7 +129,7 @@ r.post('/', requireAuth, async (req, res) => {
       
       if (dataInizioDay !== dataFineDay) {
         return res.status(400).json({ 
-          error: 'Per oggetti ad uso interno, la data di fine deve essere lo stesso giorno della data di inizio' 
+          error: 'Per oggetti ad uso interno all\'accademia, la data di fine deve essere lo stesso giorno della data di inizio' 
         });
       }
     }

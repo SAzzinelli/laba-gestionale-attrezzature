@@ -119,7 +119,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       const dataFineDay = dataFine.toDateString();
       
       if (dataInizioDay !== dataFineDay) {
-        setError('Per oggetti ad uso interno, la data di fine deve essere lo stesso giorno della data di inizio');
+        setError('Per oggetti ad uso interno all\'accademia, la data di fine deve essere lo stesso giorno della data di inizio');
         setLoading(false);
         return;
       }
@@ -263,7 +263,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                             ? 'bg-orange-100 text-orange-800' 
                             : 'bg-blue-100 text-blue-800'
                         }`}>
-                          {item.tipo_prestito === 'uso_interno' ? '🏠 Uso Interno' : '📅 Prestito'}
+                          {item.tipo_prestito === 'uso_interno' ? '🏠 Solo per uso interno' : '📅 Disponibile al Prestito'}
                         </span>
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
                           {item.unita_disponibili} disponibili
@@ -273,7 +273,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     <p className="text-sm text-gray-600">{item.categoria_nome}</p>
                     {item.tipo_prestito === 'uso_interno' && (
                       <p className="text-xs text-orange-600 mt-1">
-                        ⚠️ Solo per lo stesso giorno
+                        ⚠️ Gli studenti sono autorizzati all'uso interno all'accademia
                       </p>
                     )}
                   </div>
@@ -361,9 +361,9 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     <div>
-                      <h4 className="text-sm font-medium text-orange-800">Uso Interno</h4>
+                      <h4 className="text-sm font-medium text-orange-800">Solo per uso interno</h4>
                       <p className="text-xs text-orange-700 mt-1">
-                        Questo oggetto può essere utilizzato solo per lo stesso giorno. La data di fine sarà automaticamente impostata alla stessa data di inizio.
+                        Gli studenti sono autorizzati all'uso interno all'accademia. La data di fine sarà automaticamente impostata alla stessa data di inizio.
                       </p>
                     </div>
                   </div>
@@ -389,7 +389,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Data Fine *
                     {selectedObject.tipo_prestito === 'uso_interno' && (
-                      <span className="text-xs text-orange-600 ml-2">(Automatica per uso interno)</span>
+                      <span className="text-xs text-orange-600 ml-2">(Automatica per uso interno all'accademia)</span>
                     )}
                   </label>
                   <input
