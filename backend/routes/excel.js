@@ -149,10 +149,21 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), (req, res, next)
     }
 
     // Leggi file Excel
+    console.log('Tentativo di leggere file Excel...');
+    console.log('File size:', file.size, 'bytes');
+    console.log('File mimetype:', file.mimetype);
+    console.log('File originalname:', file.originalname);
+    
     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    console.log('Workbook creato, sheet names:', workbook.SheetNames);
+    
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
+    console.log('Worksheet caricato:', sheetName);
+    
     const jsonData = XLSX.utils.sheet_to_json(worksheet);
+    console.log('JSON data length:', jsonData.length);
+    console.log('Prima riga:', jsonData[0]);
     
     if (jsonData.length === 0) {
       return res.status(400).json({ error: 'File Excel vuoto' });
