@@ -302,7 +302,7 @@ body: JSON.stringify({
                       e.stopPropagation();
                       window.open(item.immagine_url, '_blank');
                     }}
-                    className="mt-2 inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full hover:bg-purple-200 transition-colors"
+                    className="mt-2 inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full hover:bg-blue-200 transition-colors"
                     title="Visualizza immagine"
                   >
                     <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
