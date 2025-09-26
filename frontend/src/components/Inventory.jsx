@@ -36,9 +36,11 @@ const Inventory = () => {
  const [viewMode, setViewMode] = useState('list'); // only list view
  const [showUnitDetailModal, setShowUnitDetailModal] = useState(false);
  const [selectedUnit, setSelectedUnit] = useState(null);
- const [unitLoanDetails, setUnitLoanDetails] = useState(null);
- const [loans, setLoans] = useState([]);
+  const [unitLoanDetails, setUnitLoanDetails] = useState(null);
+  const [loans, setLoans] = useState([]);
   const [itemUnits, setItemUnits] = useState({}); // Cache per le unità degli oggetti
+  const [showDeleteWarningModal, setShowDeleteWarningModal] = useState(false);
+  const [deleteWarningMessage, setDeleteWarningMessage] = useState('');
  
  // New item form state
  const [newItem, setNewItem] = useState({
@@ -318,12 +320,16 @@ const Inventory = () => {
 
  if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Errore nell\'eliminazione');
+        // Mostra modal di avviso invece di errore generico
+        setDeleteWarningMessage(errorData.error || 'Errore nell\'eliminazione');
+        setShowDeleteWarningModal(true);
+        return;
       }
 
       await fetchInventory();
     } catch (err) {
-      setError(err.message);
+      setDeleteWarningMessage(err.message);
+      setShowDeleteWarningModal(true);
     }
   };
 
@@ -1308,6 +1314,42 @@ const Inventory = () => {
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                   >
                     {itemsUsingCategory.length > 0 ? 'Elimina e Sposta' : 'Elimina'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal di Avviso Eliminazione */}
+        {showDeleteWarningModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="flex-shrink-0">
+                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-lg font-medium text-gray-900">Impossibile Eliminare</h3>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <p className="text-sm text-gray-600">{deleteWarningMessage}</p>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => {
+                      setShowDeleteWarningModal(false);
+                      setDeleteWarningMessage('');
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Ho Capito
                   </button>
                 </div>
               </div>
