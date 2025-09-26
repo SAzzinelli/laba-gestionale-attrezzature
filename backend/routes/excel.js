@@ -122,7 +122,7 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), async (req, res)
     const filePath = `inventario/${storageFileName}`;
     
     console.log('Caricamento su Supabase Storage...');
-    const uploadResult = await uploadFile('excel-files', filePath, fileBuffer, fileType);
+    const uploadResult = await uploadFile('Spazio', filePath, fileBuffer, fileType);
     console.log('File caricato su Supabase:', uploadResult);
 
     // Leggi file Excel
@@ -253,7 +253,7 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), async (req, res)
 
     // Elimina il file temporaneo da Supabase Storage
     try {
-      await deleteFile('excel-files', filePath);
+      await deleteFile('Spazio', filePath);
       console.log('File temporaneo eliminato da Supabase Storage');
     } catch (deleteError) {
       console.log('Errore eliminazione file temporaneo:', deleteError.message);
