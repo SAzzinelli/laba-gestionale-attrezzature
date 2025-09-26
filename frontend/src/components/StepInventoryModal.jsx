@@ -490,7 +490,6 @@ Tipo di Utilizzo
   </div>
 </div>
 </div>
-</div>
 )}
 
 {/* Step 4: Course & Category */}
