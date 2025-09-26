@@ -282,13 +282,9 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                         <span className={`text-xs px-2 py-1 rounded-full ${
                           item.tipo_prestito === 'solo_interno' 
                             ? 'bg-orange-100 text-orange-800' 
-                            : item.tipo_prestito === 'solo_esterno'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-purple-100 text-purple-800'
+                            : 'bg-blue-100 text-blue-800'
                         }`}>
-                          {item.tipo_prestito === 'solo_interno' ? '🏠 Solo per uso interno' : 
-                           item.tipo_prestito === 'solo_esterno' ? '📅 Solo prestito esterno' : 
-                           '🔄 Entrambi (tu scegli)'}
+                          {item.tipo_prestito === 'solo_interno' ? '🏠 Solo per uso interno' : '📅 Disponibile al prestito'}
                         </span>
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
                           {item.unita_disponibili} disponibili
@@ -299,11 +295,6 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     {item.tipo_prestito === 'solo_interno' && (
                       <p className="text-xs text-orange-600 mt-1">
                         ⚠️ Solo per uso interno all'accademia (stesso giorno)
-                      </p>
-                    )}
-                    {item.tipo_prestito === 'entrambi' && (
-                      <p className="text-xs text-purple-600 mt-1">
-                        🔄 Potrai scegliere se utilizzarlo internamente o esternamente
                       </p>
                     )}
                   </div>

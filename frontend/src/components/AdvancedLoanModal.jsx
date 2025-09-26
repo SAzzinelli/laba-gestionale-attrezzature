@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
 const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
- const [step, setStep] = useState(1); // 1: Seleziona oggetto, 2: Seleziona utente, 3: Seleziona unità, 4: Date
+ const [step, setStep] = useState(1); // 1: Seleziona oggetto, 2: Seleziona utente, 3: Seleziona unità, 4: Tipo utilizzo, 5: Date
  const [inventory, setInventory] = useState([]);
  const [users, setUsers] = useState([]);
  const [selectedItem, setSelectedItem] = useState(null);
@@ -22,6 +22,7 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  corso_accademico: ''
  });
  const [isManualUser, setIsManualUser] = useState(false);
+ const [tipoUtilizzo, setTipoUtilizzo] = useState('');
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState(null);
  const { token } = useAuth();
@@ -108,10 +109,25 @@ const fetchAvailableUnits = async (itemId) => {
  );
  };
 
+ const handleUnitsSelected = () => {
+   // Se l'oggetto è "entrambi", vai al step 4 (scelta tipo), altrimenti vai direttamente al step 5 (date)
+   if (selectedItem.tipo_prestito === 'entrambi') {
+     setStep(4);
+   } else {
+     setStep(5);
+   }
+ };
+
  const handleCreateLoan = async () => {
  if (!selectedItem || (!selectedUser && !isManualUser) || selectedUnits.length === 0 || !dateRange.dal || !dateRange.al) {
  setError('Compila tutti i campi obbligatori');
  return;
+ }
+
+ // Validazione per oggetti "entrambi"
+ if (selectedItem.tipo_prestito === 'entrambi' && !tipoUtilizzo) {
+   setError('Seleziona il tipo di utilizzo');
+   return;
  }
 
  try {
@@ -155,6 +171,7 @@ body: JSON.stringify({
   data_uscita: dateRange.dal,
   data_rientro: dateRange.al,
   unita_ids: selectedUnits.map(u => u.id),
+  tipo_utilizzo: selectedItem.tipo_prestito === 'entrambi' ? tipoUtilizzo : null,
   note: `Prestito diretto - ${selectedUnits.length} unità`
 })
  });
@@ -192,6 +209,7 @@ body: JSON.stringify({
  corso_accademico: ''
  });
  setIsManualUser(false);
+ setTipoUtilizzo('');
  setError(null);
  onClose();
  };
@@ -201,7 +219,8 @@ body: JSON.stringify({
  case 1: return 'Seleziona Oggetto';
  case 2: return 'Seleziona Utente';
  case 3: return 'Seleziona Unità';
- case 4: return 'Date Prestito';
+ case 4: return 'Tipo Utilizzo';
+ case 5: return 'Date Prestito';
  default: return 'Nuovo Prestito';
  }
  };
@@ -218,7 +237,7 @@ body: JSON.stringify({
  + Nuovo Prestito
  </h2>
  <p className="text-sm text-gray-600 mt-1">
- {getStepTitle()} (Passo {step} di 4)
+ {getStepTitle()} (Passo {step} di 5)
  </p>
  </div>
  <button
@@ -234,7 +253,7 @@ body: JSON.stringify({
  {/* Progress Bar */}
  <div className="mt-4">
  <div className="flex items-center">
- {[1, 2, 3, 4].map((s) => (
+ {[1, 2, 3, 4, 5].map((s) => (
  <React.Fragment key={s}>
  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
  s <= step 
@@ -243,7 +262,7 @@ body: JSON.stringify({
  }`}>
  {s}
  </div>
- {s < 4 && (
+ {s < 5 && (
  <div className={`flex-1 h-1 mx-2 ${
  s < step 
  ? 'bg-blue-600' 
@@ -446,11 +465,126 @@ body: JSON.stringify({
  <p className="text-sm text-gray-600 ">
  Selezionate: {selectedUnits.length} unità
  </p>
+
+ {/* Actions */}
+ <div className="flex justify-end space-x-3 pt-4">
+   <button
+     type="button"
+     onClick={() => setStep(2)}
+     className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+   >
+     ← Indietro
+   </button>
+   <button
+     type="button"
+     onClick={handleUnitsSelected}
+     disabled={selectedUnits.length === 0}
+     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+   >
+     Continua →
+   </button>
+ </div>
  </div>
  )}
 
- {/* Step 4: Date Range */}
- {step === 4 && (
+ {/* Step 4: Tipo Utilizzo (solo per oggetti "entrambi") */}
+ {step === 4 && selectedItem && selectedItem.tipo_prestito === 'entrambi' && (
+   <div className="space-y-4">
+     <div className="flex items-center justify-between mb-4">
+       <div>
+         <h3 className="text-lg font-medium text-gray-900">Scegli il tipo di utilizzo</h3>
+         <p className="text-sm text-gray-600">
+           Oggetto: <strong>{selectedItem.nome}</strong> - Unità: <strong>{selectedUnits.map(u => u.codice_univoco).join(', ')}</strong>
+         </p>
+       </div>
+       <button
+         type="button"
+         onClick={() => setStep(3)}
+         className="text-blue-600 hover:text-blue-800 text-sm"
+       >
+         ← Cambia Unità
+       </button>
+     </div>
+
+     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+       <div className="flex items-center mb-3">
+         <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+           <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+         </svg>
+         <div>
+           <h4 className="text-sm font-medium text-purple-800">Come intendi utilizzare questo oggetto?</h4>
+           <p className="text-xs text-purple-700 mt-1">
+             Questo oggetto può essere utilizzato sia internamente che esternamente. Scegli come intendi utilizzarlo.
+           </p>
+         </div>
+       </div>
+       
+       <div className="space-y-3">
+         <label className="flex items-center space-x-3 p-4 bg-white rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-50 transition-colors">
+           <input
+             type="radio"
+             name="tipo_utilizzo_admin"
+             value="interno"
+             checked={tipoUtilizzo === 'interno'}
+             onChange={(e) => setTipoUtilizzo(e.target.value)}
+             className="w-5 h-5 text-purple-600 border-purple-300 focus:ring-purple-500"
+           />
+           <div className="flex-1">
+             <div className="flex items-center space-x-2">
+               <span className="text-lg">🏠</span>
+               <span className="text-sm font-medium text-purple-900">Uso Interno</span>
+             </div>
+             <p className="text-xs text-purple-700 mt-1">
+               Utilizzo all'interno dell'accademia (stesso giorno di inizio e fine)
+             </p>
+           </div>
+         </label>
+         
+         <label className="flex items-center space-x-3 p-4 bg-white rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-50 transition-colors">
+           <input
+             type="radio"
+             name="tipo_utilizzo_admin"
+             value="esterno"
+             checked={tipoUtilizzo === 'esterno'}
+             onChange={(e) => setTipoUtilizzo(e.target.value)}
+             className="w-5 h-5 text-purple-600 border-purple-300 focus:ring-purple-500"
+           />
+           <div className="flex-1">
+             <div className="flex items-center space-x-2">
+               <span className="text-lg">📅</span>
+               <span className="text-sm font-medium text-purple-900">Prestito Esterno</span>
+             </div>
+             <p className="text-xs text-purple-700 mt-1">
+               Prestito per più giorni, può essere portato fuori dall'accademia
+             </p>
+           </div>
+         </label>
+       </div>
+     </div>
+
+     {/* Actions */}
+     <div className="flex justify-end space-x-3 pt-4">
+       <button
+         type="button"
+         onClick={() => setStep(3)}
+         className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+       >
+         ← Indietro
+       </button>
+       <button
+         type="button"
+         onClick={() => setStep(5)}
+         disabled={!tipoUtilizzo}
+         className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+       >
+         Continua →
+       </button>
+     </div>
+   </div>
+ )}
+
+ {/* Step 5: Date Range */}
+ {step === 5 && (
  <div className="space-y-4">
  <h3 className="text-lg font-semibold text-gray-800 ">
  Date del prestito
@@ -461,7 +595,49 @@ body: JSON.stringify({
  <p><strong>Oggetto:</strong> {selectedItem?.nome}</p>
  <p><strong>Utente:</strong> {selectedUser ? `${selectedUser.name} ${selectedUser.surname}` : `${manualUser.name} ${manualUser.surname}`}</p>
  <p><strong>Unità:</strong> {selectedUnits.length} ({selectedUnits.map(u => u.codice_univoco).join(', ')})</p>
+ {selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo && (
+   <p><strong>Tipo Utilizzo:</strong> {tipoUtilizzo === 'interno' ? '🏠 Uso Interno' : '📅 Prestito Esterno'}</p>
+ )}
  </div>
+
+ {/* Info Tipo Prestito */}
+ {selectedItem?.tipo_prestito === 'solo_interno' && (
+   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+     <div className="flex items-center">
+       <svg className="w-5 h-5 text-orange-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+       </svg>
+       <div>
+         <h4 className="text-sm font-medium text-orange-800">Solo per uso interno</h4>
+         <p className="text-xs text-orange-700 mt-1">
+           Solo per uso interno all'accademia. La data di fine sarà automaticamente impostata alla stessa data di inizio.
+         </p>
+       </div>
+     </div>
+   </div>
+ )}
+
+ {/* Info Tipo Utilizzo per oggetti "entrambi" */}
+ {selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo && (
+   <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+     <div className="flex items-center">
+       <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+       </svg>
+       <div>
+         <h4 className="text-sm font-medium text-purple-800">
+           Tipo di utilizzo selezionato: {tipoUtilizzo === 'interno' ? '🏠 Uso Interno' : '📅 Prestito Esterno'}
+         </h4>
+         <p className="text-xs text-purple-700 mt-1">
+           {tipoUtilizzo === 'interno' 
+             ? 'Utilizzo all\'interno dell\'accademia (stesso giorno di inizio e fine)'
+             : 'Prestito per più giorni, può essere portato fuori dall\'accademia'
+           }
+         </p>
+       </div>
+     </div>
+   </div>
+ )}
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
@@ -479,7 +655,14 @@ body: JSON.stringify({
  return;
  }
  setError(null);
- setDateRange(prev => ({ ...prev, dal: newDal }));
+ setDateRange(prev => ({ 
+   ...prev, 
+   dal: newDal,
+   // Se è uso interno, imposta automaticamente la data di fine
+   al: (selectedItem?.tipo_prestito === 'solo_interno' || 
+        (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
+       ? newDal : prev.al
+ }));
  }}
  min={new Date().toISOString().split('T')[0]}
  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
@@ -488,21 +671,34 @@ body: JSON.stringify({
  <div>
  <label className="block text-sm font-medium text-gray-700 mb-2">
  Data Fine *
+ {(selectedItem?.tipo_prestito === 'solo_interno' || 
+   (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) && (
+   <span className="text-xs text-orange-600 ml-2">(Automatica per uso interno)</span>
+ )}
  </label>
  <input
  type="date"
- value={dateRange.al}
+ value={(selectedItem?.tipo_prestito === 'solo_interno' || 
+        (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
+       ? dateRange.dal : dateRange.al}
  onChange={(e) => {
- const newAl = e.target.value;
- if (newAl < dateRange.dal) {
- setError('La data di fine non può essere prima della data di inizio');
- return;
- }
- setError(null);
- setDateRange(prev => ({ ...prev, al: newAl }));
+   const newAl = e.target.value;
+   if (newAl < dateRange.dal) {
+     setError('La data di fine non può essere prima della data di inizio');
+     return;
+   }
+   setError(null);
+   setDateRange(prev => ({ ...prev, al: newAl }));
  }}
+ required
+ disabled={selectedItem?.tipo_prestito === 'solo_interno' || 
+          (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
  min={dateRange.dal || new Date().toISOString().split('T')[0]}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
+ className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 ${
+   (selectedItem?.tipo_prestito === 'solo_interno' || 
+    (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
+   ? 'bg-gray-100 cursor-not-allowed' : ''
+ }`}
  />
  </div>
  </div>
@@ -518,27 +714,37 @@ body: JSON.stringify({
 
  <div className="flex justify-between items-center p-6 border-t ">
  <button
- onClick={() => step > 1 ? setStep(step - 1) : handleClose()}
+ onClick={() => {
+   if (step === 5 && selectedItem?.tipo_prestito === 'entrambi') {
+     setStep(4); // Torna al tipo utilizzo
+   } else if (step > 1) {
+     setStep(step - 1);
+   } else {
+     handleClose();
+   }
+ }}
  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 "
  >
  {step > 1 ? 'Indietro' : 'Annulla'}
  </button>
  
  <div className="flex space-x-3">
- {step < 4 ? (
+ {step < 5 ? (
  <button
  onClick={() => {
- if (step === 1 && !selectedItem) return;
- if (step === 2 && !selectedUser && !isManualUser) return;
- if (step === 2 && isManualUser && (!manualUser.name || !manualUser.surname || !manualUser.email || !manualUser.matricola || !manualUser.corso_accademico)) return;
- if (step === 3 && selectedUnits.length === 0) return;
- setStep(step + 1);
+   if (step === 1 && !selectedItem) return;
+   if (step === 2 && !selectedUser && !isManualUser) return;
+   if (step === 2 && isManualUser && (!manualUser.name || !manualUser.surname || !manualUser.email || !manualUser.matricola || !manualUser.corso_accademico)) return;
+   if (step === 3 && selectedUnits.length === 0) return;
+   if (step === 4 && selectedItem?.tipo_prestito === 'entrambi' && !tipoUtilizzo) return;
+   setStep(step + 1);
  }}
  disabled={
- (step === 1 && !selectedItem) ||
- (step === 2 && !selectedUser && !isManualUser) ||
- (step === 2 && isManualUser && (!manualUser.name || !manualUser.surname || !manualUser.email || !manualUser.matricola || !manualUser.corso_accademico)) ||
- (step === 3 && selectedUnits.length === 0)
+   (step === 1 && !selectedItem) ||
+   (step === 2 && !selectedUser && !isManualUser) ||
+   (step === 2 && isManualUser && (!manualUser.name || !manualUser.surname || !manualUser.email || !manualUser.matricola || !manualUser.corso_accademico)) ||
+   (step === 3 && selectedUnits.length === 0) ||
+   (step === 4 && selectedItem?.tipo_prestito === 'entrambi' && !tipoUtilizzo)
  }
  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
  >
