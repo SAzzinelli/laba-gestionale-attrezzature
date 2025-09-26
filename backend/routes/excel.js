@@ -7,10 +7,24 @@ import * as XLSX from 'xlsx';
 
 const r = Router();
 
-// Configurazione multer per upload file
+// Configurazione multer per upload file - solo memoria per Railway
 const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
+  limits: { 
+    fileSize: 10 * 1024 * 1024, // 10MB max
+    files: 1 // Solo un file
+  },
+  fileFilter: (req, file, cb) => {
+    // Accetta solo file Excel
+    if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
+        file.mimetype === 'application/vnd.ms-excel' ||
+        file.originalname.endsWith('.xlsx') ||
+        file.originalname.endsWith('.xls')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo file Excel sono supportati'), false);
+    }
+  }
 });
 
 // GET /api/excel/inventario/export - Export inventario completo
@@ -92,7 +106,15 @@ r.get('/inventario/export', requireAuth, requireRole('admin'), async (req, res) 
 });
 
 // POST /api/excel/inventario/import - Import inventario da Excel
-r.post('/inventario/import', requireAuth, requireRole('admin'), upload.any(), async (req, res) => {
+r.post('/inventario/import', requireAuth, requireRole('admin'), (req, res, next) => {
+  upload.any()(req, res, (err) => {
+    if (err) {
+      console.log('ERRORE MULTER:', err.message);
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
     // Debug temporaneo per produzione
     console.log('=== DEBUG IMPORT EXCEL ===');
@@ -113,6 +135,16 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), upload.any(), as
       console.log('File trovato in req.file:', file.originalname, file.size, 'bytes');
     } else {
       console.log('ERRORE: Nessun file trovato');
+      console.log('req.files type:', typeof req.files);
+      console.log('req.file type:', typeof req.file);
+      console.log('req.body keys:', Object.keys(req.body));
+      
+      // Prova a recuperare il file dal body se è presente
+      if (req.body && req.body.file) {
+        console.log('File trovato nel body, ma non processato da multer');
+        return res.status(400).json({ error: 'File non processato correttamente. Assicurati di selezionare un file Excel valido.' });
+      }
+      
       return res.status(400).json({ error: 'File Excel richiesto' });
     }
 
