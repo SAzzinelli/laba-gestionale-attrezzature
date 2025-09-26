@@ -92,7 +92,7 @@ r.get('/inventario/export', requireAuth, requireRole('admin'), async (req, res) 
 });
 
 // POST /api/excel/inventario/import - Import inventario da Excel
-r.post('/inventario/import', requireAuth, requireRole('admin'), upload.single('file'), async (req, res) => {
+r.post('/inventario/import', requireAuth, requireRole('admin'), upload.any(), async (req, res) => {
   try {
     // Debug temporaneo per produzione
     console.log('=== DEBUG IMPORT EXCEL ===');
@@ -103,20 +103,18 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), upload.single('f
     console.log('Headers:', req.headers);
     console.log('========================');
     
-    // Prova a gestire il file dal body se multer non lo ha processato
-    let file = req.file;
-    if (!file && req.body && req.body.file) {
-      console.log('Tentativo di recuperare file dal body...');
-      // Il file potrebbe essere nel body come stringa
-      return res.status(400).json({ error: 'Formato file non supportato. Usa un file Excel valido.' });
-    }
-    
-    if (!file) {
+    // Gestisci file con upload.any()
+    let file = null;
+    if (req.files && req.files.length > 0) {
+      file = req.files[0]; // Prendi il primo file
+      console.log('File trovato in req.files:', file.originalname, file.size, 'bytes');
+    } else if (req.file) {
+      file = req.file;
+      console.log('File trovato in req.file:', file.originalname, file.size, 'bytes');
+    } else {
       console.log('ERRORE: Nessun file trovato');
       return res.status(400).json({ error: 'File Excel richiesto' });
     }
-    
-    console.log('File trovato:', file.originalname, file.size, 'bytes');
 
     // Leggi file Excel
     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
