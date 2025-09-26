@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
 const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
-  const [step, setStep] = useState(1); // 1: Oggetto, 2: ID Univoco, 3: Date e Note
+  const [step, setStep] = useState(1); // 1: Oggetto, 2: ID Univoco, 3: Tipo Utilizzo, 4: Date e Note
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [inventory, setInventory] = useState([]);
@@ -89,7 +89,12 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
   const handleUnitSelect = (unit) => {
     setSelectedUnit(unit);
-    setStep(3);
+    // Se l'oggetto è "entrambi", vai al step 3 (scelta tipo), altrimenti vai direttamente al step 4 (date)
+    if (selectedObject.tipo_prestito === 'entrambi') {
+      setStep(3);
+    } else {
+      setStep(4);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -231,7 +236,8 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
     switch (step) {
       case 1: return 'Seleziona Oggetto';
       case 2: return 'Seleziona ID Univoco';
-      case 3: return 'Date e Note';
+      case 3: return 'Scegli Tipo Utilizzo';
+      case 4: return 'Date e Note';
       default: return 'Nuova Richiesta';
     }
   };
@@ -245,7 +251,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">{getStepTitle()}</h2>
-            <p className="text-sm text-gray-600 mt-1">Step {step} di 3</p>
+            <p className="text-sm text-gray-600 mt-1">Step {step} di 4</p>
           </div>
           <button
             onClick={onClose}
@@ -358,12 +364,12 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
             </div>
           )}
 
-          {/* Step 3: Date e Note */}
-          {step === 3 && selectedObject && selectedUnit && (
-            <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Step 3: Scegli Tipo Utilizzo (solo per oggetti "entrambi") */}
+          {step === 3 && selectedObject && selectedUnit && selectedObject.tipo_prestito === 'entrambi' && (
+            <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Date e Note</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Scegli il tipo di utilizzo</h3>
                   <p className="text-sm text-gray-600">
                     Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
                   </p>
@@ -374,6 +380,111 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   className="text-blue-600 hover:text-blue-800 text-sm"
                 >
                   ← Cambia ID
+                </button>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center mb-3">
+                  <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <h4 className="text-sm font-medium text-purple-800">Come intendi utilizzare questo oggetto?</h4>
+                    <p className="text-xs text-purple-700 mt-1">
+                      Questo oggetto può essere utilizzato sia internamente che esternamente. Scegli come intendi utilizzarlo.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 p-4 bg-white rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="tipo_utilizzo"
+                      value="interno"
+                      checked={tipoUtilizzo === 'interno'}
+                      onChange={(e) => {
+                        setTipoUtilizzo(e.target.value);
+                      }}
+                      className="w-5 h-5 text-purple-600 border-purple-300 focus:ring-purple-500"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">🏠</span>
+                        <span className="text-sm font-medium text-purple-900">Uso Interno</span>
+                      </div>
+                      <p className="text-xs text-purple-700 mt-1">
+                        Utilizzo all'interno dell'accademia (stesso giorno di inizio e fine)
+                      </p>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-center space-x-3 p-4 bg-white rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="tipo_utilizzo"
+                      value="esterno"
+                      checked={tipoUtilizzo === 'esterno'}
+                      onChange={(e) => setTipoUtilizzo(e.target.value)}
+                      className="w-5 h-5 text-purple-600 border-purple-300 focus:ring-purple-500"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">📅</span>
+                        <span className="text-sm font-medium text-purple-900">Prestito Esterno</span>
+                      </div>
+                      <p className="text-xs text-purple-700 mt-1">
+                        Prestito per più giorni, puoi portarlo fuori dall'accademia
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep(4)}
+                  disabled={!tipoUtilizzo}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Continua →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Date e Note */}
+          {step === 4 && selectedObject && selectedUnit && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Date e Note</h3>
+                  <p className="text-sm text-gray-600">
+                    Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Se l'oggetto è "entrambi" e siamo al step 4, torna al step 3 (scelta tipo)
+                    if (selectedObject.tipo_prestito === 'entrambi') {
+                      setStep(3);
+                    } else {
+                      setStep(2);
+                    }
+                  }}
+                  className="text-blue-600 hover:text-blue-800 text-sm"
+                >
+                  ← Indietro
                 </button>
               </div>
 
@@ -394,55 +505,24 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                 </div>
               )}
 
-              {/* Scelta Tipo Utilizzo per oggetti "entrambi" */}
+              {/* Info Tipo Utilizzo per oggetti "entrambi" */}
               {selectedObject.tipo_prestito === 'entrambi' && (
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-center mb-3">
+                  <div className="flex items-center">
                     <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
                     <div>
-                      <h4 className="text-sm font-medium text-purple-800">Scegli il tipo di utilizzo</h4>
+                      <h4 className="text-sm font-medium text-purple-800">
+                        Tipo di utilizzo selezionato: {tipoUtilizzo === 'interno' ? '🏠 Uso Interno' : '📅 Prestito Esterno'}
+                      </h4>
                       <p className="text-xs text-purple-700 mt-1">
-                        Questo oggetto può essere utilizzato sia internamente che esternamente. Scegli come intendi utilizzarlo.
+                        {tipoUtilizzo === 'interno' 
+                          ? 'Utilizzo all\'interno dell\'accademia (stesso giorno di inizio e fine)'
+                          : 'Prestito per più giorni, puoi portarlo fuori dall\'accademia'
+                        }
                       </p>
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-50">
-                      <input
-                        type="radio"
-                        name="tipo_utilizzo"
-                        value="interno"
-                        checked={tipoUtilizzo === 'interno'}
-                        onChange={(e) => {
-                          setTipoUtilizzo(e.target.value);
-                          // Imposta automaticamente la data di fine = data di inizio
-                          setDateRange(prev => ({ ...prev, al: prev.dal }));
-                        }}
-                        className="w-4 h-4 text-purple-600 border-purple-300 focus:ring-purple-500"
-                      />
-                      <div>
-                        <span className="text-sm font-medium text-purple-900">🏠 Uso Interno</span>
-                        <p className="text-xs text-purple-700">Utilizzo all'interno dell'accademia (stesso giorno)</p>
-                      </div>
-                    </label>
-                    
-                    <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-50">
-                      <input
-                        type="radio"
-                        name="tipo_utilizzo"
-                        value="esterno"
-                        checked={tipoUtilizzo === 'esterno'}
-                        onChange={(e) => setTipoUtilizzo(e.target.value)}
-                        className="w-4 h-4 text-purple-600 border-purple-300 focus:ring-purple-500"
-                      />
-                      <div>
-                        <span className="text-sm font-medium text-purple-900">📅 Prestito Esterno</span>
-                        <p className="text-xs text-purple-700">Prestito per più giorni, puoi portarlo fuori dall'accademia</p>
-                      </div>
-                    </label>
                   </div>
                 </div>
               )}
