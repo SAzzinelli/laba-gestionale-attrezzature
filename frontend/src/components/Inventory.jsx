@@ -316,7 +316,10 @@ const Inventory = () => {
  }
  });
 
- if (!response.ok) throw new Error('Errore nell\'eliminazione');
+ if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Errore nell\'eliminazione');
+      }
 
       await fetchInventory();
     } catch (err) {

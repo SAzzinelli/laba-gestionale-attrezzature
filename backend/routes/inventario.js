@@ -569,6 +569,19 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       });
     }
     
+    // Controlla se ci sono riparazioni in corso per questo oggetto
+    const ongoingRepairs = await query(`
+      SELECT COUNT(*) as count 
+      FROM riparazioni r 
+      WHERE r.inventario_id = $1 AND r.stato IN ('in_corso', 'in_attesa')
+    `, [id]);
+    
+    if (ongoingRepairs[0]?.count > 0) {
+      return res.status(400).json({ 
+        error: 'Impossibile eliminare: oggetto ha riparazioni in corso. Completa prima le riparazioni.' 
+      });
+    }
+    
     // Prima elimina le unità associate
     await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
     
