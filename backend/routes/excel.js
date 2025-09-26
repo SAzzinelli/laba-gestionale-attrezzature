@@ -11,19 +11,7 @@ const r = Router();
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { 
-    fileSize: 10 * 1024 * 1024, // 10MB max
-    files: 1 // Solo un file
-  },
-  fileFilter: (req, file, cb) => {
-    // Accetta solo file Excel
-    if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
-        file.mimetype === 'application/vnd.ms-excel' ||
-        file.originalname.endsWith('.xlsx') ||
-        file.originalname.endsWith('.xls')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Solo file Excel sono supportati'), false);
-    }
+    fileSize: 10 * 1024 * 1024 // 10MB max
   }
 });
 
@@ -106,15 +94,7 @@ r.get('/inventario/export', requireAuth, requireRole('admin'), async (req, res) 
 });
 
 // POST /api/excel/inventario/import - Import inventario da Excel
-r.post('/inventario/import', requireAuth, requireRole('admin'), (req, res, next) => {
-  upload.any()(req, res, (err) => {
-    if (err) {
-      console.log('ERRORE MULTER:', err.message);
-      return res.status(400).json({ error: err.message });
-    }
-    next();
-  });
-}, async (req, res) => {
+r.post('/inventario/import', requireAuth, requireRole('admin'), upload.any(), async (req, res) => {
   try {
     // Debug temporaneo per produzione
     console.log('=== DEBUG IMPORT EXCEL ===');
