@@ -100,17 +100,26 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), upload.single('f
     console.log('req.files:', req.files);
     console.log('req.body:', req.body);
     console.log('Content-Type:', req.headers['content-type']);
+    console.log('Headers:', req.headers);
     console.log('========================');
     
-    if (!req.file) {
+    // Prova a gestire il file dal body se multer non lo ha processato
+    let file = req.file;
+    if (!file && req.body && req.body.file) {
+      console.log('Tentativo di recuperare file dal body...');
+      // Il file potrebbe essere nel body come stringa
+      return res.status(400).json({ error: 'Formato file non supportato. Usa un file Excel valido.' });
+    }
+    
+    if (!file) {
       console.log('ERRORE: Nessun file trovato');
       return res.status(400).json({ error: 'File Excel richiesto' });
     }
     
-    console.log('File trovato:', req.file.originalname, req.file.size, 'bytes');
+    console.log('File trovato:', file.originalname, file.size, 'bytes');
 
     // Leggi file Excel
-    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     const jsonData = XLSX.utils.sheet_to_json(worksheet);
