@@ -94,10 +94,6 @@ r.get('/inventario/export', requireAuth, requireRole('admin'), async (req, res) 
 // POST /api/excel/inventario/import - Import inventario da Excel
 r.post('/inventario/import', requireAuth, requireRole('admin'), upload.any(), async (req, res) => {
   try {
-    console.log('DEBUG: req.file:', req.file);
-    console.log('DEBUG: req.body:', req.body);
-    console.log('DEBUG: req.files:', req.files);
-    
     // Cerca il file nei files array
     const file = req.files && req.files.length > 0 ? req.files[0] : req.file;
     

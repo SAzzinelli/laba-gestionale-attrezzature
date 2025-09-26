@@ -9,6 +9,9 @@ export async function requireAuth(req, res, next) {
     const auth = req.headers.authorization || '';
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
     
+    console.log('DEBUG: JWT_SECRET:', JWT_SECRET);
+    console.log('DEBUG: Token received:', token ? token.substring(0, 20) + '...' : 'null');
+    
     if (!token) {
       return res.status(401).json({ error: 'Non autorizzato' });
     }
