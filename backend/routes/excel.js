@@ -95,41 +95,43 @@ r.get('/inventario/export', requireAuth, requireRole('admin'), async (req, res) 
 });
 
 // POST /api/excel/inventario/import - Import inventario da Excel
-r.post('/inventario/import', requireAuth, requireRole('admin'), upload.single('file'), async (req, res) => {
+r.post('/inventario/import', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     // Debug temporaneo per produzione
     console.log('=== DEBUG IMPORT EXCEL ===');
-    console.log('req.file:', req.file);
-    console.log('req.files:', req.files);
     console.log('req.body:', req.body);
     console.log('Content-Type:', req.headers['content-type']);
-    console.log('Headers:', req.headers);
     console.log('========================');
     
-    // Verifica che il file sia stato caricato
-    if (!req.file) {
-      console.log('ERRORE: Nessun file trovato');
+    // Verifica che i dati del file siano presenti
+    const { fileName, fileSize, fileType, fileData } = req.body;
+    
+    if (!fileName || !fileData) {
+      console.log('ERRORE: Dati file mancanti');
       return res.status(400).json({ error: 'File Excel richiesto' });
     }
 
-    const file = req.file;
-    console.log('File caricato:', file.originalname, file.size, 'bytes');
+    console.log('File ricevuto:', fileName, fileSize, 'bytes');
+    
+    // Converti base64 in buffer
+    const base64Data = fileData.split(',')[1]; // Rimuovi il prefisso data:application/...
+    const fileBuffer = Buffer.from(base64Data, 'base64');
     
     // Carica il file su Supabase Storage
-    const fileName = `excel-import-${Date.now()}-${file.originalname}`;
-    const filePath = `inventario/${fileName}`;
+    const storageFileName = `excel-import-${Date.now()}-${fileName}`;
+    const filePath = `inventario/${storageFileName}`;
     
     console.log('Caricamento su Supabase Storage...');
-    const uploadResult = await uploadFile('excel-files', filePath, file.buffer, file.mimetype);
+    const uploadResult = await uploadFile('excel-files', filePath, fileBuffer, fileType);
     console.log('File caricato su Supabase:', uploadResult);
 
     // Leggi file Excel
     console.log('Tentativo di leggere file Excel...');
-    console.log('File size:', file.size, 'bytes');
-    console.log('File mimetype:', file.mimetype);
-    console.log('File originalname:', file.originalname);
+    console.log('File size:', fileSize, 'bytes');
+    console.log('File mimetype:', fileType);
+    console.log('File name:', fileName);
     
-    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
     console.log('Workbook creato, sheet names:', workbook.SheetNames);
     
     const sheetName = workbook.SheetNames[0];

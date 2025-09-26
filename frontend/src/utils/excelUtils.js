@@ -135,15 +135,26 @@ export const generateInventoryTemplate = async (token) => {
 // Import inventory from Excel - ora gestito dal backend
 export const importInventoryFromExcel = async (file, token) => {
   try {
-    const formData = new FormData();
-    formData.append('file', file);
+    // Converti il file in base64
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
     const response = await fetch('/api/excel/inventario/import', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       },
-      body: formData
+      body: JSON.stringify({
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        fileData: base64
+      })
     });
 
     if (!response.ok) {
