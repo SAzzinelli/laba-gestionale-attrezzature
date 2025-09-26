@@ -38,7 +38,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
           fornitore: editingItem.fornitore || '',
           note: editingItem.note || '',
           immagine_url: editingItem.immagine_url || '',
-          tipo_prestito: editingItem.tipo_prestito || 'prestito',
+          tipo_prestito: editingItem.tipo_prestito || 'solo_esterno',
           corsi_assegnati: editingItem.corsi_assegnati || [],
           categoria_madre: '', // Non serve, viene derivato automaticamente
           categoria_id: editingItem.categoria_id || '',

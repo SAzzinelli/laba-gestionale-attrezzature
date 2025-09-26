@@ -89,10 +89,18 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
   const handleUnitSelect = (unit) => {
     setSelectedUnit(unit);
+    console.log('🔍 Debug handleUnitSelect:', {
+      selectedObject: selectedObject,
+      tipo_prestito: selectedObject?.tipo_prestito,
+      isEntrambi: selectedObject?.tipo_prestito === 'entrambi'
+    });
+    
     // Se l'oggetto è "entrambi", vai al step 3 (scelta tipo), altrimenti vai direttamente al step 4 (date)
     if (selectedObject.tipo_prestito === 'entrambi') {
+      console.log('✅ Andando al Step 3 (scelta tipo)');
       setStep(3);
     } else {
+      console.log('✅ Andando al Step 4 (date)');
       setStep(4);
     }
   };
@@ -279,13 +287,6 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-gray-900">{item.nome}</h4>
                       <div className="flex items-center space-x-2">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          item.tipo_prestito === 'solo_interno' 
-                            ? 'bg-orange-100 text-orange-800' 
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {item.tipo_prestito === 'solo_interno' ? '🏠 Solo per uso interno' : '📅 Disponibile al prestito'}
-                        </span>
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
                           {item.unita_disponibili} disponibili
                         </span>

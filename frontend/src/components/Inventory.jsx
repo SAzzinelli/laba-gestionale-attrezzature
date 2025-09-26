@@ -777,9 +777,23 @@ const Inventory = () => {
  </div>
                   
                   {/* Status Badge */}
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.stato_effettivo)}`}>
- {getStatusText(item.stato_effettivo)}
- </span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                    item.tipo_prestito === 'solo_interno' 
+                      ? 'bg-orange-100 text-orange-800 border-orange-200' 
+                      : item.tipo_prestito === 'solo_esterno'
+                      ? 'bg-blue-100 text-blue-800 border-blue-200'
+                      : item.tipo_prestito === 'entrambi'
+                      ? 'bg-purple-100 text-purple-800 border-purple-200'
+                      : getStatusColor(item.stato_effettivo)
+                  }`}>
+                    {item.tipo_prestito === 'solo_interno' 
+                      ? '🏠 Interno' 
+                      : item.tipo_prestito === 'solo_esterno'
+                      ? '📅 Esterno'
+                      : item.tipo_prestito === 'entrambi'
+                      ? '🔄 Entrambi'
+                      : getStatusText(item.stato_effettivo)}
+                  </span>
                 </div>
               </div>
 
