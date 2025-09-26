@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
 const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) => {
- const [step, setStep] = useState(1); // 1: Basic Info, 2: Course & Category, 3: Unit Codes
+ const [step, setStep] = useState(1); // 1: Basic Info, 2: Description & Image, 3: Course & Category, 4: Unit Codes
  const [courses, setCourses] = useState([]);
  const [categories, setCategories] = useState([]);
  const [loading, setLoading] = useState(false);
@@ -12,6 +12,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
     nome: '',
     quantita_totale: 1,
     scaffale: '',
+    fornitore: '',
     note: '',
     immagine_url: '',
     tipo_prestito: 'prestito',
@@ -34,6 +35,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
           nome: editingItem.nome || '',
           quantita_totale: editingItem.quantita_totale || 1,
           scaffale: editingItem.posizione || '',
+          fornitore: editingItem.fornitore || '',
           note: editingItem.note || '',
           immagine_url: editingItem.immagine_url || '',
           tipo_prestito: editingItem.tipo_prestito || 'prestito',
@@ -50,6 +52,7 @@ const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) 
         nome: '',
         quantita_totale: 1,
         scaffale: '',
+        fornitore: '',
         note: '',
         immagine_url: '',
         tipo_prestito: 'prestito',
@@ -228,19 +231,21 @@ const handleSubmit = async () => {
  };
 
  const getStepTitle = () => {
- switch (step) {
- case 1: return 'Informazioni Base';
- case 2: return 'Corso e Categoria';
- case 3: return 'Codici Univoci';
- default: return 'Nuovo Elemento';
- }
+   switch (step) {
+     case 1: return 'Informazioni Base';
+     case 2: return 'Descrizione e Immagine';
+     case 3: return 'Corso e Categoria';
+     case 4: return 'Codici Univoci';
+     default: return 'Nuovo Elemento';
+   }
  };
 
 const canProceed = () => {
   switch (step) {
     case 1: return formData.nome && formData.quantita_totale && formData.quantita_totale > 0;
-    case 2: return formData.corsi_assegnati.length > 0; // Categoria non obbligatoria
-    case 3: return formData.unita.length > 0;
+    case 2: return true; // Descrizione e immagine sono opzionali
+    case 3: return formData.corsi_assegnati.length > 0; // Categoria non obbligatoria
+    case 4: return formData.unita.length > 0;
     default: return false;
   }
 };
@@ -256,7 +261,7 @@ const canProceed = () => {
  {editingItem ? 'Modifica Elemento' : 'Nuovo Elemento'}
  </h2>
  <p className="text-xs text-secondary mt-1">
- {getStepTitle()} (Passo {step} di 3)
+   {getStepTitle()} (Passo {step} di 4)
  </p>
  </div>
  <button
@@ -274,9 +279,10 @@ const canProceed = () => {
  <div className="flex items-center justify-center">
  <div className="flex items-center space-x-4">
  {[
- { num: 1, label: 'Info Base', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
- { num: 2, label: 'Corsi & Categoria', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
- { num: 3, label: 'Codici Unità', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg> }
+   { num: 1, label: 'Info Base', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+   { num: 2, label: 'Descrizione', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
+   { num: 3, label: 'Corsi & Categoria', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
+   { num: 4, label: 'Codici Unità', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg> }
  ].map((stepData, index) => (
  <React.Fragment key={stepData.num}>
  <div className="flex flex-col items-center">
@@ -293,7 +299,7 @@ const canProceed = () => {
  {stepData.label}
  </span>
  </div>
- {index < 2 && (
+ {index < 3 && (
  <div className={`w-16 h-1 mx-2 rounded transition-all duration-300 ${
  stepData.num < step 
  ? 'bg-blue-600' 
@@ -357,62 +363,86 @@ setFormData(prev => ({ ...prev, unita: units }));
                   />
                 </div>
 
-                <div className="form-group md:col-span-2">
-                  <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <input
-                      type="checkbox"
-                      id="tipo_prestito"
-                      checked={formData.tipo_prestito === 'prestito'}
-                      onChange={(e) => setFormData(prev => ({ 
-                        ...prev, 
-                        tipo_prestito: e.target.checked ? 'prestito' : 'uso_interno' 
-                      }))}
-                      className="w-5 h-5 text-blue-600 bg-white border-2 border-blue-300 rounded focus:ring-blue-500 focus:ring-2"
-                    />
-                    <div>
-                      <label htmlFor="tipo_prestito" className="text-sm font-medium text-blue-900 cursor-pointer">
-                        {formData.tipo_prestito === 'prestito' ? 'Disponibile al Prestito' : 'Solo per uso interno'}
-                      </label>
-                      <p className="text-xs text-blue-700 mt-1">
-                        {formData.tipo_prestito === 'prestito' 
-                          ? '✅ Gli studenti possono richiedere un prestito per più giorni'
-                          : '🏠 Gli studenti sono autorizzati all\'uso interno all\'accademia'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="form-group">
-                  <label className="form-label">Link Immagine</label>
+                  <label className="form-label">Fornitore</label>
                   <input
-                    type="url"
-                    value={formData.immagine_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, immagine_url: e.target.value }))}
+                    type="text"
+                    value={formData.fornitore}
+                    onChange={(e) => setFormData(prev => ({ ...prev, fornitore: e.target.value }))}
                     className="input-field"
-                    placeholder="https://drive.google.com/... (link diretto immagine)"
+                    placeholder="Es. Canon, Nikon, Sony"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Inserisci un link diretto a un'immagine (es. Google Drive).
-                  </p>
                 </div>
 
- <div className="form-group md:col-span-2">
-                <label className="form-label">Descrizione</label>
- <textarea
- value={formData.note}
- onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
- rows={3}
- className="input-field"
-                  placeholder="Descrizione dell'oggetto"
- />
- </div>
+
  </div>
  </div>
  )}
 
- {/* Step 2: Course & Category */}
+ {/* Step 2: Description & Image */}
  {step === 2 && (
+ <div className="space-y-4">
+ <h3 className="text-lg font-semibold text-primary mb-4">
+   Descrizione e Immagine
+ </h3>
+ 
+ <div className="space-y-4">
+   <div className="form-group">
+     <label className="form-label">Descrizione</label>
+     <textarea
+       value={formData.note}
+       onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
+       rows={3}
+       className="input-field"
+       placeholder="Descrizione dell'oggetto"
+     />
+   </div>
+
+   <div className="form-group">
+     <label className="form-label">Link Immagine</label>
+     <input
+       type="url"
+       value={formData.immagine_url}
+       onChange={(e) => setFormData(prev => ({ ...prev, immagine_url: e.target.value }))}
+       className="input-field"
+       placeholder="https://drive.google.com/... (link diretto immagine)"
+     />
+     <p className="text-xs text-gray-500 mt-1">
+       Inserisci un link diretto a un'immagine (es. Google Drive).
+     </p>
+   </div>
+
+   <div className="form-group">
+     <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+       <input
+         type="checkbox"
+         id="tipo_prestito"
+         checked={formData.tipo_prestito === 'prestito'}
+         onChange={(e) => setFormData(prev => ({ 
+           ...prev, 
+           tipo_prestito: e.target.checked ? 'prestito' : 'uso_interno' 
+         }))}
+         className="w-5 h-5 text-blue-600 bg-white border-2 border-blue-300 rounded focus:ring-blue-500 focus:ring-2"
+       />
+       <div>
+         <label htmlFor="tipo_prestito" className="text-sm font-medium text-blue-900 cursor-pointer">
+           {formData.tipo_prestito === 'prestito' ? 'Disponibile al Prestito' : 'Solo per uso interno'}
+         </label>
+         <p className="text-xs text-blue-700 mt-1">
+           {formData.tipo_prestito === 'prestito' 
+             ? '✅ Gli studenti possono richiedere un prestito per più giorni'
+             : '🏠 Gli studenti sono autorizzati all\'uso interno all\'accademia'
+           }
+         </p>
+       </div>
+     </div>
+   </div>
+ </div>
+ </div>
+ )}
+
+ {/* Step 3: Course & Category */}
+ {step === 3 && (
  <div className="space-y-6">
  <h3 className="text-lg font-semibold text-primary mb-4">
  Assegnazione Corsi e Categoria
@@ -493,8 +523,8 @@ setFormData(prev => ({ ...prev, unita: units }));
  </div>
  )}
 
- {/* Step 3: Unit Codes */}
- {step === 3 && (
+ {/* Step 4: Unit Codes */}
+ {step === 4 && (
  <div className="space-y-4">
  <h3 className="text-lg font-semibold text-primary mb-4">
  Codici Univoci per: <span className="text-brand-primary">{formData.nome}</span>
@@ -573,7 +603,7 @@ setFormData(prev => ({ ...prev, unita: units }));
  </button>
  
  <div className="flex space-x-3">
- {step < 3 ? (
+ {step < 4 ? (
  <button
 onClick={() => {
 if (canProceed()) {

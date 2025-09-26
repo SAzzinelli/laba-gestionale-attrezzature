@@ -60,6 +60,7 @@ export async function initDatabase() {
         categoria_madre VARCHAR(255) NOT NULL,
         categoria_id INTEGER REFERENCES categorie_semplici(id),
         posizione VARCHAR(255),
+        fornitore VARCHAR(255),
         note TEXT,
         immagine_url TEXT,
         in_manutenzione BOOLEAN NOT NULL DEFAULT FALSE,
@@ -149,6 +150,7 @@ export async function initDatabase() {
       ALTER TABLE riparazioni ADD COLUMN IF NOT EXISTS tipo VARCHAR(100) DEFAULT 'riparazione';
       ALTER TABLE riparazioni ADD COLUMN IF NOT EXISTS priorita VARCHAR(50) DEFAULT 'media';
       ALTER TABLE inventario ADD COLUMN IF NOT EXISTS tipo_prestito VARCHAR(20) DEFAULT 'prestito';
+      ALTER TABLE inventario ADD COLUMN IF NOT EXISTS fornitore VARCHAR(255);
       
       -- Sistema di penalità per ritardi
       ALTER TABLE users ADD COLUMN IF NOT EXISTS penalty_strikes INTEGER DEFAULT 0;
@@ -234,6 +236,17 @@ export async function initDatabase() {
       console.log('✅ Colonna tipo_prestito aggiunta alla tabella inventario');
     } catch (error) {
       console.log('ℹ️ Colonna tipo_prestito già esistente');
+    }
+
+    // Aggiungi colonna fornitore se non esiste
+    try {
+      await client.query(`
+        ALTER TABLE inventario 
+        ADD COLUMN IF NOT EXISTS fornitore VARCHAR(255)
+      `);
+      console.log('✅ Colonna fornitore aggiunta alla tabella inventario');
+    } catch (error) {
+      console.log('ℹ️ Colonna fornitore già esistente');
     }
 
     // Inserisci admin user se non esiste

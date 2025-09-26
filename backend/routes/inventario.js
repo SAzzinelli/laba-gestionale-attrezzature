@@ -207,6 +207,7 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       categoria_madre,
       categoria_id,
       posizione = null, 
+      fornitore = null,
       note = null, 
       immagine_url = null,
       quantita_totale = 1, 
@@ -247,10 +248,10 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     
     // Create inventory item
     const result = await query(`
-      INSERT INTO inventario (nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita, in_manutenzione, tipo_prestito)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      INSERT INTO inventario (nome, categoria_madre, categoria_id, posizione, fornitore, note, immagine_url, quantita_totale, quantita, in_manutenzione, tipo_prestito)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
-    `, [nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita_totale, false, tipo_prestito]);
+    `, [nome, categoria_madre, categoria_id, posizione, fornitore, note, immagine_url, quantita_totale, quantita_totale, false, tipo_prestito]);
     
     const newItem = result[0];
     
@@ -301,6 +302,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       categoria_madre,
       categoria_id,
       posizione = null, 
+      fornitore = null,
       note = null, 
       immagine_url = null,
       quantita_totale, 
@@ -326,11 +328,11 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     // Update inventory item
     const result = await query(`
       UPDATE inventario 
-      SET nome = $1, categoria_madre = $2, categoria_id = $3, posizione = $4, note = $5, 
-          immagine_url = $6, quantita_totale = $7, quantita = $8, in_manutenzione = $9, tipo_prestito = $10, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $11
+      SET nome = $1, categoria_madre = $2, categoria_id = $3, posizione = $4, fornitore = $5, note = $6, 
+          immagine_url = $7, quantita_totale = $8, quantita = $9, in_manutenzione = $10, tipo_prestito = $11, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $12
       RETURNING *
-    `, [nome, categoria_madre, categoria_id, posizione, note, immagine_url, quantita_totale, quantita_totale, in_manutenzione || false, tipo_prestito, id]);
+    `, [nome, categoria_madre, categoria_id, posizione, fornitore, note, immagine_url, quantita_totale, quantita_totale, in_manutenzione || false, tipo_prestito, id]);
 
     if (result.length === 0) {
       return res.status(404).json({ error: 'Elemento inventario non trovato' });

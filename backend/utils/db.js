@@ -51,6 +51,7 @@ export async function initDatabase() {
       categoria_madre TEXT NOT NULL,
       categoria_figlia TEXT,
       posizione TEXT,
+      fornitore TEXT,
       note TEXT,
       in_manutenzione INTEGER NOT NULL DEFAULT 0,
       unita TEXT DEFAULT '[]',
