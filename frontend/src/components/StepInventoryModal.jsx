@@ -414,15 +414,52 @@ setFormData(prev => ({ ...prev, unita: units }));
 
    <div className="form-group">
      <label className="form-label">Tipo di Utilizzo</label>
-     <select
-       value={formData.tipo_prestito}
-       onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
-       className="input-field"
-     >
-       <option value="solo_esterno">Solo Prestito Esterno</option>
-       <option value="solo_interno">Solo Uso Interno</option>
-       <option value="entrambi">Entrambi (Utente Sceglie)</option>
-     </select>
+     <div className="space-y-2">
+       <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
+         <input
+           type="radio"
+           name="tipo_prestito"
+           value="solo_esterno"
+           checked={formData.tipo_prestito === 'solo_esterno'}
+           onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
+           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+         />
+         <div>
+           <span className="text-sm font-medium text-gray-900">📅 Uso Esterno</span>
+           <p className="text-xs text-gray-600">Prestito per più giorni, può essere portato fuori dall'accademia</p>
+         </div>
+       </label>
+       
+       <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
+         <input
+           type="radio"
+           name="tipo_prestito"
+           value="solo_interno"
+           checked={formData.tipo_prestito === 'solo_interno'}
+           onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
+           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+         />
+         <div>
+           <span className="text-sm font-medium text-gray-900">🏠 Uso Interno</span>
+           <p className="text-xs text-gray-600">Solo per uso interno all'accademia (stesso giorno)</p>
+         </div>
+       </label>
+       
+       <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
+         <input
+           type="radio"
+           name="tipo_prestito"
+           value="entrambi"
+           checked={formData.tipo_prestito === 'entrambi'}
+           onChange={(e) => setFormData(prev => ({ ...prev, tipo_prestito: e.target.value }))}
+           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+         />
+         <div>
+           <span className="text-sm font-medium text-gray-900">🔄 Entrambi</span>
+           <p className="text-xs text-gray-600">L'utente sceglie se utilizzarlo internamente o esternamente</p>
+         </div>
+       </label>
+     </div>
      <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
        <p className="text-xs text-blue-700">
          {formData.tipo_prestito === 'solo_esterno' && (
