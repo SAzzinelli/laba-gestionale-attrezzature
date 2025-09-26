@@ -376,7 +376,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
           ).join(', ');
           
           return res.status(400).json({ 
-            error: `Non è possibile modificare il tipo di prestito o i codici delle unità perché ci sono prestiti attivi: ${loanInfo}${loanDetails.length === 3 ? '...' : ''}` 
+            error: `⚠️ Avviso: Stai modificando questo parametro con un noleggio in corso. Non puoi farlo, lo potrai fare quando rientreranno tutti. Prestiti attivi: ${loanInfo}${loanDetails.length === 3 ? '...' : ''}` 
           });
         }
         
@@ -401,7 +401,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
           ).join(', ');
           
           return res.status(400).json({ 
-            error: `Non è possibile modificare il tipo di prestito o i codici delle unità perché ci sono richieste pendenti: ${requestInfo}${requestDetails.length === 3 ? '...' : ''}` 
+            error: `⚠️ Avviso: Stai modificando questo parametro con richieste pendenti. Non puoi farlo, lo potrai fare quando rientreranno tutti. Richieste pendenti: ${requestInfo}${requestDetails.length === 3 ? '...' : ''}` 
           });
         }
         
@@ -426,7 +426,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
           ).join(', ');
           
           return res.status(400).json({ 
-            error: `Non è possibile modificare il tipo di prestito o i codici delle unità perché ci sono riparazioni in corso: ${repairInfo}${repairDetails.length === 3 ? '...' : ''}` 
+            error: `⚠️ Avviso: Stai modificando questo parametro con riparazioni in corso. Non puoi farlo, lo potrai fare quando rientreranno tutti. Riparazioni in corso: ${repairInfo}${repairDetails.length === 3 ? '...' : ''}` 
           });
         }
         
@@ -438,7 +438,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
         
         if (unitsInUse[0].count > 0) {
           return res.status(400).json({ 
-            error: 'Non è possibile modificare il tipo di prestito o i codici delle unità perché alcune sono in uso o non disponibili' 
+            error: '⚠️ Avviso: Stai modificando questo parametro con unità in uso. Non puoi farlo, lo potrai fare quando rientreranno tutti.' 
           });
         }
       }

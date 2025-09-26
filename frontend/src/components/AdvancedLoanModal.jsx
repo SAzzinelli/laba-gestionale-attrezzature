@@ -109,14 +109,7 @@ const fetchAvailableUnits = async (itemId) => {
  );
  };
 
- const handleUnitsSelected = () => {
-   // Se l'oggetto è "entrambi", vai al step 4 (scelta tipo), altrimenti vai direttamente al step 5 (date)
-   if (selectedItem.tipo_prestito === 'entrambi') {
-     setStep(4);
-   } else {
-     setStep(5);
-   }
- };
+// handleUnitsSelected removed - navigation now handled by footer buttons
 
  const handleCreateLoan = async () => {
  if (!selectedItem || (!selectedUser && !isManualUser) || selectedUnits.length === 0 || !dateRange.dal || !dateRange.al) {
@@ -466,24 +459,7 @@ body: JSON.stringify({
  Selezionate: {selectedUnits.length} unità
  </p>
 
- {/* Actions */}
- <div className="flex justify-end space-x-3 pt-4">
-   <button
-     type="button"
-     onClick={() => setStep(2)}
-     className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-   >
-     ← Indietro
-   </button>
-   <button
-     type="button"
-     onClick={handleUnitsSelected}
-     disabled={selectedUnits.length === 0}
-     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-   >
-     Continua →
-   </button>
- </div>
+    {/* Actions removed - using footer buttons */}
  </div>
  )}
 
@@ -562,24 +538,7 @@ body: JSON.stringify({
        </div>
      </div>
 
-     {/* Actions */}
-     <div className="flex justify-end space-x-3 pt-4">
-       <button
-         type="button"
-         onClick={() => setStep(3)}
-         className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-       >
-         ← Indietro
-       </button>
-       <button
-         type="button"
-         onClick={() => setStep(5)}
-         disabled={!tipoUtilizzo}
-         className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-       >
-         Continua →
-       </button>
-     </div>
+    {/* Actions removed - using footer buttons */}
    </div>
  )}
 
@@ -713,43 +672,55 @@ body: JSON.stringify({
  </div>
 
  <div className="flex justify-between items-center p-6 border-t ">
- <button
- onClick={() => {
-   if (step === 5 && selectedItem?.tipo_prestito === 'entrambi') {
-     setStep(4); // Torna al tipo utilizzo
-   } else if (step > 1) {
-     setStep(step - 1);
-   } else {
-     handleClose();
-   }
- }}
- className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 "
- >
- {step > 1 ? 'Indietro' : 'Annulla'}
- </button>
+      <button
+        onClick={() => {
+          if (step === 5 && selectedItem?.tipo_prestito === 'entrambi') {
+            setStep(4); // Torna al tipo utilizzo
+          } else if (step === 4 && selectedItem?.tipo_prestito === 'entrambi') {
+            setStep(3); // Torna alla selezione unità
+          } else if (step > 1) {
+            setStep(step - 1);
+          } else {
+            handleClose();
+          }
+        }}
+        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 "
+      >
+        {step > 1 ? 'Indietro' : 'Annulla'}
+      </button>
  
- <div className="flex space-x-3">
- {step < 5 ? (
- <button
- onClick={() => {
-   if (step === 1 && !selectedItem) return;
-   if (step === 2 && !selectedUser && !isManualUser) return;
-   if (step === 2 && isManualUser && (!manualUser.name || !manualUser.surname || !manualUser.email || !manualUser.matricola || !manualUser.corso_accademico)) return;
-   if (step === 3 && selectedUnits.length === 0) return;
-   if (step === 4 && selectedItem?.tipo_prestito === 'entrambi' && !tipoUtilizzo) return;
-   setStep(step + 1);
- }}
- disabled={
-   (step === 1 && !selectedItem) ||
-   (step === 2 && !selectedUser && !isManualUser) ||
-   (step === 2 && isManualUser && (!manualUser.name || !manualUser.surname || !manualUser.email || !manualUser.matricola || !manualUser.corso_accademico)) ||
-   (step === 3 && selectedUnits.length === 0) ||
-   (step === 4 && selectedItem?.tipo_prestito === 'entrambi' && !tipoUtilizzo)
- }
- className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
- >
- Avanti
- </button>
+    <div className="flex space-x-3">
+      {step < 5 ? (
+        <button
+          onClick={() => {
+            if (step === 1 && !selectedItem) return;
+            if (step === 2 && !selectedUser && !isManualUser) return;
+            if (step === 2 && isManualUser && (!manualUser.name || !manualUser.surname || !manualUser.email || !manualUser.matricola || !manualUser.corso_accademico)) return;
+            if (step === 3 && selectedUnits.length === 0) return;
+            if (step === 4 && selectedItem?.tipo_prestito === 'entrambi' && !tipoUtilizzo) return;
+            
+            // Smart navigation: Step 3 → Step 4 (for "entrambi") or Step 5 (for others)
+            if (step === 3) {
+              if (selectedItem?.tipo_prestito === 'entrambi') {
+                setStep(4);
+              } else {
+                setStep(5);
+              }
+            } else {
+              setStep(step + 1);
+            }
+          }}
+          disabled={
+            (step === 1 && !selectedItem) ||
+            (step === 2 && !selectedUser && !isManualUser) ||
+            (step === 2 && isManualUser && (!manualUser.name || !manualUser.surname || !manualUser.email || !manualUser.matricola || !manualUser.corso_accademico)) ||
+            (step === 3 && selectedUnits.length === 0) ||
+            (step === 4 && selectedItem?.tipo_prestito === 'entrambi' && !tipoUtilizzo)
+          }
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Avanti
+        </button>
  ) : (
  <button
  onClick={handleCreateLoan}
