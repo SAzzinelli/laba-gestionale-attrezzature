@@ -125,7 +125,7 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), upload.single('f
           throw new Error('Nome è obbligatorio');
         }
 
-        // Prepara dati per inserimento
+        // Prepara dati per inserimento (solo campi modificabili dall'utente)
         const itemData = {
           nome: row.Nome.toString().trim(),
           quantita_totale: parseInt(row['Quantità Totale']) || 1,
@@ -141,6 +141,9 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), upload.single('f
           fornitore: row.Fornitore?.toString().trim() || null,
           tipo_prestito: row['Tipo Prestito']?.toString().trim() || 'solo_esterno'
         };
+
+        // Ignora campi automatici se presenti nel file
+        // ID, Unità Disponibili, Data Creazione, Data Aggiornamento sono gestiti dal sistema
 
         // Validazione tipo_prestito
         if (!['solo_esterno', 'solo_interno', 'entrambi'].includes(itemData.tipo_prestito)) {
@@ -228,7 +231,6 @@ r.get('/inventario/template', requireAuth, requireRole('admin'), async (req, res
   try {
     const templateData = [
       {
-        'ID': 'Lasciare vuoto (generato automaticamente)',
         'Nome': 'Esempio: Macchina Fotografica Canon',
         'Quantità Totale': '5',
         'Corso Accademico': 'Fotografia',
@@ -238,10 +240,7 @@ r.get('/inventario/template', requireAuth, requireRole('admin'), async (req, res
         'Immagine URL': 'https://example.com/fotocamera.jpg',
         'In Manutenzione': 'No (Sì/No)',
         'Soglia Minima': '2',
-        'Unità Disponibili': 'Lasciare vuoto (calcolato automaticamente)',
         'Corsi Assegnati': 'Fotografia, Video',
-        'Data Creazione': 'Lasciare vuoto (generata automaticamente)',
-        'Data Aggiornamento': 'Lasciare vuoto (generata automaticamente)',
         'Fornitore': 'Esempio: Canon Italia',
         'Tipo Prestito': 'solo_esterno (solo_esterno/solo_interno/entrambi)'
       }
@@ -251,7 +250,6 @@ r.get('/inventario/template', requireAuth, requireRole('admin'), async (req, res
     const wb = XLSX.utils.book_new();
     
     const colWidths = [
-      { wch: 5 },   // ID
       { wch: 25 },  // Nome
       { wch: 12 },  // Quantità Totale
       { wch: 20 },  // Corso Accademico
@@ -261,10 +259,7 @@ r.get('/inventario/template', requireAuth, requireRole('admin'), async (req, res
       { wch: 30 },  // Immagine URL
       { wch: 12 },  // In Manutenzione
       { wch: 12 },  // Soglia Minima
-      { wch: 12 },  // Unità Disponibili
       { wch: 30 },  // Corsi Assegnati
-      { wch: 15 },  // Data Creazione
-      { wch: 15 },  // Data Aggiornamento
       { wch: 20 },  // Fornitore
       { wch: 25 }   // Tipo Prestito
     ];
