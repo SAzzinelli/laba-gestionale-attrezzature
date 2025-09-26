@@ -353,13 +353,41 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
         });
       }
       
-      // Safe to delete and recreate
-      await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
-      for (const unit of unita) {
+      // Update existing units instead of deleting and recreating to avoid foreign key constraints
+      const existingUnits = await query('SELECT id, codice_univoco FROM inventario_unita WHERE inventario_id = $1 ORDER BY id', [id]);
+      
+      // Update existing units
+      for (let i = 0; i < Math.min(existingUnits.length, unita.length); i++) {
+        const existingUnit = existingUnits[i];
+        const newUnit = unita[i];
         await query(`
-          INSERT INTO inventario_unita (inventario_id, codice_univoco, note)
-          VALUES ($1, $2, $3)
-        `, [id, unit.codice_univoco, unit.note || null]);
+          UPDATE inventario_unita 
+          SET codice_univoco = $1, note = $2
+          WHERE id = $3
+        `, [newUnit.codice_univoco, newUnit.note || null, existingUnit.id]);
+      }
+      
+      // Add new units if needed
+      if (unita.length > existingUnits.length) {
+        for (let i = existingUnits.length; i < unita.length; i++) {
+          const unit = unita[i];
+          await query(`
+            INSERT INTO inventario_unita (inventario_id, codice_univoco, note)
+            VALUES ($1, $2, $3)
+          `, [id, unit.codice_univoco, unit.note || null]);
+        }
+      }
+      
+      // Remove excess units if needed (only if they're not in use)
+      if (unita.length < existingUnits.length) {
+        const excessUnits = existingUnits.slice(unita.length);
+        for (const excessUnit of excessUnits) {
+          // Check if unit is referenced in richieste
+          const referenced = await query('SELECT COUNT(*) as count FROM richieste WHERE unit_id = $1', [excessUnit.id]);
+          if (referenced[0].count === 0) {
+            await query('DELETE FROM inventario_unita WHERE id = $1', [excessUnit.id]);
+          }
+        }
       }
     } else {
       // Auto-adjust units based on new quantita_totale
