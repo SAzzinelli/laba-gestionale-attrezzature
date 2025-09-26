@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { 
  exportInventoryToExcel, 
  generateInventoryTemplate, 
- parseInventoryExcel 
+ importInventoryFromExcel 
 } from '../utils/excelUtils';
 import StepInventoryModal from './StepInventoryModal';
 import OperationsDropdown from './OperationsDropdown';
@@ -327,18 +327,29 @@ const Inventory = () => {
   // Handle export
   const handleExport = async () => {
     try {
-      await exportInventoryToExcel(inventory);
- } catch (err) {
- setError(err.message);
- }
- };
+      await exportInventoryToExcel(token);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   // Handle import
   const handleImportExcel = async (file) => {
     try {
-      const data = await parseInventoryExcel(file);
-      // Process imported data
-      console.log('Imported data:', data);
+      const result = await importInventoryFromExcel(file, token);
+      console.log('Import result:', result);
+      
+      // Refresh inventory after import
+      await fetchInventory();
+      
+      // Show success message
+      alert(`Import completato: ${result.success}/${result.total} elementi processati`);
+      
+      // Show errors if any
+      if (result.errors.length > 0) {
+        console.warn('Import errors:', result.errors);
+        alert(`Errori durante l'import:\n${result.errors.join('\n')}`);
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -347,7 +358,7 @@ const Inventory = () => {
   // Handle template
   const handleTemplate = async () => {
     try {
-      await generateInventoryTemplate();
+      await generateInventoryTemplate(token);
     } catch (err) {
       setError(err.message);
     }

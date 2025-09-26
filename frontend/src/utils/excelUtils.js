@@ -1,37 +1,32 @@
-import * as XLSX from 'xlsx';
+// Export inventario to Excel - ora gestito dal backend
+export const exportInventoryToExcel = async (token) => {
+  try {
+    const response = await fetch('/api/excel/inventario/export', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
-// Export inventario to Excel
-export const exportInventoryToExcel = (inventory, filename = 'inventario_laba.xlsx') => {
-  const data = inventory.map(item => ({
-    'ID': item.id,
-    'Nome': item.nome,
-    'Seriale': item.seriale || '',
-    'Categoria': item.categoria_nome || '',
-    'Stato': item.stato_effettivo === 'disponibile' ? 'Disponibile' : 
-             item.stato_effettivo === 'in_riparazione' ? 'In Riparazione' : 'Non Disponibile',
-    'Corsi Assegnati': item.corsi_assegnati || '',
-    'Note': item.note || '',
-    'Data Creazione': new Date(item.created_at).toLocaleDateString('it-IT')
-  }));
+    if (!response.ok) {
+      throw new Error('Errore durante l\'export Excel');
+    }
 
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  
-  // Set column widths
-  const colWidths = [
-    { wch: 5 },   // ID
-    { wch: 25 },  // Nome
-    { wch: 15 },  // Seriale
-    { wch: 20 },  // Categoria
-    { wch: 15 },  // Stato
-    { wch: 30 },  // Corsi
-    { wch: 40 },  // Note
-    { wch: 15 }   // Data
-  ];
-  ws['!cols'] = colWidths;
-
-  XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
-  XLSX.writeFile(wb, filename);
+    // Scarica il file
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'inventario_laba.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error('Errore export Excel:', error);
+    throw error;
+  }
 };
 
 // Export richieste to Excel
@@ -106,71 +101,62 @@ export const exportRepairsToExcel = (repairs, filename = 'riparazioni_laba.xlsx'
   XLSX.writeFile(wb, filename);
 };
 
-// Generate template for inventory import
-export const generateInventoryTemplate = () => {
-  const templateData = [
-    {
-      'Nome': 'Esempio: Macchina Fotografica Canon',
-      'Seriale': 'Esempio: CF123456789',
-      'Categoria': 'Esempio: Fotografia',
-      'Note': 'Esempio: Macchina professionale per corsi di fotografia',
-      'Disponibile': '1 (1=Disponibile, 0=Non Disponibile)'
+// Generate template for inventory import - ora gestito dal backend
+export const generateInventoryTemplate = async (token) => {
+  try {
+    const response = await fetch('/api/excel/inventario/template', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Errore durante la generazione del template');
     }
-  ];
 
-  const ws = XLSX.utils.json_to_sheet(templateData);
-  const wb = XLSX.utils.book_new();
-  
-  const colWidths = [
-    { wch: 30 },  // Nome
-    { wch: 20 },  // Seriale
-    { wch: 20 },  // Categoria
-    { wch: 40 },  // Note
-    { wch: 15 }   // Disponibile
-  ];
-  ws['!cols'] = colWidths;
-
-  XLSX.utils.book_append_sheet(wb, ws, 'Template Inventario');
-  XLSX.writeFile(wb, 'template_inventario_laba.xlsx');
+    // Scarica il file
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_inventario_laba.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error('Errore generazione template:', error);
+    throw error;
+  }
 };
 
-// Parse Excel file for inventory import
-export const parseInventoryExcel = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
-        
-        // Validate and clean data
-        const cleanedData = jsonData.map((row, index) => {
-          if (!row.Nome) {
-            throw new Error(`Riga ${index + 2}: Nome è obbligatorio`);
-          }
-          
-          return {
-            nome: row.Nome?.toString().trim(),
-            seriale: row.Seriale?.toString().trim() || null,
-            categoria: row.Categoria?.toString().trim() || null,
-            note: row.Note?.toString().trim() || null,
-            disponibile: row.Disponibile === '1' || row.Disponibile === 1 ? 1 : 0
-          };
-        });
-        
-        resolve(cleanedData);
-      } catch (error) {
-        reject(new Error(`Errore nel parsing del file: ${error.message}`));
-      }
-    };
-    
-    reader.onerror = () => reject(new Error('Errore nella lettura del file'));
-    reader.readAsArrayBuffer(file);
-  });
+// Import inventory from Excel - ora gestito dal backend
+export const importInventoryFromExcel = async (file, token) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/excel/inventario/import', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Errore durante l\'import Excel');
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Errore import Excel:', error);
+    throw error;
+  }
 };
 
 // Export segnalazioni to Excel
