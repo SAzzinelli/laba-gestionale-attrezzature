@@ -135,11 +135,21 @@ export const generateInventoryTemplate = async (token) => {
 // Import inventory from Excel - ora gestito dal backend
 export const importInventoryFromExcel = async (file, token) => {
   try {
+    // Verifica che il file sia valido
+    if (!file || !(file instanceof File) && !(file instanceof Blob)) {
+      throw new Error('File non valido');
+    }
+
+    console.log('File ricevuto:', file.name, file.size, file.type);
+
     // Converti il file in base64
     const base64 = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
+      reader.onerror = (error) => {
+        console.error('Errore FileReader:', error);
+        reject(error);
+      };
       reader.readAsDataURL(file);
     });
 
