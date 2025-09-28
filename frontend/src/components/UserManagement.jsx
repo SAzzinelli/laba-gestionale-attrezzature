@@ -297,24 +297,30 @@ setError(err.message);
  );
  }
 
- return (
- <div className="space-y-6">
- {/* Header */}
- <div className="flex justify-between items-center">
- <div>
- <h1 className="text-2xl font-bold text-gray-900">Gestione Utenti</h1>
- <p className="text-gray-600 ">Gestisci gli utenti del sistema</p>
- </div>
- <button
- onClick={() => setShowAddModal(true)}
- className="btn-primary"
- >
- <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
- </svg>
- Nuovo Utente
- </button>
- </div>
+return (
+  <div className="min-h-screen bg-gray-50">
+    {/* Header */}
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8 mx-4 sm:mx-6 lg:mx-8">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestione Utenti</h1>
+          <p className="text-gray-600 text-lg">Gestisci gli utenti del sistema</p>
+        </div>
+        <div className="flex items-center">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="group bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center"
+          >
+            <svg className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span>Nuovo Utente</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
 
  {/* Error Message */}
  {error && (
@@ -323,44 +329,50 @@ setError(err.message);
    </div>
  )}
 
- {/* Tabs */}
- <div className="border-b border-gray-200">
-   <nav className="flex space-x-8">
-     <button
-       onClick={() => setActiveTab('users')}
-       className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-         activeTab === 'users'
-           ? 'border-blue-500 text-blue-600'
-           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-       }`}
-     >
-       <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-       </svg>
-       Utenti
-       <span className="ml-2 bg-gray-100 text-gray-900 text-xs px-2 py-1 rounded-full">
-         {regularUsers.length}
-       </span>
-     </button>
-     
-     <button
-       onClick={() => setActiveTab('admins')}
-       className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-         activeTab === 'admins'
-           ? 'border-blue-500 text-blue-600'
-           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-       }`}
-     >
-       <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-       </svg>
-       Amministratori
-       <span className="ml-2 bg-gray-100 text-gray-900 text-xs px-2 py-1 rounded-full">
-         {adminUsers.length}
-       </span>
-     </button>
-   </nav>
- </div>
+    {/* Tabs */}
+    <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8">
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'users'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Utenti</span>
+              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
+                {regularUsers.length}
+              </span>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('admins')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'admins'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span>Amministratori</span>
+              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
+                {adminUsers.length}
+              </span>
+            </div>
+          </button>
+        </nav>
+      </div>
+    </div>
 
     {/* Desktop Table View */}
     <div className="hidden lg:block bg-white rounded-lg shadow-lg overflow-hidden">
@@ -439,7 +451,7 @@ setError(err.message);
                   <div className="flex flex-col sm:flex-row gap-2 justify-center items-center">
                     <button
                       onClick={() => openEditModal(user)}
-                      className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors duration-200"
+                      className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 hover:shadow-md transition-all duration-200 hover:scale-105"
                     >
                       <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -448,7 +460,7 @@ setError(err.message);
                     </button>
                     <button
                       onClick={() => openPasswordReset(user)}
-                      className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-orange-700 bg-orange-100 rounded-md hover:bg-orange-200 transition-colors duration-200"
+                      className="inline-flex items-center px-3 py-2 text-xs font-medium text-orange-700 bg-orange-100 rounded-lg hover:bg-orange-200 hover:shadow-md transition-all duration-200 hover:scale-105"
                     >
                       <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -583,7 +595,7 @@ setError(err.message);
             {/* Row 1: Modifica + Reset */}
             <button
               onClick={() => openEditModal(user)}
-              className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors duration-200"
+              className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 hover:shadow-md transition-all duration-200 hover:scale-105"
             >
               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -592,7 +604,7 @@ setError(err.message);
             </button>
             <button
               onClick={() => openPasswordReset(user)}
-              className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-orange-700 bg-orange-100 rounded-md hover:bg-orange-200 transition-colors duration-200"
+              className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-orange-700 bg-orange-100 rounded-lg hover:bg-orange-200 hover:shadow-md transition-all duration-200 hover:scale-105"
             >
               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -1142,7 +1154,8 @@ Chiudi
 </div>
 </div>
 )}
-</div>
+    </div>
+  </div>
 );
 };
 
