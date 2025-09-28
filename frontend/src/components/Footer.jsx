@@ -14,40 +14,9 @@ const Footer = ({ onSystemClick }) => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-6">
-            <div className="text-xs text-gray-600">
-              <p>Versione 2.1.0 (build 500)</p>
-              <p>© 2025 LABA Firenze</p>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => {
-                  console.log('Footer click - onSystemClick:', !!onSystemClick);
-                  if (onSystemClick) {
-                    onSystemClick();
-                  } else {
-                    // Fallback to events
-                    const adminSidebar = document.querySelector('.sidebar');
-                    console.log('Footer click - adminSidebar found:', !!adminSidebar);
-                    
-                    if (adminSidebar) {
-                      console.log('Dispatching navigateToSystemAdmin event');
-                      const event = new CustomEvent('navigateToSystemAdmin');
-                      window.dispatchEvent(event);
-                    } else {
-                      console.log('Dispatching navigateToSystem event');
-                      const event = new CustomEvent('navigateToSystem');
-                      window.dispatchEvent(event);
-                    }
-                  }
-                }}
-                className="flex items-center space-x-1 text-xs text-gray-600 hover:text-blue-600 transition-colors cursor-pointer"
-              >
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span>Sistema Online</span>
-              </button>
-            </div>
+          <div className="text-xs text-gray-600">
+            <p>Versione 2.1.0 (build 500)</p>
+            <p>© 2025 LABA Firenze</p>
           </div>
         </div>
 
