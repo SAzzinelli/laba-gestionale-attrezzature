@@ -790,17 +790,17 @@ const Inventory = () => {
            item.tipo_prestito === 'solo_interno' 
              ? 'bg-orange-100 text-orange-800 border-orange-200' 
              : item.tipo_prestito === 'solo_esterno'
-             ? 'bg-blue-100 text-blue-800 border-blue-200'
+             ? 'bg-orange-100 text-orange-800 border-orange-200'
              : item.tipo_prestito === 'entrambi'
-             ? 'bg-purple-100 text-purple-800 border-purple-200'
+             ? 'bg-orange-100 text-orange-800 border-orange-200'
              : getStatusColor(item.stato_effettivo)
          }`}>
            {item.tipo_prestito === 'solo_interno' 
-             ? '🏠 Lezione / Interno' 
+             ? 'Lezione / Interno' 
              : item.tipo_prestito === 'solo_esterno'
-             ? '📅 Prestito / Esterno'
+             ? 'Prestito / Esterno'
              : item.tipo_prestito === 'entrambi'
-             ? '🔄 Lezione / Prestito'
+             ? 'Lezione / Prestito'
              : getStatusText(item.stato_effettivo)}
          </span>
                 </div>
