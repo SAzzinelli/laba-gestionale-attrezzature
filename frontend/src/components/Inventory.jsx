@@ -528,8 +528,8 @@ const Inventory = () => {
  </div>
  
  {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-visible">
- <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 md:p-6 border border-blue-200">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-visible max-w-full">
+ <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 md:p-4 border border-blue-200">
  <div className="flex items-center">
  <div className="p-2 md:p-3 bg-blue-500 rounded-lg md:rounded-xl shadow-lg">
  <svg className="w-5 h-5 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -543,7 +543,7 @@ const Inventory = () => {
  </div>
  </div>
 
- <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 md:p-6 border border-green-200">
+ <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 md:p-4 border border-green-200">
  <div className="flex items-center">
  <div className="p-2 md:p-3 bg-green-500 rounded-lg md:rounded-xl shadow-lg">
  <svg className="w-5 h-5 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -559,7 +559,7 @@ const Inventory = () => {
  </div>
  </div>
  
- <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 md:p-6 border border-orange-200">
+ <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 md:p-4 border border-orange-200">
  <div className="flex items-center">
  <div className="p-2 md:p-3 bg-orange-500 rounded-lg md:rounded-xl shadow-lg">
  <svg className="w-5 h-5 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -575,7 +575,7 @@ const Inventory = () => {
  </div>
  </div>
 
- <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 md:p-6 border border-red-200">
+ <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 md:p-4 border border-red-200">
  <div className="flex items-center">
  <div className="p-2 md:p-3 bg-red-500 rounded-lg md:rounded-xl shadow-lg">
  <svg className="w-5 h-5 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
