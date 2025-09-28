@@ -528,7 +528,7 @@ const Inventory = () => {
  </div>
  
  {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-visible">
  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 md:p-6 border border-blue-200">
  <div className="flex items-center">
  <div className="p-2 md:p-3 bg-blue-500 rounded-lg md:rounded-xl shadow-lg">
