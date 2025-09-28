@@ -76,7 +76,10 @@ const OperationsDropdown = ({ onExport, onTemplate, onImport }) => {
  type="file"
  accept=".xlsx,.xls"
  onChange={(e) => {
- onImport(e);
+ const file = e.target.files[0];
+ if (file) {
+   onImport(file);
+ }
  setIsOpen(false);
  }}
  className="hidden"
