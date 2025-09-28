@@ -199,9 +199,11 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), async (req, res)
 
         // Verifica se elemento esiste già
         const existing = await query('SELECT id FROM inventario WHERE nome = $1', [itemData.nome]);
+        let inventarioId;
         
         if (existing.length > 0) {
           // Aggiorna elemento esistente
+          inventarioId = existing[0].id;
           await query(`
             UPDATE inventario 
             SET quantita_totale = $2, categoria_madre = $3, categoria_id = $4, 
@@ -209,7 +211,7 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), async (req, res)
                 in_manutenzione = $8, soglia_minima = $9, fornitore = $10, tipo_prestito = $11, updated_at = CURRENT_TIMESTAMP
             WHERE id = $1
           `, [
-            existing[0].id, itemData.quantita_totale, itemData.categoria_madre, categoria_id,
+            inventarioId, itemData.quantita_totale, itemData.categoria_madre, categoria_id,
             itemData.posizione, itemData.note, itemData.immagine_url,
             itemData.in_manutenzione, itemData.soglia_minima, itemData.fornitore, itemData.tipo_prestito
           ]);
@@ -225,17 +227,45 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), async (req, res)
             itemData.posizione, itemData.note, itemData.immagine_url,
             itemData.in_manutenzione, itemData.soglia_minima, itemData.fornitore, itemData.tipo_prestito
           ]);
+          inventarioId = newItem[0].id;
+        }
 
-          // Gestisci corsi assegnati
-          if (row['Corsi Assegnati']) {
-            const corsi = row['Corsi Assegnati'].toString().split(',').map(c => c.trim()).filter(c => c);
-            for (const corso of corsi) {
-              // Inserisci corso se non esiste
-              await query('INSERT INTO corsi (corso) VALUES ($1) ON CONFLICT (corso) DO NOTHING', [corso]);
-              // Assegna corso all'inventario
-              await query('INSERT INTO inventario_corsi (inventario_id, corso) VALUES ($1, $2) ON CONFLICT DO NOTHING', 
-                         [newItem[0].id, corso]);
-            }
+        // Gestisci unità individuali
+        const unitaIds = [];
+        for (let j = 1; j <= 5; j++) {
+          const unitId = row[`ID Unità ${j}`];
+          if (unitId && unitId.toString().trim()) {
+            unitaIds.push(unitId.toString().trim());
+          }
+        }
+
+        // Se non ci sono ID specifici, genera ID automatici
+        if (unitaIds.length === 0) {
+          for (let j = 1; j <= itemData.quantita_totale; j++) {
+            unitaIds.push(`${itemData.nome.toUpperCase().replace(/\s+/g, '-')}-${j.toString().padStart(3, '0')}`);
+          }
+        }
+
+        // Elimina unità esistenti per questo inventario
+        await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [inventarioId]);
+
+        // Inserisci nuove unità
+        for (const unitId of unitaIds) {
+          await query(`
+            INSERT INTO inventario_unita (inventario_id, codice_unita, stato)
+            VALUES ($1, $2, 'disponibile')
+          `, [inventarioId, unitId]);
+        }
+
+        // Gestisci corsi assegnati
+        if (row['Corsi Assegnati']) {
+          const corsi = row['Corsi Assegnati'].toString().split(',').map(c => c.trim()).filter(c => c);
+          for (const corso of corsi) {
+            // Inserisci corso se non esiste
+            await query('INSERT INTO corsi (corso) VALUES ($1) ON CONFLICT (corso) DO NOTHING', [corso]);
+            // Assegna corso all'inventario
+            await query('INSERT INTO inventario_corsi (inventario_id, corso) VALUES ($1, $2) ON CONFLICT DO NOTHING', 
+                       [inventarioId, corso]);
           }
         }
 
@@ -276,7 +306,12 @@ r.get('/inventario/template', requireAuth, requireRole('admin'), async (req, res
         'Soglia Minima': '2',
         'Corsi Assegnati': 'Fotografia, Video',
         'Fornitore': 'Esempio: Canon Italia',
-        'Tipo Prestito': 'solo_esterno (solo_esterno/solo_interno/entrambi)'
+        'Tipo Prestito': 'solo_esterno (solo_esterno/solo_interno/entrambi)',
+        'ID Unità 1': 'CANON-001',
+        'ID Unità 2': 'CANON-002',
+        'ID Unità 3': 'CANON-003',
+        'ID Unità 4': 'CANON-004',
+        'ID Unità 5': 'CANON-005'
       }
     ];
 
@@ -295,7 +330,12 @@ r.get('/inventario/template', requireAuth, requireRole('admin'), async (req, res
       { wch: 12 },  // Soglia Minima
       { wch: 30 },  // Corsi Assegnati
       { wch: 20 },  // Fornitore
-      { wch: 25 }   // Tipo Prestito
+      { wch: 25 },  // Tipo Prestito
+      { wch: 12 },  // ID Unità 1
+      { wch: 12 },  // ID Unità 2
+      { wch: 12 },  // ID Unità 3
+      { wch: 12 },  // ID Unità 4
+      { wch: 12 }   // ID Unità 5
     ];
     ws['!cols'] = colWidths;
 
