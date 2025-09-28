@@ -272,7 +272,7 @@ setRecentReports(reportsData.slice(0, 5));
  }
 
 return (
-<div className="space-y-6">
+<div className="min-h-screen bg-gray-50 space-y-6">
   {/* Header */}
   <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-xl p-8 mb-8 text-white">
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
