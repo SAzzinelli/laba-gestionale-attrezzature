@@ -339,6 +339,35 @@ const getStatusBadge = (status) => {
  </div>
  </div>
 
+    {/* Pending Requests Alert */}
+    {requests.filter(r => r.stato === 'in_attesa').length > 0 && (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-yellow-800">
+              {requests.filter(r => r.stato === 'in_attesa').length} {requests.filter(r => r.stato === 'in_attesa').length === 1 ? 'richiesta in attesa' : 'richieste in attesa'} di approvazione
+            </h3>
+            <p className="text-sm text-yellow-700 mt-1">
+              Ci sono prestiti che necessitano della tua attenzione per essere approvati o rifiutati.
+            </p>
+          </div>
+          <div className="ml-auto">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-md text-sm font-medium hover:bg-yellow-200 transition-colors"
+            >
+              Visualizza
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
     {/* Tabs for Requests/Loans */}
     <div className="border-b border-gray-200">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
