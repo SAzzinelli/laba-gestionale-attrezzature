@@ -249,13 +249,13 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), async (req, res)
         // Elimina unità esistenti per questo inventario
         await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [inventarioId]);
 
-        // Inserisci nuove unità
-        for (const unitId of unitaIds) {
-          await query(`
-            INSERT INTO inventario_unita (inventario_id, codice_unita, stato)
-            VALUES ($1, $2, 'disponibile')
-          `, [inventarioId, unitId]);
-        }
+                // Inserisci nuove unità
+                for (const unitId of unitaIds) {
+                  await query(`
+                    INSERT INTO inventario_unita (inventario_id, codice_univoco, stato)
+                    VALUES ($1, $2, 'disponibile')
+                  `, [inventarioId, unitId]);
+                }
 
         // Gestisci corsi assegnati
         if (row['Corsi Assegnati']) {
