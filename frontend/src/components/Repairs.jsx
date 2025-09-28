@@ -305,18 +305,18 @@ const handleCancelRepair = async (repairId) => {
  <p className="text-secondary mt-1">Gestisci le riparazioni delle attrezzature</p>
  </div>
  <div className="flex items-center">
- <button
- onClick={() => {
-   setShowAddModal(true);
-   resetModal();
- }}
- className="btn-primary"
- >
- <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
- </svg>
- Nuova Riparazione
- </button>
+        <button
+          onClick={() => {
+            setShowAddModal(true);
+            resetModal();
+          }}
+          className="group bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center"
+        >
+          <svg className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Nuova Riparazione</span>
+        </button>
  </div>
  </div>
  </div>

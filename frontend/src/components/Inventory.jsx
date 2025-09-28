@@ -32,7 +32,8 @@ const Inventory = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('');
- const [selectedCourse, setSelectedCourse] = useState('');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState('');
  const [viewMode, setViewMode] = useState('list'); // only list view
  const [showUnitDetailModal, setShowUnitDetailModal] = useState(false);
  const [selectedUnit, setSelectedUnit] = useState(null);
@@ -664,18 +665,61 @@ const Inventory = () => {
             {isAdmin && (
               <div className="w-full lg:w-64">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Filtra per Categoria</label>
-                <select
-                  value={selectedCategoryFilter}
-                  onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                >
-                  <option value="">Tutte le categorie</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.nome}>
-                      {cat.nome}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-left flex items-center justify-between hover:bg-gray-50"
+                  >
+                    <span className={selectedCategoryFilter ? 'text-gray-900' : 'text-gray-500'}>
+                      {selectedCategoryFilter || 'Tutte le categorie'}
+                    </span>
+                    <svg className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${showCategoryDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {showCategoryDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg max-h-60 overflow-auto">
+                      <div className="py-1">
+                        <button
+                          onClick={() => {
+                            setSelectedCategoryFilter('');
+                            setShowCategoryDropdown(false);
+                          }}
+                          className={`w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors duration-200 flex items-center justify-between ${
+                            !selectedCategoryFilter ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                          }`}
+                        >
+                          <span>Tutte le categorie</span>
+                          {!selectedCategoryFilter && (
+                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                        {categories.map(cat => (
+                          <button
+                            key={cat.id}
+                            onClick={() => {
+                              setSelectedCategoryFilter(cat.nome);
+                              setShowCategoryDropdown(false);
+                            }}
+                            className={`w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors duration-200 flex items-center justify-between ${
+                              selectedCategoryFilter === cat.nome ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                            }`}
+                          >
+                            <span>{cat.nome}</span>
+                            {selectedCategoryFilter === cat.nome && (
+                              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
