@@ -339,28 +339,10 @@ const getStatusBadge = (status) => {
  </div>
  </div>
 
- {/* Search */}
- <div className="card">
- <div className="form-group">
- <label className="form-label">Cerca prestiti</label>
- <div className="relative">
- <input
- type="text"
- value={searchTerm}
- onChange={(e) => setSearchTerm(e.target.value)}
- placeholder="Cerca per oggetto, utente o email..."
- className="input-field pl-10"
- />
- <svg className="search-icon icon-sm text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
- </svg>
- </div>
- </div>
- </div>
-
     {/* Tabs for Requests/Loans */}
     <div className="border-b border-gray-200">
-      <nav className="flex space-x-8">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <nav className="flex space-x-8">
         <button
           onClick={() => setActiveTab('active')}
           className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
@@ -411,7 +393,45 @@ const getStatusBadge = (status) => {
             {loans.filter(l => l.stato === 'restituito').length}
           </span>
         </button>
-      </nav>
+        </nav>
+        
+        {/* Search - Desktop only */}
+        <div className="hidden lg:block mt-4 lg:mt-0">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Cerca prestiti..."
+              className="w-64 px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <svg className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Search - Mobile only */}
+    <div className="lg:hidden">
+      <div className="card">
+        <div className="form-group">
+          <label className="form-label">Cerca prestiti</label>
+          <div className="relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Cerca per oggetto, utente o email..."
+              className="input-field pl-10"
+            />
+            <svg className="search-icon icon-sm text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
 
     {/* Desktop Grid View */}
