@@ -520,8 +520,8 @@ const Inventory = () => {
  return (
  <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-4 sm:px-6 lg:px-8 py-6">
+      <div className="bg-white shadow-sm border-b border-gray-200 overflow-visible">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 overflow-visible">
  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
  <div className="flex-1">
                 <h1 className="text-2xl font-semibold text-gray-900">Gestione Inventario</h1>
