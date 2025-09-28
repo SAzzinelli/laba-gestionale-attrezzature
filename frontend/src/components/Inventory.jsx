@@ -520,16 +520,11 @@ const Inventory = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-xl p-8 mb-8 text-white mx-4 sm:mx-6 lg:mx-8">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8 mx-4 sm:mx-6 lg:mx-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2">Gestione Inventario</h1>
-            <p className="text-blue-100 text-lg">Gestisci e monitora tutti gli articoli del laboratorio</p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
-              <span className="text-sm font-medium">Sistema Online</span>
-            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestione Inventario</h1>
+            <p className="text-gray-600 text-lg">Gestisci e monitora tutti gli articoli del laboratorio</p>
           </div>
         </div>
       </div>
