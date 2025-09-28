@@ -273,38 +273,83 @@ setRecentReports(reportsData.slice(0, 5));
 
 return (
 <div className="space-y-6">
- {/* Header */}
- <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
- <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
- <div>
- <h1 className="text-2xl font-bold text-gray-900">Dashboard {isAdmin ? 'Amministratore' : 'Utente'}</h1>
- <p className="text-gray-600 mt-1">Panoramica del sistema di gestione attrezzature</p>
- </div>
- </div>
+  {/* Header */}
+  <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-xl p-8 mb-8 text-white">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 className="text-3xl font-bold mb-2">Dashboard {isAdmin ? 'Amministratore' : 'Utente'}</h1>
+        <p className="text-blue-100 text-lg">Panoramica del sistema di gestione attrezzature</p>
+      </div>
+      <div className="flex items-center space-x-4">
+        <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
+          <span className="text-sm font-medium">Sistema Online</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   {/* Statistics Cards */}
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-    <StatCard 
-      title="Inventario" 
-      value={stats.inventory} 
-      description="Elementi totali"
-    />
-    <StatCard 
-      title="Richieste" 
-      value={stats.requests} 
-      description="Richieste di prestito"
-    />
-    <StatCard 
-      title="Riparazioni" 
-      value={stats.repairs} 
-      description="In riparazione"
-    />
-    <StatCard 
-      title="Segnalazioni" 
-      value={stats.reports} 
-      description="Segnalazioni attive"
-    />
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600 mb-1">Inventario</p>
+          <p className="text-3xl font-bold text-gray-900">{stats.inventory}</p>
+          <p className="text-sm text-gray-500">Elementi totali</p>
+        </div>
+        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        </div>
+      </div>
+    </div>
+    
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600 mb-1">Richieste</p>
+          <p className="text-3xl font-bold text-gray-900">{stats.requests}</p>
+          <p className="text-sm text-gray-500">Richieste di prestito</p>
+        </div>
+        <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+          <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+      </div>
+    </div>
+    
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600 mb-1">Riparazioni</p>
+          <p className="text-3xl font-bold text-gray-900">{stats.repairs}</p>
+          <p className="text-sm text-gray-500">In riparazione</p>
+        </div>
+        <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+          <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+    
+    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600 mb-1">Segnalazioni</p>
+          <p className="text-3xl font-bold text-gray-900">{stats.reports}</p>
+          <p className="text-sm text-gray-500">Segnalazioni attive</p>
+        </div>
+        <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+          <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+      </div>
+    </div>
   </div>
 
   {/* Alerts Section - Redesigned */}
@@ -499,48 +544,59 @@ return (
  </div>
  )}
 
- {/* Quick Actions */}
- {isAdmin && (
- <div className="card">
- <h2 className="text-lg font-semibold text-primary mb-4">Azioni Rapide</h2>
- <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
- <QuickActionButton
- title="Aggiungi Elemento"
- description="Aggiungi un nuovo elemento all'inventario"
- color="blue"
- icon={
- <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
- </svg>
- }
- onClick={() => setShowAddModal(true)}
- />
- <QuickActionButton
- title="Gestisci Richieste"
- description="Visualizza e gestisci le richieste di prestito"
- color="purple"
- icon={
- <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
- </svg>
- }
- onClick={() => onNavigate('prestiti')}
- />
- <QuickActionButton
- title="Gestisci Riparazioni"
- description="Visualizza e gestisci le riparazioni"
- color="orange"
- icon={
- <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
- </svg>
- }
- onClick={() => onNavigate('riparazioni')}
- />
- </div>
- </div>
- )}
+  {/* Quick Actions */}
+  {isAdmin && (
+    <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Azioni Rapide</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div 
+          onClick={() => setShowAddModal(true)}
+          className="group bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+        >
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Aggiungi Elemento</h3>
+          </div>
+          <p className="text-gray-600">Aggiungi un nuovo elemento all'inventario</p>
+        </div>
+        
+        <div 
+          onClick={() => onNavigate('prestiti')}
+          className="group bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+        >
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Gestisci Richieste</h3>
+          </div>
+          <p className="text-gray-600">Visualizza e gestisci le richieste di prestito</p>
+        </div>
+        
+        <div 
+          onClick={() => onNavigate('riparazioni')}
+          className="group bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer"
+        >
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Gestisci Riparazioni</h3>
+          </div>
+          <p className="text-gray-600">Visualizza e gestisci le riparazioni</p>
+        </div>
+      </div>
+    </div>
+  )}
 
     {/* Password Reset Requests Section - Moved to bottom */}
     {isAdmin && passwordResetRequests.length > 0 && (
@@ -597,48 +653,50 @@ return (
 
 
     {/* Recent Activity */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
     {/* Recent Requests */}
-    <div className="card">
-    <div className="flex items-center justify-between mb-4">
-    <h2 className="text-lg font-semibold text-primary">Richieste Recenti</h2>
-    <span className="text-sm text-muted">{recentRequests.length} richieste</span>
+    <div className="bg-white rounded-2xl shadow-lg p-6">
+    <div className="flex items-center justify-between mb-6">
+    <h2 className="text-xl font-bold text-gray-900">Richieste Recenti</h2>
+    <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">{recentRequests.length} richieste</span>
     </div>
- <div className="space-y-1">
+ <div className="space-y-3">
  {recentRequests.length === 0 ? (
- <div className="text-center py-8">
- <svg className="icon-lg mx-auto mb-2 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <div className="text-center py-12">
+ <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+ <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
  </svg>
- <p className="text-secondary">Nessuna richiesta recente</p>
+ </div>
+ <p className="text-gray-500 font-medium">Nessuna richiesta recente</p>
  </div>
  ) : (
  recentRequests.map((request, index) => (
  <div 
  key={index} 
- className={`flex items-center py-3 px-3 rounded-lg transition-all duration-200 ${
+ className={`flex items-center py-4 px-4 rounded-xl transition-all duration-200 ${
  request.stato === 'in_attesa' 
- ? 'hover:bg-brand-secondary hover:bg-opacity-10 hover:shadow-lg cursor-pointer border border-transparent hover:border-brand-primary hover:scale-[1.02]' 
- : 'opacity-60 hover:opacity-80 hover:bg-tertiary'
+ ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:shadow-md cursor-pointer' 
+ : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
  }`}
  onClick={() => request.stato === 'in_attesa' && setSelectedRequest(request)}
  >
- <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
+ <div className={`w-3 h-3 rounded-full mr-4 ${
+ request.stato === 'in_attesa' ? 'bg-blue-500' : 
+ request.stato === 'approvata' ? 'bg-green-500' : 'bg-red-500'
+ }`}></div>
  <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-primary truncate">
+                <p className="text-sm font-semibold text-gray-900 truncate">
                   {request.articolo_nome || request.oggetto_nome || 'Oggetto sconosciuto'}
                 </p>
-                <p className="text-sm text-secondary">
+                <p className="text-sm text-gray-600">
                   {request.name || request.utente_nome || ''} {request.surname || request.utente_cognome || ''}
                 </p>
  </div>
  <div className="flex-shrink-0">
- <span className={`status-badge ${
- request.stato === 'in_attesa' 
- ? 'alert-warning'
- : request.stato === 'approvata'
- ? 'status-available'
- : 'status-unavailable'
+ <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+ request.stato === 'in_attesa' ? 'bg-yellow-100 text-yellow-800' :
+ request.stato === 'approvata' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
  }`}>
  {request.stato === 'in_attesa' ? 'In Attesa' : 
  request.stato === 'approvata' ? 'Approvata' : 'Rifiutata'}
@@ -651,34 +709,36 @@ return (
  </div>
 
  {/* Recent Reports */}
- <div className="card">
- <div className="flex items-center justify-between mb-4">
- <h2 className="text-lg font-semibold text-primary">Segnalazioni Recenti</h2>
- <span className="text-sm text-muted">{recentReports.length} segnalazioni</span>
+ <div className="bg-white rounded-2xl shadow-lg p-6">
+ <div className="flex items-center justify-between mb-6">
+ <h2 className="text-xl font-bold text-gray-900">Segnalazioni Recenti</h2>
+ <span className="bg-red-100 text-red-800 text-sm font-medium px-3 py-1 rounded-full">{recentReports.length} segnalazioni</span>
  </div>
- <div className="space-y-1">
+ <div className="space-y-3">
  {recentReports.length === 0 ? (
- <div className="text-center py-8">
- <svg className="icon-lg mx-auto mb-2 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <div className="text-center py-12">
+ <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+ <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
  </svg>
- <p className="text-secondary">Nessuna segnalazione recente</p>
+ </div>
+ <p className="text-gray-500 font-medium">Nessuna segnalazione recente</p>
  </div>
  ) : (
  recentReports.map((report, index) => (
- <div key={index} className="flex items-center py-3 px-3 rounded-lg hover:bg-brand-accent hover:bg-opacity-10 hover:shadow-lg cursor-pointer transition-all duration-200 border border-transparent hover:border-brand-accent hover:scale-[1.02]">
- <div className="w-2 h-2 bg-red-400 rounded-full mr-3"></div>
+ <div key={index} className="flex items-center py-4 px-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 hover:shadow-md cursor-pointer transition-all duration-200">
+ <div className="w-3 h-3 bg-red-500 rounded-full mr-4"></div>
  <div className="flex-1 min-w-0">
- <p className="text-sm font-medium text-primary truncate">
+ <p className="text-sm font-semibold text-gray-900 truncate">
  {report.tipo}: {report.messaggio}
  </p>
-                <p className="text-sm text-secondary">
+                <p className="text-sm text-gray-600">
                   {formatDate(report.created_at)}
                 </p>
  </div>
  <div className="flex-shrink-0">
- <span className={`status-badge ${
- report.stato === 'aperta' ? 'alert-warning' : 'status-available'
+ <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+ report.stato === 'aperta' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
  }`}>
  {report.stato === 'aperta' ? 'Aperta' : 'Chiusa'}
  </span>
