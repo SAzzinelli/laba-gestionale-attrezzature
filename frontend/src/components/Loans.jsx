@@ -358,49 +358,61 @@ const getStatusBadge = (status) => {
  </div>
  </div>
 
- {/* Tabs for Requests/Loans */}
- <div className="card p-0 overflow-hidden">
- <nav className="flex">
- <button
- onClick={() => setActiveTab('active')}
- className={`tab-button ${activeTab === 'active' ? 'active' : ''}`}
- >
- <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
- </svg>
- <span>Prestiti Attivi</span>
- <span className="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs px-3 py-1 rounded-full ml-2 font-semibold shadow-sm">
- {loans.filter(l => l.stato === 'attivo').length}
- </span>
- </button>
- 
- <button
- onClick={() => setActiveTab('pending')}
- className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
- >
- <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
- </svg>
- <span>In Attesa</span>
- <span className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs px-3 py-1 rounded-full ml-2 font-semibold shadow-sm">
- {requests.filter(r => r.stato === 'in_attesa').length}
- </span>
- </button>
- 
- <button
- onClick={() => setActiveTab('processed')}
- className={`tab-button ${activeTab === 'processed' ? 'active' : ''}`}
- >
- <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
- </svg>
-                    <span>Completati</span>
-                <span className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs px-3 py-1 rounded-full ml-2 font-semibold shadow-sm">
-                {loans.filter(l => l.stato === 'restituito').length}
-                </span>
- </button>
- </nav>
- </div>
+    {/* Tabs for Requests/Loans */}
+    <div className="border-b border-gray-200">
+      <nav className="flex space-x-8">
+        <button
+          onClick={() => setActiveTab('active')}
+          className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            activeTab === 'active'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+          </svg>
+          Prestiti Attivi
+          <span className="ml-2 bg-green-100 text-green-900 text-xs px-2 py-1 rounded-full">
+            {loans.filter(l => l.stato === 'attivo').length}
+          </span>
+        </button>
+        
+        <button
+          onClick={() => setActiveTab('pending')}
+          className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            activeTab === 'pending'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          In Attesa
+          <span className="ml-2 bg-orange-100 text-orange-900 text-xs px-2 py-1 rounded-full">
+            {requests.filter(r => r.stato === 'in_attesa').length}
+          </span>
+        </button>
+        
+        <button
+          onClick={() => setActiveTab('processed')}
+          className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            activeTab === 'processed'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Completati
+          <span className="ml-2 bg-blue-100 text-blue-900 text-xs px-2 py-1 rounded-full">
+            {loans.filter(l => l.stato === 'restituito').length}
+          </span>
+        </button>
+      </nav>
+    </div>
 
     {/* Desktop Grid View */}
     <div className="hidden lg:block space-y-4">
