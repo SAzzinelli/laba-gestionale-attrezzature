@@ -20,10 +20,37 @@ const { token, user: currentUser } = useAuth();
 
 const normalizeRole = (value) => (value || '').toString().trim().toLowerCase();
 
+const mapFetchedUser = (user) => {
+  if (!user) return user;
+  const normalizedRole = normalizeRole(user.ruolo);
+
+  if (user.id === -1) {
+    return { ...user, ruolo: 'admin' };
+  }
+
+  if (normalizedRole === 'supervisor') {
+    return { ...user, ruolo: 'supervisor' };
+  }
+
+  if (normalizedRole === 'admin' || normalizedRole === 'amministratore') {
+    return { ...user, ruolo: 'supervisor' };
+  }
+
+  if (normalizedRole === 'utente') {
+    return { ...user, ruolo: 'user' };
+  }
+
+  if (!normalizedRole) {
+    return { ...user, ruolo: 'user' };
+  }
+
+  return { ...user, ruolo: normalizedRole };
+};
+
 const getRoleBadge = (role) => {
   const normalized = normalizeRole(role);
   if (normalized === 'admin') {
-    return { text: 'Admin', className: 'bg-red-100 text-red-800' };
+    return { text: 'Amministratore', className: 'bg-red-100 text-red-800' };
   }
   if (normalized === 'supervisor') {
     return { text: 'Supervisore', className: 'bg-purple-100 text-purple-800' };
@@ -37,6 +64,7 @@ const isCurrentSupervisor = currentRole === 'supervisor';
 
 const canDeleteUser = useMemo(() => {
   return (targetUser) => {
+    if (!targetUser || targetUser.id === -1) return false;
     const targetRole = normalizeRole(targetUser?.ruolo);
     if (!currentUser) return false;
     if (isSystemAdmin) {
@@ -51,6 +79,7 @@ const canDeleteUser = useMemo(() => {
 
 const canManagePenalties = useMemo(() => {
   return (targetUser) => {
+    if (!targetUser || targetUser.id === -1) return false;
     const targetRole = normalizeRole(targetUser?.ruolo);
     return targetRole === 'user';
   };
@@ -100,8 +129,9 @@ const canManagePenalties = useMemo(() => {
        throw new Error('Errore nel caricamento utenti');
      }
      
-     const data = await response.json();
-     setUsers(data);
+    const data = await response.json();
+    const sanitized = (data || []).map(mapFetchedUser);
+    setUsers(sanitized);
    } catch (err) {
      setError(err.message);
    } finally {
@@ -112,10 +142,9 @@ const canManagePenalties = useMemo(() => {
 // Filter users based on active tab
 const getFilteredUsers = () => {
   if (activeTab === 'supervisors') {
-    return users.filter(user => {
-      const role = normalizeRole(user.ruolo);
-      return role === 'supervisor' || role === 'admin';
-    });
+    return users.filter(user => normalizeRole(user.ruolo) === 'supervisor');
+  } else if (activeTab === 'admins') {
+    return users.filter(user => normalizeRole(user.ruolo) === 'admin');
   } else {
     return users.filter(user => {
       const role = normalizeRole(user.ruolo);
@@ -125,14 +154,9 @@ const getFilteredUsers = () => {
 };
 
 const filteredUsers = getFilteredUsers();
-const regularUsers = users.filter(user => {
-  const role = normalizeRole(user.ruolo);
-  return role !== 'supervisor' && role !== 'admin';
-});
-const supervisorUsers = users.filter(user => {
-  const role = normalizeRole(user.ruolo);
-  return role === 'supervisor' || role === 'admin';
-});
+const regularUsers = users.filter(user => normalizeRole(user.ruolo) === 'user');
+const supervisorUsers = users.filter(user => normalizeRole(user.ruolo) === 'supervisor');
+const adminUsers = users.filter(user => normalizeRole(user.ruolo) === 'admin');
 
  const handleInputChange = (e) => {
  const { name, value } = e.target;
@@ -422,6 +446,25 @@ return (
             </span>
           </div>
         </button>
+
+        <button
+          onClick={() => setActiveTab('admins')}
+          className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            activeTab === 'admins'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <div className="flex items-center space-x-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a4 4 0 004 4h10a4 4 0 004-4V7M16 3v4M8 3v4m-5 4h18" />
+            </svg>
+            <span>Amministratori</span>
+            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
+              {adminUsers.length}
+            </span>
+          </div>
+        </button>
       </nav>
     </div>
 
@@ -457,12 +500,14 @@ return (
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     <h3 className="text-lg font-medium text-gray-900 mb-1">
-                      Nessun {activeTab === 'supervisors' ? 'supervisore' : 'utente'} trovato
+                      Nessun {activeTab === 'supervisors' ? 'supervisore' : activeTab === 'admins' ? 'amministratore' : 'utente'} trovato
                     </h3>
                     <p className="text-gray-500">
                       {activeTab === 'supervisors' 
                         ? 'Non ci sono supervisori nel sistema.' 
-                        : 'Non ci sono utenti registrati.'
+                        : activeTab === 'admins'
+                          ? 'Non ci sono amministratori nel sistema.'
+                          : 'Non ci sono utenti registrati.'
                       }
                     </p>
                   </div>
@@ -561,12 +606,14 @@ return (
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           <h3 className="text-lg font-medium text-gray-900 mb-1">
-            Nessun {activeTab === 'supervisors' ? 'supervisore' : 'utente'} trovato
+            Nessun {activeTab === 'supervisors' ? 'supervisore' : activeTab === 'admins' ? 'amministratore' : 'utente'} trovato
           </h3>
           <p className="text-gray-500">
             {activeTab === 'supervisors' 
               ? 'Non ci sono supervisori nel sistema.' 
-              : 'Non ci sono utenti registrati.'
+              : activeTab === 'admins'
+                ? 'Non ci sono amministratori nel sistema.'
+                : 'Non ci sono utenti registrati.'
             }
           </p>
         </div>
