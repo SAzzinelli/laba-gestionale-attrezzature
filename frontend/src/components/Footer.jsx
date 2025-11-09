@@ -9,7 +9,7 @@ const Footer = ({ onSystemClick }) => {
           <div className="flex items-center space-x-2">
             <img src="/logoSito.svg" alt="LABA Logo" className="h-8 w-auto" />
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">Gestione Attrezzature</h3>
+              <h3 className="text-sm font-semibold text-gray-900">Service Attrezzatura</h3>
               <p className="text-xs text-gray-600">Sistema di gestione inventario e prestiti</p>
             </div>
           </div>
