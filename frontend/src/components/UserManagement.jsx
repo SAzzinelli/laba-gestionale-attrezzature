@@ -23,12 +23,14 @@ const normalizeRole = (value) => (value || '').toString().trim().toLowerCase();
 const mapFetchedUser = (user) => {
   if (!user) return user;
   const normalizedRole = normalizeRole(user.ruolo);
+  const email = (user.email || '').toLowerCase();
+  const isSystemAdmin = user.id === -1 || email === 'admin';
 
-  if (user.id === -1 || normalizedRole === 'admin' || normalizedRole === 'amministratore') {
+  if (isSystemAdmin) {
     return { ...user, ruolo: 'admin' };
   }
 
-  if (normalizedRole === 'supervisor') {
+  if (normalizedRole === 'admin' || normalizedRole === 'amministratore' || normalizedRole === 'supervisor') {
     return { ...user, ruolo: 'supervisor' };
   }
 
@@ -126,8 +128,7 @@ const canManagePenalties = useMemo(() => {
      }
      
     const data = await response.json();
-    const sanitized = (data || []).map(mapFetchedUser);
-    setUsers(sanitized);
+    setUsers(data || []);
    } catch (err) {
      setError(err.message);
    } finally {
@@ -135,21 +136,21 @@ const canManagePenalties = useMemo(() => {
    }
  };
 
+const normalizedUsers = useMemo(() => (users || []).map(mapFetchedUser), [users]);
+
 // Filter users based on active tab
 const getFilteredUsers = () => {
   if (activeTab === 'supervisors') {
-    return users.filter(user => normalizeRole(user.ruolo) === 'supervisor');
+    return normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'supervisor');
   } else if (activeTab === 'admins') {
-    return users.filter(user => normalizeRole(user.ruolo) === 'admin');
+    return normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'admin');
   } else {
-    return users.filter(user => {
+    return normalizedUsers.filter(user => {
       const role = normalizeRole(user.ruolo);
       return role !== 'supervisor' && role !== 'admin';
     });
   }
 };
-
-const normalizedUsers = users.map(mapFetchedUser);
 const filteredUsers = getFilteredUsers();
 const regularUsers = normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'user');
 const supervisorUsers = normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'supervisor');

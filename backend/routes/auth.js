@@ -101,10 +101,12 @@ r.post('/register', async (req, res) => {
 
     const hashedPassword = bcrypt.hashSync(password, 10);
     
-    // Valida il ruolo (solo admin principale resta 'admin')
     const normalizedRole = (ruolo || 'user').toString().trim().toLowerCase();
-    const userRole = normalizedRole === 'supervisor' ? 'supervisor' : 'user';
-    
+    let userRole = 'user';
+    if (['supervisor', 'amministratore', 'admin'].includes(normalizedRole)) {
+      userRole = 'supervisor';
+    }
+
     const result = await query(`
       INSERT INTO users (email, password_hash, name, surname, phone, matricola, corso_accademico, ruolo)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
