@@ -143,7 +143,39 @@ const activeLoans = prestitiData.filter(p => p.stato === 'attivo').length;
 const availableItems = inventoryData.reduce((total, item) => {
   return total + (item.unita_disponibili || 0);
 }, 0);
-const inRepairItems = inventoryData.filter(i => i.stato_effettivo === 'in_riparazione').length;
+const activeRepairs = repairsData.filter(repair => {
+  const status = (repair.stato || '').toString().toLowerCase().replace(/\s+/g, '_');
+  return status === 'in_corso';
+});
+
+const activeRepairCount = activeRepairs.length;
+
+const inRepairItems = activeRepairs.reduce((total, repair) => {
+  const raw = repair.unit_ids_json;
+  if (Array.isArray(raw)) {
+    return total + raw.length;
+  }
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return total + parsed.length;
+      }
+      if (parsed && typeof parsed === 'object') {
+        return total + Object.keys(parsed).length;
+      }
+    } catch (err) {
+      console.warn('Impossibile analizzare unit_ids_json', err);
+    }
+  }
+  if (raw && typeof raw === 'object') {
+    return total + Object.keys(raw).length;
+  }
+  if (Number.isFinite(repair.quantita)) {
+    return total + Number(repair.quantita);
+  }
+  return total;
+}, 0);
  
  // Calcola scorte basse basate sui PRESTITI ATTIVI e sulla SCARSITÀ
  const calculateLowStockItems = () => {
@@ -232,7 +264,7 @@ const inRepairItems = inventoryData.filter(i => i.stato_effettivo === 'in_ripara
  setStats({
  inventory: inventoryData.length,
  requests: requestsData.length,
- repairs: repairsData.length,
+  repairs: activeRepairCount,
  reports: reportsData.length,
  activeLoans: activeLoans,
  availableItems: availableItems,
