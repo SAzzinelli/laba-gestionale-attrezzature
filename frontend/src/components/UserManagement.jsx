@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
@@ -16,7 +16,45 @@ const [activeTab, setActiveTab] = useState('users');
 const [showPenaltyModal, setShowPenaltyModal] = useState(false);
 const [selectedUserForPenalty, setSelectedUserForPenalty] = useState(null);
 const [userPenalties, setUserPenalties] = useState([]);
-const { token } = useAuth();
+const { token, user: currentUser } = useAuth();
+
+const normalizeRole = (value) => (value || '').toString().trim().toLowerCase();
+
+const getRoleBadge = (role) => {
+  const normalized = normalizeRole(role);
+  if (normalized === 'admin') {
+    return { text: 'Admin', className: 'bg-red-100 text-red-800' };
+  }
+  if (normalized === 'supervisor') {
+    return { text: 'Supervisore', className: 'bg-purple-100 text-purple-800' };
+  }
+  return { text: 'Utente', className: 'bg-green-100 text-green-800' };
+};
+
+const currentRole = normalizeRole(currentUser?.ruolo);
+const isSystemAdmin = currentUser?.id === -1 || currentRole === 'admin';
+const isCurrentSupervisor = currentRole === 'supervisor';
+
+const canDeleteUser = useMemo(() => {
+  return (targetUser) => {
+    const targetRole = normalizeRole(targetUser?.ruolo);
+    if (!currentUser) return false;
+    if (isSystemAdmin) {
+      return true;
+    }
+    if (isCurrentSupervisor) {
+      return targetRole !== 'admin';
+    }
+    return false;
+  };
+}, [currentUser, isSystemAdmin, isCurrentSupervisor]);
+
+const canManagePenalties = useMemo(() => {
+  return (targetUser) => {
+    const targetRole = normalizeRole(targetUser?.ruolo);
+    return targetRole === 'user';
+  };
+}, []);
 
  const [formData, setFormData] = useState({
  name: '',
@@ -71,18 +109,30 @@ const { token } = useAuth();
    }
  };
 
- // Filter users based on active tab
- const getFilteredUsers = () => {
-   if (activeTab === 'admins') {
-     return users.filter(user => user.ruolo === 'admin');
-   } else {
-     return users.filter(user => user.ruolo !== 'admin');
-   }
- };
+// Filter users based on active tab
+const getFilteredUsers = () => {
+  if (activeTab === 'supervisors') {
+    return users.filter(user => {
+      const role = normalizeRole(user.ruolo);
+      return role === 'supervisor' || role === 'admin';
+    });
+  } else {
+    return users.filter(user => {
+      const role = normalizeRole(user.ruolo);
+      return role !== 'supervisor' && role !== 'admin';
+    });
+  }
+};
 
- const filteredUsers = getFilteredUsers();
- const regularUsers = users.filter(user => user.ruolo !== 'admin');
- const adminUsers = users.filter(user => user.ruolo === 'admin');
+const filteredUsers = getFilteredUsers();
+const regularUsers = users.filter(user => {
+  const role = normalizeRole(user.ruolo);
+  return role !== 'supervisor' && role !== 'admin';
+});
+const supervisorUsers = users.filter(user => {
+  const role = normalizeRole(user.ruolo);
+  return role === 'supervisor' || role === 'admin';
+});
 
  const handleInputChange = (e) => {
  const { name, value } = e.target;
@@ -355,9 +405,9 @@ return (
         </button>
         
         <button
-          onClick={() => setActiveTab('admins')}
+          onClick={() => setActiveTab('supervisors')}
           className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-            activeTab === 'admins'
+            activeTab === 'supervisors'
               ? 'border-blue-500 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
           }`}
@@ -366,9 +416,9 @@ return (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <span>Amministratori</span>
+            <span>Supervisori</span>
             <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
-              {adminUsers.length}
+              {supervisorUsers.length}
             </span>
           </div>
         </button>
@@ -407,11 +457,11 @@ return (
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     <h3 className="text-lg font-medium text-gray-900 mb-1">
-                      Nessun {activeTab === 'admins' ? 'amministratore' : 'utente'} trovato
+                      Nessun {activeTab === 'supervisors' ? 'supervisore' : 'utente'} trovato
                     </h3>
                     <p className="text-gray-500">
-                      {activeTab === 'admins' 
-                        ? 'Non ci sono amministratori nel sistema.' 
+                      {activeTab === 'supervisors' 
+                        ? 'Non ci sono supervisori nel sistema.' 
                         : 'Non ci sono utenti registrati.'
                       }
                     </p>
@@ -440,9 +490,13 @@ return (
                   {user.corso_accademico || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {user.ruolo === 'admin' ? (
+                  {normalizeRole(user.ruolo) === 'admin' ? (
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
                       Amministratore
+                    </span>
+                  ) : normalizeRole(user.ruolo) === 'supervisor' ? (
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                      Supervisore
                     </span>
                   ) : (
                     <span className="text-xs text-gray-500">-</span>
@@ -468,7 +522,7 @@ return (
                       </svg>
                       Reset
                     </button>
-                    {user.ruolo !== 'admin' && (
+                    {canManagePenalties(user) && (
                       <button
                         onClick={() => openPenaltyModal(user)}
                         className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 transition-colors duration-200"
@@ -479,7 +533,7 @@ return (
                         Penalità
                       </button>
                     )}
-                    {user.ruolo !== 'admin' && (
+                    {canDeleteUser(user) && (
                       <button
                         onClick={() => handleDeleteUser(user.id)}
                         className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors duration-200"
@@ -507,11 +561,11 @@ return (
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           <h3 className="text-lg font-medium text-gray-900 mb-1">
-            Nessun {activeTab === 'admins' ? 'amministratore' : 'utente'} trovato
+            Nessun {activeTab === 'supervisors' ? 'supervisore' : 'utente'} trovato
           </h3>
           <p className="text-gray-500">
-            {activeTab === 'admins' 
-              ? 'Non ci sono amministratori nel sistema.' 
+            {activeTab === 'supervisors' 
+              ? 'Non ci sono supervisori nel sistema.' 
               : 'Non ci sono utenti registrati.'
             }
           </p>
@@ -534,13 +588,14 @@ return (
                 </div>
               </div>
             </div>
-            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-              user.ruolo === 'admin' 
-              ? 'bg-red-100 text-red-800' 
-              : 'bg-green-100 text-green-800'
-            }`}>
-              {user.ruolo === 'admin' ? 'Admin' : 'Utente'}
-            </span>
+            {(() => {
+              const badge = getRoleBadge(user.ruolo);
+              return (
+                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${badge.className}`}>
+                  {badge.text}
+                </span>
+              );
+            })()}
           </div>
 
           {/* User Details */}
@@ -559,7 +614,7 @@ return (
                 <span className="text-sm text-gray-900">{user.phone}</span>
               </div>
             )}
-            {user.ruolo !== 'admin' && (
+            {normalizeRole(user.ruolo) === 'user' && (
               <div className="flex justify-between">
                 <span className="text-sm font-medium text-gray-600">Penalità:</span>
                 <div className="flex items-center gap-2">
@@ -613,35 +668,35 @@ return (
               Reset
             </button>
             
-            {/* Row 2: Penalità + Elimina (only for non-admin users) */}
-            {user.ruolo !== 'admin' && (
-              <>
-                <button
-                  onClick={() => openPenaltyModal(user)}
-                  className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 transition-colors duration-200"
-                >
-                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                  Penalità
-                </button>
-                <button
-                  onClick={() => handleDeleteUser(user.id)}
-                  className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors duration-200"
-                >
-                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Elimina
-                </button>
-              </>
+            {/* Row 2: Penalità + Elimina (depending on ruolo) */}
+            {canManagePenalties(user) && (
+              <button
+                onClick={() => openPenaltyModal(user)}
+                className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 transition-colors duration-200"
+              >
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                Penalità
+              </button>
+            )}
+            {canDeleteUser(user) && (
+              <button
+                onClick={() => handleDeleteUser(user.id)}
+                className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors duration-200"
+              >
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Elimina
+              </button>
             )}
             
-            {/* For admin users, only show Modifica + Reset in full width */}
-            {user.ruolo === 'admin' && (
+            {/* For admin users, only show Modifica + Reset in full width when non-admin viewer */}
+            {normalizeRole(user.ruolo) === 'admin' && !isSystemAdmin && (
               <div className="col-span-2 text-center">
                 <span className="text-xs text-gray-500 italic">
-                  Gli amministratori non possono essere eliminati
+                  Solo l'amministratore di sistema può eliminare questo account
                 </span>
               </div>
             )}
@@ -781,10 +836,10 @@ return (
  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
  >
  <option value="user">Utente</option>
- <option value="admin">Amministratore</option>
+ <option value="supervisor">Supervisore</option>
  </select>
  <p className="text-xs text-gray-500 mt-1">
- ⚠️ Gli amministratori hanno accesso completo al sistema
+ ⚠️ I supervisori hanno accesso avanzato al sistema
  </p>
  </div>
 
@@ -916,6 +971,31 @@ return (
  ))}
  </select>
  </div>
+
+  <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+  Ruolo *
+  </label>
+  <select
+  name="ruolo"
+  value={formData.ruolo}
+  onChange={handleInputChange}
+  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 "
+  disabled={normalizeRole(editingUser?.ruolo) === 'admin'}
+  >
+  <option value="user">Utente</option>
+  <option value="supervisor">Supervisore</option>
+  </select>
+  {normalizeRole(editingUser?.ruolo) === 'admin' ? (
+  <p className="text-xs text-gray-500 mt-1">
+  Il ruolo dell'amministratore di sistema non può essere modificato
+  </p>
+  ) : (
+  <p className="text-xs text-gray-500 mt-1">
+  ⚠️ I supervisori hanno accesso avanzato al sistema
+  </p>
+  )}
+  </div>
 
 
  <div className="flex justify-end space-x-3 pt-4">

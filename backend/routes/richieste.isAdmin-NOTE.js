@@ -16,7 +16,9 @@ function getPayload(req) {
 function isAdmin(userId) {
   if (userId === -1) return true; // special admin
   const row = db.prepare('SELECT ruolo FROM users WHERE id = ?').get(userId);
-  return !!row && (row.ruolo === 'admin' || row.ruolo === 'ADMIN');
+  if (!row) return false;
+  const role = (row.ruolo || '').toLowerCase();
+  return role === 'admin' || role === 'supervisor';
 }
 
 // ... resto identico alla tua versione precedente ...

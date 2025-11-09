@@ -89,7 +89,12 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
                 {user?.name} {user?.surname}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {user?.isAdmin ? "Amministratore" : "Utente"}
+                {(() => {
+                  const role = (user?.ruolo || user?.role || '').toLowerCase();
+                  if (user?.id === -1 || role === 'admin') return 'Amministratore';
+                  if (role === 'supervisor') return 'Supervisore';
+                  return 'Utente';
+                })()}
               </p>
             </div>
           </div>

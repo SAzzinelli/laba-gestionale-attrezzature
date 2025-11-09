@@ -101,8 +101,9 @@ r.post('/register', async (req, res) => {
 
     const hashedPassword = bcrypt.hashSync(password, 10);
     
-    // Valida il ruolo (solo admin può creare admin)
-    const userRole = ruolo === 'admin' ? 'admin' : 'user';
+    // Valida il ruolo (solo admin principale resta 'admin')
+    const normalizedRole = (ruolo || 'user').toString().trim().toLowerCase();
+    const userRole = normalizedRole === 'supervisor' ? 'supervisor' : 'user';
     
     const result = await query(`
       INSERT INTO users (email, password_hash, name, surname, phone, matricola, corso_accademico, ruolo)

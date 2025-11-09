@@ -12,7 +12,14 @@ export default function AuthProvider({ children }) {
  const [user, setUser] = useState(null);
 
  const isAuthenticated = !!token;
- const isAdmin = !!(user && (user.ruolo === "admin" || user.role === "admin"));
+ const role = (user?.ruolo || user?.role || '').toLowerCase();
+ const isSupervisor = role === 'supervisor';
+ const isAdmin = !!(user && (role === 'admin' || isSupervisor));
+ const roleLabel = user?.id === -1 || role === 'admin'
+   ? 'Amministratore'
+   : isSupervisor
+     ? 'Supervisore'
+     : 'Utente';
 
  // Axios instance with Authorization header when token is present
  const api = useMemo(() => {
@@ -97,7 +104,7 @@ export default function AuthProvider({ children }) {
 
  // Expose helpers
  return (
- <AuthContext.Provider value={{ token, user, isAuthenticated, isAdmin, api, login, register, logout }}>
+ <AuthContext.Provider value={{ token, user, isAuthenticated, isAdmin, isSupervisor, role, roleLabel, api, login, register, logout }}>
  {children}
  </AuthContext.Provider>
  );

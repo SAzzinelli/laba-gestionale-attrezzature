@@ -37,7 +37,14 @@ export function requireRole(role) {
   return (req, res, next) => {
     if (!req.user) return res.status(401).json({ error: 'Non autorizzato' });
     if (req.user.id === -1) return next(); // special admin bypass
-    const ok = (req.user.ruolo || '').toLowerCase() === String(role).toLowerCase();
+    const requestedRole = String(role).toLowerCase();
+    const userRole = (req.user.ruolo || '').toLowerCase();
+
+    let ok = userRole === requestedRole;
+    if (!ok && requestedRole === 'admin') {
+      ok = userRole === 'supervisor';
+    }
+
     if (!ok) return res.status(403).json({ error: 'Solo ' + role });
     next();
   };

@@ -10,7 +10,7 @@ import MobileMenu from '../components/MobileMenu';
 
 // UserBadge Component (simplified to avoid overlap)
 function UserBadge() {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, roleLabel } = useAuth();
   if (!user) return null;
   
   const initials = (user.name?.[0] || "?") + (user.surname?.[0] || "");
@@ -26,7 +26,7 @@ function UserBadge() {
             {user.name} {user.surname}
           </p>
           <p className="text-xs text-gray-500 truncate">
-            {isAdmin ? "Amministratore" : "Utente"}
+            {roleLabel}
           </p>
         </div>
       </div>

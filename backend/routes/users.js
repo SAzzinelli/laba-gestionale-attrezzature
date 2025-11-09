@@ -82,11 +82,19 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     }
     
     // Prima ottengo l'email dell'utente
-    const userResult = await query('SELECT email FROM users WHERE id = $1', [id]);
+    const userResult = await query('SELECT email, ruolo FROM users WHERE id = $1', [id]);
     if (userResult.length === 0) {
       return res.status(404).json({ error: 'Utente non trovato' });
     }
-    const userEmail = userResult[0].email;
+    const { email: userEmail, ruolo: targetRole } = userResult[0];
+
+    const requesterRole = (req.user?.ruolo || '').toLowerCase();
+    const isSupervisor = requesterRole === 'supervisor';
+    const targetIsAdmin = (targetRole || '').toLowerCase() === 'admin';
+
+    if (isSupervisor && targetIsAdmin) {
+      return res.status(403).json({ error: 'I supervisori non possono eliminare l\'admin di sistema' });
+    }
 
     // Controlla se l'utente ha prestiti attivi
     const activeLoans = await query(`

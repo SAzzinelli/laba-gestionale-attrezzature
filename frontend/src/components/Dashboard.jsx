@@ -27,7 +27,7 @@ const Dashboard = ({ onNavigate }) => {
  const [selectedAlert, setSelectedAlert] = useState(null);
   const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   const [selectedPasswordRequest, setSelectedPasswordRequest] = useState(null);
-  const { token, isAdmin } = useAuth();
+  const { token, isAdmin, roleLabel } = useAuth();
 
  
   // Helper function to calculate time ago
@@ -277,7 +277,7 @@ return (
   <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8">
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard {isAdmin ? 'Amministratore' : 'Utente'}</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard {roleLabel}</h1>
         <p className="text-gray-600 text-lg">Panoramica del sistema di gestione attrezzature</p>
       </div>
     </div>

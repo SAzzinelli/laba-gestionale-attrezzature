@@ -8,7 +8,8 @@ const r = Router();
 function isAdminUser(u) {
   if (!u) return false;
   if (u.id === -1) return true;
-  return (u.ruolo || '').toLowerCase() === 'admin';
+  const role = (u.ruolo || '').toLowerCase();
+  return role === 'admin' || role === 'supervisor';
 }
 
 // GET /api/prestiti
@@ -18,7 +19,7 @@ r.get('/', requireAuth, async (req, res) => {
     let result;
     
     if (wantAll) {
-      if (!isAdminUser(req.user)) return res.status(403).json({ error: 'Solo admin' });
+      if (!isAdminUser(req.user)) return res.status(403).json({ error: 'Solo admin o supervisori' });
       result = await query(`
         SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
                u.name AS utente_nome, u.surname AS utente_cognome, u.email AS utente_email,

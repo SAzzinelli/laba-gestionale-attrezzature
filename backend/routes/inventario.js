@@ -62,7 +62,10 @@ r.get('/disponibili', requireAuth, async (req, res) => {
     const userCourse = getUserCourse(req);
     let result;
     
-    if (req.user.ruolo === 'admin') {
+    const role = (req.user.ruolo || '').toLowerCase();
+    const isElevated = role === 'admin' || role === 'supervisor';
+
+    if (isElevated) {
       // Admin vede tutti gli oggetti
       result = await query(`
         SELECT
@@ -118,7 +121,10 @@ r.get('/unita-disponibili', requireAuth, async (req, res) => {
     
     let result;
     
-    if (req.user.ruolo === 'admin') {
+    const role = (req.user.ruolo || '').toLowerCase();
+    const isElevated = role === 'admin' || role === 'supervisor';
+
+    if (isElevated) {
       // Admin vede tutte le unità
       result = await query(`
         SELECT
