@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+
 const UserManagement = () => {
  const [users, setUsers] = useState([]);
  const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ const { token } = useAuth();
  const fetchUsers = async () => {
    try {
      setLoading(true);
-     const response = await fetch('/api/auth/users', {
+     const response = await fetch(`${API_BASE_URL}/api/auth/users`, {
        headers: {
          'Authorization': `Bearer ${token}`
        }
@@ -103,7 +105,7 @@ const { token } = useAuth();
  try {
  setError(null);
  
- const response = await fetch('/api/auth/register', {
+   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',
@@ -144,7 +146,7 @@ const { token } = useAuth();
  try {
  setError(null);
  
- const response = await fetch(`/api/auth/users/${resetUser.id}/reset-password`, {
+   const response = await fetch(`${API_BASE_URL}/api/auth/users/${resetUser.id}/reset-password`, {
  method: 'PUT',
  headers: {
  'Content-Type': 'application/json',
@@ -187,7 +189,8 @@ const { token } = useAuth();
  email: user.email,
  matricola: user.matricola,
  corso_accademico: user.corso_accademico || '',
- phone: user.phone || ''
+phone: user.phone || '',
+ruolo: user.ruolo || 'user'
  });
  setShowEditModal(true);
  };
@@ -197,7 +200,7 @@ const { token } = useAuth();
  try {
  setError(null);
  
- const response = await fetch(`/api/auth/users/${editingUser.id}`, {
+   const response = await fetch(`${API_BASE_URL}/api/users/${editingUser.id}`, {
  method: 'PUT',
  headers: {
  'Content-Type': 'application/json',
@@ -225,7 +228,7 @@ return;
 }
 
 try {
-const response = await fetch(`/api/auth/users/${userId}`, {
+   const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
 method: 'DELETE',
 headers: {
 'Authorization': `Bearer ${token}`
@@ -252,7 +255,7 @@ await fetchUserPenalties(user.id);
 
 const fetchUserPenalties = async (userId) => {
 try {
-const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/penalties/user/${userId}`, {
+   const response = await fetch(`${API_BASE_URL}/api/penalties/user/${userId}`, {
 headers: { 'Authorization': `Bearer ${token}` }
 });
 
@@ -267,7 +270,7 @@ console.error('Errore nel caricamento penalità:', err);
 
 const handleUnblockUser = async (userId, resetStrikes = false) => {
 try {
-const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/penalties/unblock-user`, {
+   const response = await fetch(`${API_BASE_URL}/api/penalties/unblock-user`, {
 method: 'POST',
 headers: {
 'Authorization': `Bearer ${token}`,
