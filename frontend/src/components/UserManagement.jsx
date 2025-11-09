@@ -24,15 +24,11 @@ const mapFetchedUser = (user) => {
   if (!user) return user;
   const normalizedRole = normalizeRole(user.ruolo);
 
-  if (user.id === -1) {
+  if (user.id === -1 || normalizedRole === 'admin' || normalizedRole === 'amministratore') {
     return { ...user, ruolo: 'admin' };
   }
 
   if (normalizedRole === 'supervisor') {
-    return { ...user, ruolo: 'supervisor' };
-  }
-
-  if (normalizedRole === 'admin' || normalizedRole === 'amministratore') {
     return { ...user, ruolo: 'supervisor' };
   }
 
@@ -153,10 +149,11 @@ const getFilteredUsers = () => {
   }
 };
 
+const normalizedUsers = users.map(mapFetchedUser);
 const filteredUsers = getFilteredUsers();
-const regularUsers = users.filter(user => normalizeRole(user.ruolo) === 'user');
-const supervisorUsers = users.filter(user => normalizeRole(user.ruolo) === 'supervisor');
-const adminUsers = users.filter(user => normalizeRole(user.ruolo) === 'admin');
+const regularUsers = normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'user');
+const supervisorUsers = normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'supervisor');
+const adminUsers = normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'admin');
 
  const handleInputChange = (e) => {
  const { name, value } = e.target;
