@@ -4,8 +4,13 @@ import bcrypt from 'bcryptjs';
 const { Pool } = pkg;
 
 // Configurazione Supabase
+if (!process.env.DATABASE_URL) {
+  console.error('❌ Variabile d\'ambiente DATABASE_URL mancante. Impostala per avviare il servizio.');
+  throw new Error('DATABASE_URL non configurata');
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres.kzqabwmtpmlhaueqiuoc:Dittafono26!@aws-1-eu-north-1.pooler.supabase.com:6543/postgres',
+  connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
   }
@@ -122,6 +127,21 @@ export async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_rich_inv ON richieste (inventario_id);
       CREATE INDEX IF NOT EXISTS idx_rich_state ON richieste (stato);
 
+      -- Tabella inventario_unita (creata prima perché referenziata da altre tabelle)
+      CREATE TABLE IF NOT EXISTS inventario_unita (
+        id SERIAL PRIMARY KEY,
+        inventario_id INTEGER NOT NULL,
+        codice_univoco VARCHAR(255) UNIQUE NOT NULL,
+        stato VARCHAR(50) DEFAULT 'disponibile',
+        prestito_corrente_id INTEGER,
+        note TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (inventario_id) REFERENCES inventario(id),
+        FOREIGN KEY (prestito_corrente_id) REFERENCES prestiti(id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_inv_unita_inv ON inventario_unita (inventario_id);
+      CREATE INDEX IF NOT EXISTS idx_inv_unita_codice ON inventario_unita (codice_univoco);
+
       -- Tabella segnalazioni
       CREATE TABLE IF NOT EXISTS segnalazioni (
         id SERIAL PRIMARY KEY,
@@ -191,21 +211,6 @@ export async function initDatabase() {
         PRIMARY KEY (inventario_id, corso),
         FOREIGN KEY (inventario_id) REFERENCES inventario(id) ON DELETE CASCADE
       );
-
-      -- Tabella inventario_unita
-      CREATE TABLE IF NOT EXISTS inventario_unita (
-        id SERIAL PRIMARY KEY,
-        inventario_id INTEGER NOT NULL,
-        codice_univoco VARCHAR(255) UNIQUE NOT NULL,
-        stato VARCHAR(50) DEFAULT 'disponibile',
-        prestito_corrente_id INTEGER,
-        note TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (inventario_id) REFERENCES inventario(id),
-        FOREIGN KEY (prestito_corrente_id) REFERENCES prestiti(id)
-      );
-      CREATE INDEX IF NOT EXISTS idx_inv_unita_inv ON inventario_unita (inventario_id);
-      CREATE INDEX IF NOT EXISTS idx_inv_unita_codice ON inventario_unita (codice_univoco);
 
       -- Tabella password_reset_requests
       CREATE TABLE IF NOT EXISTS password_reset_requests (
