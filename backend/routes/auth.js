@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { query } from '../utils/postgres.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { normalizeUser, normalizeRole } from '../utils/roles.js';
 
 const r = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
@@ -27,7 +28,8 @@ function specialAdminUser() {
   };
 }
 
-function signUser(u) {
+function signUser(user) {
+  const u = normalizeUser(user);
   const payload = {
     id: u.id,
     email: u.email,
@@ -60,7 +62,7 @@ r.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Credenziali non valide' });
     }
 
-    const user = result[0];
+    const user = normalizeUser(result[0]);
     const isValid = bcrypt.compareSync(password, user.password_hash);
     if (!isValid) {
       return res.status(401).json({ error: 'Credenziali non valide' });
@@ -101,19 +103,16 @@ r.post('/register', async (req, res) => {
 
     const hashedPassword = bcrypt.hashSync(password, 10);
     
-    const normalizedRole = (ruolo || 'user').toString().trim().toLowerCase();
-    let userRole = 'user';
-    if (['supervisor', 'amministratore', 'admin'].includes(normalizedRole)) {
-      userRole = 'supervisor';
-    }
+    const userRole = normalizeRole(ruolo, null, email);
+    const storedRole = userRole === 'admin' ? 'supervisor' : userRole;
 
     const result = await query(`
       INSERT INTO users (email, password_hash, name, surname, phone, matricola, corso_accademico, ruolo)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id, email, name, surname, ruolo, corso_accademico
-    `, [email, hashedPassword, name, surname, phone || null, matricola || null, corso_accademico || null, userRole]);
+    `, [email, hashedPassword, name, surname, phone || null, matricola || null, corso_accademico || null, storedRole]);
 
-    const user = result[0];
+    const user = normalizeUser(result[0]);
     const token = signUser(user);
     
     res.status(201).json({
@@ -276,7 +275,8 @@ r.get('/users', requireAuth, requireRole('admin'), async (req, res) => {
       ORDER BY created_at DESC
     `);
     
-    res.json(result || []);
+    const normalized = (result || []).map(normalizeUser);
+    res.json(normalized);
   } catch (error) {
     console.error('Errore GET auth users:', error);
     res.status(500).json({ error: 'Errore nel caricamento utenti' });

@@ -280,10 +280,10 @@ export async function initDatabase() {
       console.log('✅ Admin user creato: admin / laba2025');
     }
 
-    // Inserisci corsi accademici LABA
+    // Inserisci corsi accademici LABA solo se la tabella è vuota
     const corsiLABA = [
       'Regia e Videomaking',
-      'Graphic Design & Multimedia', 
+      'Graphic Design & Multimedia',
       'Fashion Design',
       'Pittura',
       'Fotografia',
@@ -292,14 +292,20 @@ export async function initDatabase() {
       'Design'
     ];
 
-    for (const nome of corsiLABA) {
-      await client.query('INSERT INTO corsi (corso) VALUES ($1) ON CONFLICT (corso) DO NOTHING', [nome]);
+    const { rows: courseCountRows } = await client.query('SELECT COUNT(*)::int AS count FROM corsi');
+    if (Number(courseCountRows[0]?.count || 0) === 0) {
+      for (const nome of corsiLABA) {
+        await client.query('INSERT INTO corsi (corso) VALUES ($1) ON CONFLICT (corso) DO NOTHING', [nome]);
+      }
+      console.log(`✅ Corsi inseriti: ${corsiLABA.length}`);
+    } else {
+      console.log('ℹ️ Corsi già presenti, nessun inserimento di default');
     }
 
-    // Inserisci categorie semplici di esempio
+    // Inserisci categorie semplici di esempio solo se la tabella è vuota
     const categorieSemplici = [
       'Attrezzature Video',
-      'Computer e Software', 
+      'Computer e Software',
       'Macchine da Cucire',
       'Pennelli e Colori',
       'Macchine Fotografiche',
@@ -308,8 +314,14 @@ export async function initDatabase() {
       'Software Design'
     ];
 
-    for (const nome of categorieSemplici) {
-      await client.query('INSERT INTO categorie_semplici (nome) VALUES ($1) ON CONFLICT (nome) DO NOTHING', [nome]);
+    const { rows: categorieCountRows } = await client.query('SELECT COUNT(*)::int AS count FROM categorie_semplici');
+    if (Number(categorieCountRows[0]?.count || 0) === 0) {
+      for (const nome of categorieSemplici) {
+        await client.query('INSERT INTO categorie_semplici (nome) VALUES ($1) ON CONFLICT (nome) DO NOTHING', [nome]);
+      }
+      console.log(`✅ Categorie semplici inserite: ${categorieSemplici.length}`);
+    } else {
+      console.log('ℹ️ Categorie personalizzate rilevate, seed non applicato');
     }
 
     client.release();
@@ -317,8 +329,6 @@ export async function initDatabase() {
     console.log('✅ Database PostgreSQL inizializzato con successo!');
     console.log('✅ Schema unificato creato con tutte le tabelle');
     console.log('✅ Admin user: admin / laba2025');
-    console.log(`✅ Corsi inseriti: ${corsiLABA.length}`);
-    console.log(`✅ Categorie semplici inserite: ${categorieSemplici.length}`);
     
   } catch (error) {
     console.error('❌ Errore durante l\'inizializzazione del database:', error);

@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { query } from '../utils/postgres.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { normalizeUser } from '../utils/roles.js';
 
 const r = Router();
 
@@ -16,7 +17,8 @@ r.get('/', requireAuth, requireRole('admin'), async (req, res) => {
       ORDER BY created_at DESC
     `);
     
-    res.json(result || []);
+    const normalized = (result || []).map(normalizeUser);
+    res.json(normalized);
   } catch (error) {
     console.error('Errore GET users:', error);
     res.status(500).json({ error: 'Errore nel caricamento utenti' });
@@ -39,7 +41,7 @@ r.get('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(404).json({ error: 'Utente non trovato' });
     }
     
-    res.json(result[0]);
+    res.json(normalizeUser(result[0]));
   } catch (error) {
     console.error('Errore GET user:', error);
     res.status(500).json({ error: 'Errore nel caricamento utente' });
@@ -64,7 +66,7 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(404).json({ error: 'Utente non trovato' });
     }
     
-    res.json(result[0]);
+    res.json(normalizeUser(result[0]));
   } catch (error) {
     console.error('Errore PUT user:', error);
     res.status(500).json({ error: 'Errore nell\'aggiornamento utente' });

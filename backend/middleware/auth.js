@@ -1,6 +1,7 @@
 // backend/middleware/auth.js
 import jwt from 'jsonwebtoken';
 import { query } from '../utils/postgres.js';
+import { normalizeUser, normalizeRole } from '../utils/roles.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
@@ -25,7 +26,7 @@ export async function requireAuth(req, res, next) {
       return res.status(401).json({ error: 'Non autorizzato' });
     }
     
-    req.user = users[0];
+    req.user = normalizeUser(users[0]);
     next();
   } catch (error) {
     console.error('Auth error:', error);
@@ -38,7 +39,7 @@ export function requireRole(role) {
     if (!req.user) return res.status(401).json({ error: 'Non autorizzato' });
     if (req.user.id === -1) return next(); // special admin bypass
     const requestedRole = String(role).toLowerCase();
-    const userRole = (req.user.ruolo || '').toLowerCase();
+    const userRole = normalizeRole(req.user.ruolo, req.user.id, req.user.email);
 
     let ok = userRole === requestedRole;
     if (!ok && requestedRole === 'admin') {
