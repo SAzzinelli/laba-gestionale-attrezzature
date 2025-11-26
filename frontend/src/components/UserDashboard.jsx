@@ -58,8 +58,10 @@ const UserDashboard = () => {
       if (inventoryRes.ok) {
         const inventoryData = await inventoryRes.json();
         // Conta le UNITÀ disponibili totali, non gli articoli
+        // Assicuriamoci che unita_disponibili sia un numero
         const totalAvailableUnits = inventoryData.reduce((total, item) => {
-          return total + (item.unita_disponibili || 0);
+          const unita = Number(item.unita_disponibili) || 0;
+          return total + unita;
         }, 0);
         setStats(prev => ({ ...prev, availableItems: totalAvailableUnits }));
       }

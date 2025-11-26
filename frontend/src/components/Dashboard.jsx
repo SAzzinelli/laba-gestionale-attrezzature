@@ -140,8 +140,10 @@ const Dashboard = ({ onNavigate }) => {
 // Calcola statistiche corrette
 const activeLoans = prestitiData.filter(p => p.stato === 'attivo').length;
 // Conta le UNITÀ disponibili totali, non gli articoli
+// Assicuriamoci che unita_disponibili sia un numero
 const availableItems = inventoryData.reduce((total, item) => {
-  return total + (item.unita_disponibili || 0);
+  const unita = Number(item.unita_disponibili) || 0;
+  return total + unita;
 }, 0);
 const activeRepairs = repairsData.filter(repair => {
   const status = (repair.stato || '').toString().toLowerCase().replace(/\s+/g, '_');

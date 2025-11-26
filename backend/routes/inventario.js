@@ -71,7 +71,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url, i.tipo_prestito,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
-          (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS unita_disponibili,
+          CAST((SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS INTEGER) AS unita_disponibili,
           CASE
             WHEN EXISTS(SELECT 1 FROM riparazioni r WHERE r.inventario_id = i.id AND r.stato = 'in_corso') THEN 'in_riparazione'
             WHEN i.in_manutenzione = TRUE OR (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) = 0 THEN 'non_disponibile'
@@ -91,7 +91,7 @@ r.get('/disponibili', requireAuth, async (req, res) => {
         SELECT
           i.id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url, i.tipo_prestito,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome,
-          (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS unita_disponibili,
+          CAST((SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile' AND iu.prestito_corrente_id IS NULL AND iu.richiesta_riservata_id IS NULL) AS INTEGER) AS unita_disponibili,
           CASE
             WHEN i.in_manutenzione = TRUE THEN 'in_manutenzione'
             WHEN (SELECT COUNT(*) FROM inventario_unita iu WHERE iu.inventario_id = i.id AND iu.stato = 'disponibile') = 0 THEN 'non_disponibile'
