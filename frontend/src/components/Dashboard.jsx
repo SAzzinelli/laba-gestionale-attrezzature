@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import StepInventoryModal from './StepInventoryModal';
 import QuickRequestModal from './QuickRequestModal';
@@ -82,7 +82,7 @@ const Dashboard = ({ onNavigate }) => {
   };
 
  // Fetch dashboard data
- const fetchDashboardData = async () => {
+ const fetchDashboardData = useCallback(async () => {
  try {
  setLoading(true);
     const requests = [
@@ -291,11 +291,14 @@ setRecentReports(reportsData.slice(0, 5));
  } finally {
  setLoading(false);
  }
- };
+ }, [token, isAdmin]);
 
  useEffect(() => {
- fetchDashboardData();
- }, []);
+ // Aspetta che token sia disponibile prima di caricare i dati
+ if (token) {
+   fetchDashboardData();
+ }
+ }, [token, isAdmin, fetchDashboardData]);
 
  if (loading) {
  return (

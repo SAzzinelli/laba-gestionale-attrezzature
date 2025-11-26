@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import NewRequestModal from './NewRequestModal';
 import ReportBugModal from './ReportBugModal';
@@ -30,7 +30,7 @@ const UserDashboard = () => {
   const { token, user } = useAuth();
 
   // Fetch data
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -105,11 +105,14 @@ const UserDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, user]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    // Aspetta che token e user siano disponibili prima di caricare i dati
+    if (token && user) {
+      fetchData();
+    }
+  }, [token, user, fetchData]);
 
   // Helper function to safely format dates
   const formatDate = (dateString) => {
