@@ -263,14 +263,14 @@ const UserDashboard = () => {
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Loans */}
-        {recentData.activeLoans.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Prestiti Attivi
-            </h3>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Prestiti Attivi
+          </h3>
+          {recentData.activeLoans.length > 0 ? (
             <div className="space-y-3">
               {recentData.activeLoans.map((loan, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200 shadow-md shadow-green-100/30">
@@ -284,18 +284,26 @@ const UserDashboard = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-8">
+              <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-gray-500">Nessun prestito attivo al momento</p>
+              <p className="text-xs text-gray-400 mt-1">I tuoi prestiti attivi appariranno qui</p>
+            </div>
+          )}
+        </div>
 
         {/* Recent Requests */}
-        {recentData.recentRequests.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Prestiti Recenti
-            </h3>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <svg className="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Richieste Recenti
+          </h3>
+          {recentData.recentRequests.length > 0 ? (
             <div className="space-y-3">
               {recentData.recentRequests.map((request, index) => {
                 const getRequestStyles = (stato) => {
@@ -354,9 +362,65 @@ const UserDashboard = () => {
                 );
               })}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-8">
+              <svg className="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-gray-500">Nessuna richiesta recente</p>
+              <p className="text-xs text-gray-400 mt-1">Le tue richieste appariranno qui</p>
+              <button
+                onClick={() => setShowQuickRequestModal(true)}
+                className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Crea la tua prima richiesta →
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Welcome/Info Section for new users */}
+      {recentData.activeLoans.length === 0 && recentData.recentRequests.length === 0 && (
+        <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm border border-blue-200 p-6">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="ml-4 flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Benvenuto nel Service Attrezzatura!</h3>
+              <p className="text-sm text-gray-700 mb-4">
+                Inizia a noleggiare le attrezzature per il tuo corso. Ecco come funziona:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div className="bg-white rounded-lg p-4 border border-blue-100">
+                  <div className="flex items-center mb-2">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm mr-2">1</div>
+                    <h4 className="font-semibold text-gray-900">Sfoglia</h4>
+                  </div>
+                  <p className="text-xs text-gray-600">Vai su "Articoli Disponibili" per vedere tutte le attrezzature disponibili per il tuo corso.</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-blue-100">
+                  <div className="flex items-center mb-2">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm mr-2">2</div>
+                    <h4 className="font-semibold text-gray-900">Richiedi</h4>
+                  </div>
+                  <p className="text-xs text-gray-600">Clicca su "Richiedi" per selezionare l'ID specifico e le date di utilizzo.</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-blue-100">
+                  <div className="flex items-center mb-2">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm mr-2">3</div>
+                    <h4 className="font-semibold text-gray-900">Ritira</h4>
+                  </div>
+                  <p className="text-xs text-gray-600">Una volta approvata, potrai ritirare l'attrezzatura presso il Service.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {showQuickRequestModal && (

@@ -260,7 +260,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
@@ -288,21 +288,32 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   <div
                     key={item.id}
                     onClick={() => handleObjectSelect(item)}
-                    className="p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md cursor-pointer transition-all"
+                    className="p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md cursor-pointer transition-all flex flex-col"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-900">{item.nome}</h4>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                    {/* Titolo e disponibilità */}
+                    <div className="mb-2">
+                      <h4 className="font-medium text-gray-900 line-clamp-2 mb-2 leading-tight">
+                        {item.nome}
+                      </h4>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full whitespace-nowrap">
                           {item.unita_disponibili} disponibili
                         </span>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600">{item.categoria_nome}</p>
+                    
+                    {/* Categoria */}
+                    <p className="text-sm text-gray-600 mb-2 line-clamp-1">
+                      {item.categoria_nome}
+                    </p>
+                    
+                    {/* Disclaimer uso interno */}
                     {item.tipo_prestito === 'solo_interno' && (
-                      <p className="text-xs text-orange-600 mt-1">
-                        ⚠️ Solo per uso interno<br />Da restituire a fine utilizzo
-                      </p>
+                      <div className="mt-auto pt-2 border-t border-gray-100">
+                        <p className="text-xs text-orange-600">
+                          ⚠️ Solo per uso interno<br />Da restituire a fine utilizzo
+                        </p>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -321,34 +332,41 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
           {/* Step 2: Seleziona ID Univoco */}
           {step === 2 && selectedObject && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Seleziona ID Univoco</h3>
-                  <p className="text-sm text-gray-600">Oggetto: <strong>{selectedObject.nome}</strong></p>
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1 min-w-0 mr-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Seleziona ID Univoco</h3>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Oggetto:</span>{' '}
+                    <span className="break-words">{selectedObject.nome}</span>
+                  </p>
                 </div>
                 <button
                   onClick={() => setStep(1)}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-600 hover:text-blue-800 text-sm whitespace-nowrap flex-shrink-0"
                 >
                   ← Cambia oggetto
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
                 {availableUnits.map((unit) => (
                   <div
                     key={unit.id}
                     onClick={() => handleUnitSelect(unit)}
                     className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md cursor-pointer transition-all"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900">{unit.codice_univoco}</span>
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                        Disponibile
-                      </span>
+                    <div className="flex flex-col">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-gray-900 text-sm break-words">{unit.codice_univoco}</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-auto">
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full whitespace-nowrap">
+                          Disponibile
+                        </span>
+                      </div>
                     </div>
                     {unit.note && (
-                      <p className="text-xs text-gray-500 mt-1">{unit.note}</p>
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2">{unit.note}</p>
                     )}
                   </div>
                 ))}
