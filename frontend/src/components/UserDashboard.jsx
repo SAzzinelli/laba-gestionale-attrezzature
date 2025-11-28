@@ -28,7 +28,35 @@ const UserDashboard = () => {
   const [showRequestDetailModal, setShowRequestDetailModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showReportFaultModal, setShowReportFaultModal] = useState(false);
+  const [welcomeSectionDismissed, setWelcomeSectionDismissed] = useState(false);
   const { token, user } = useAuth();
+
+  // Load welcome section dismissed state from localStorage
+  useEffect(() => {
+    if (user?.id) {
+      const dismissed = localStorage.getItem(`welcome_dismissed_${user.id}`);
+      if (dismissed === 'true') {
+        setWelcomeSectionDismissed(true);
+      }
+    }
+  }, [user?.id]);
+
+  // Hide welcome section if user has active loans
+  useEffect(() => {
+    if (recentData.activeLoans.length > 0) {
+      setWelcomeSectionDismissed(true);
+      if (user?.id) {
+        localStorage.setItem(`welcome_dismissed_${user.id}`, 'true');
+      }
+    }
+  }, [recentData.activeLoans.length, user?.id]);
+
+  const handleDismissWelcome = () => {
+    setWelcomeSectionDismissed(true);
+    if (user?.id) {
+      localStorage.setItem(`welcome_dismissed_${user.id}`, 'true');
+    }
+  };
 
   // Fetch data
   const fetchData = useCallback(async () => {
@@ -153,15 +181,24 @@ const UserDashboard = () => {
       </div>
 
       {/* Welcome/Info Section for new users */}
-      {recentData.activeLoans.length === 0 && recentData.recentRequests.length === 0 && (
-        <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm border border-blue-200 p-6">
+      {recentData.activeLoans.length === 0 && !welcomeSectionDismissed && (
+        <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm border border-blue-200 p-6 relative">
+          <button
+            onClick={handleDismissWelcome}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Chiudi"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
           <div className="flex items-start">
             <div className="flex-shrink-0">
               <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <div className="ml-4 flex-1">
+            <div className="ml-4 flex-1 pr-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Benvenuto nel Service Attrezzatura!</h3>
               <p className="text-sm text-gray-700 mb-4">
                 Inizia a noleggiare le attrezzature per il tuo corso. Ecco come funziona:
