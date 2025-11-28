@@ -47,8 +47,10 @@ const Loans = ({ selectedRequestFromNotification, onRequestHandled }) => {
  };
 
  useEffect(() => {
- fetchData();
- }, []);
+ if (token) {
+   fetchData();
+ }
+ }, [token]);
 
  // Gestisce l'apertura automatica del modale dalla notifica
  useEffect(() => {

@@ -97,12 +97,6 @@ r.get('/inventario/export', requireAuth, requireRole('admin'), async (req, res) 
 // POST /api/excel/inventario/import - Import inventario da Excel
 r.post('/inventario/import', requireAuth, requireRole('admin'), async (req, res) => {
   try {
-    // Debug temporaneo per produzione
-    console.log('=== DEBUG IMPORT EXCEL ===');
-    console.log('req.body:', req.body);
-    console.log('Content-Type:', req.headers['content-type']);
-    console.log('========================');
-    
     // Verifica che i dati del file siano presenti
     const { fileName, fileSize, fileType, fileData } = req.body;
     
@@ -293,27 +287,26 @@ r.post('/inventario/import', requireAuth, requireRole('admin'), async (req, res)
 // GET /api/excel/inventario/template - Genera template Excel
 r.get('/inventario/template', requireAuth, requireRole('admin'), async (req, res) => {
   try {
-    const templateData = [
-      {
-        'Nome': 'Esempio: Macchina Fotografica Canon',
-        'Quantità Totale': '5',
-        'Corso Accademico': 'Fotografia',
-        'Categoria': 'Fotocamere',
-        'Posizione': 'Armadio A - Ripiano 1',
-        'Note': 'Esempio: Macchina professionale per corsi di fotografia',
-        'Immagine URL': 'https://example.com/fotocamera.jpg',
-        'In Manutenzione': 'No (Sì/No)',
-        'Soglia Minima': '2',
-        'Corsi Assegnati': 'Fotografia, Video',
-        'Fornitore': 'Esempio: Canon Italia',
-        'Tipo Prestito': 'solo_esterno (solo_esterno/solo_interno/entrambi)',
-        'ID Unità 1': 'CANON-001',
-        'ID Unità 2': 'CANON-002',
-        'ID Unità 3': 'CANON-003',
-        'ID Unità 4': 'CANON-004',
-        'ID Unità 5': 'CANON-005'
-      }
-    ];
+        const templateData = [
+          {
+            'Nome': 'Esempio: Macchina Fotografica Canon',
+            'Quantità Totale': '5',
+            'Corso': 'Fotografia',
+            'Categoria': 'Fotocamere',
+            'Posizione': 'Armadio A - Ripiano 1',
+            'Note': 'Esempio: Macchina professionale per corsi di fotografia',
+            'Immagine URL': 'https://example.com/fotocamera.jpg',
+            'In Manutenzione': 'No (Sì/No)',
+            'Soglia Minima': '2',
+            'Fornitore': 'Esempio: Canon Italia',
+            'Tipo Prestito': 'solo_esterno (solo_esterno/solo_interno/entrambi)',
+            'ID Unità 1': 'CANON-001',
+            'ID Unità 2': 'CANON-002',
+            'ID Unità 3': 'CANON-003',
+            'ID Unità 4': 'CANON-004',
+            'ID Unità 5': 'CANON-005'
+          }
+        ];
 
     const ws = XLSX.utils.json_to_sheet(templateData);
     const wb = XLSX.utils.book_new();

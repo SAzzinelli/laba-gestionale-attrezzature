@@ -456,7 +456,7 @@ Tipo di Utilizzo
       />
       <div>
         <span className="text-sm font-medium text-gray-900">🏠 Uso Interno</span>
-        <p className="text-xs text-gray-600">Solo per uso interno all'accademia (stesso giorno)</p>
+        <p className="text-xs text-gray-600">Solo per uso interno. Da restituire a fine utilizzo</p>
       </div>
     </label>
     

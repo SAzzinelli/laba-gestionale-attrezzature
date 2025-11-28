@@ -20,11 +20,9 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
   useEffect(() => {
     if (isOpen) {
       fetchInventory();
-      // Reset all data when opening
-      setStep(1);
-      setSelectedObject(null);
+      
+      // Reset common state
       setSelectedUnit(null);
-      setAvailableUnits([]);
       setDateRange({
         dal: new Date().toISOString().split('T')[0],
         al: ''
@@ -32,8 +30,21 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       setNote('');
       setTipoUtilizzo('');
       setError(null);
+      
+      // Se selectedItem è passato, saltare lo step 1 e andare direttamente allo step 2
+      if (selectedItem) {
+        setSelectedObject(selectedItem);
+        setAvailableUnits([]); // Reset prima di caricare nuove unità
+        fetchAvailableUnits(selectedItem.id);
+        setStep(2);
+      } else {
+        // Reset all data when opening without selectedItem
+        setStep(1);
+        setSelectedObject(null);
+        setAvailableUnits([]);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, selectedItem]);
 
   const fetchInventory = async () => {
     try {
@@ -89,11 +100,6 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
   const handleUnitSelect = (unit) => {
     setSelectedUnit(unit);
-    console.log('🔍 Debug handleUnitSelect:', {
-      selectedObject: selectedObject,
-      tipo_prestito: selectedObject?.tipo_prestito,
-      isEntrambi: selectedObject?.tipo_prestito === 'entrambi'
-    });
     
     // Se l'oggetto è "entrambi", vai al step 3 (scelta tipo), altrimenti vai direttamente al step 4 (date)
     if (selectedObject.tipo_prestito === 'entrambi') {
@@ -295,7 +301,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     <p className="text-sm text-gray-600">{item.categoria_nome}</p>
                     {item.tipo_prestito === 'solo_interno' && (
                       <p className="text-xs text-orange-600 mt-1">
-                        ⚠️ Solo per uso interno all'accademia (stesso giorno)
+                        ⚠️ Solo per uso interno. Da restituire a fine utilizzo
                       </p>
                     )}
                   </div>
@@ -490,7 +496,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     <div>
                       <h4 className="text-sm font-medium text-orange-800">Solo per uso interno</h4>
                       <p className="text-xs text-orange-700 mt-1">
-                        Solo per uso interno all'accademia. La data di fine sarà automaticamente impostata alla stessa data di inizio.
+                        Solo per uso interno. Da restituire a fine utilizzo
                       </p>
                     </div>
                   </div>

@@ -579,7 +579,7 @@ body: JSON.stringify({
        <div>
          <h4 className="text-sm font-medium text-orange-800">Solo per uso interno</h4>
          <p className="text-xs text-orange-700 mt-1">
-           Solo per uso interno all'accademia. La data di fine sarà automaticamente impostata alla stessa data di inizio.
+           Solo per uso interno. Da restituire a fine utilizzo
          </p>
        </div>
      </div>
