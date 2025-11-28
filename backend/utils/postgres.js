@@ -302,27 +302,9 @@ export async function initDatabase() {
       console.log('ℹ️ Corsi già presenti, nessun inserimento di default');
     }
 
-    // Inserisci categorie semplici di esempio solo se la tabella è vuota
-    const categorieSemplici = [
-      'Attrezzature Video',
-      'Computer e Software',
-      'Macchine da Cucire',
-      'Pennelli e Colori',
-      'Macchine Fotografiche',
-      'Obiettivi',
-      'Tavoli da Disegno',
-      'Software Design'
-    ];
-
-    const { rows: categorieCountRows } = await client.query('SELECT COUNT(*)::int AS count FROM categorie_semplici');
-    if (Number(categorieCountRows[0]?.count || 0) === 0) {
-      for (const nome of categorieSemplici) {
-        await client.query('INSERT INTO categorie_semplici (nome) VALUES ($1) ON CONFLICT (nome) DO NOTHING', [nome]);
-      }
-      console.log(`✅ Categorie semplici inserite: ${categorieSemplici.length}`);
-    } else {
-      console.log('ℹ️ Categorie personalizzate rilevate, seed non applicato');
-    }
+    // NON inserire categorie hardcoded - le categorie devono essere gestite manualmente
+    // Il seeding automatico è stato rimosso per preservare le categorie custom
+    console.log('ℹ️ Categorie: nessun seeding automatico - usa le categorie custom esistenti');
 
     client.release();
     

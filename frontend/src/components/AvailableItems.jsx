@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import NewRequestModal from './NewRequestModal';
+import { ItemListSkeleton } from './SkeletonLoader';
 
 const AvailableItems = () => {
   const [items, setItems] = useState([]);
@@ -93,8 +94,12 @@ const AvailableItems = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="p-6">
+        <div className="mb-6">
+          <div className="h-8 bg-gray-200 rounded w-48 mb-2 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-64 animate-pulse"></div>
+        </div>
+        <ItemListSkeleton count={6} />
       </div>
     );
   }

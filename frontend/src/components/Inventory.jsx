@@ -8,6 +8,7 @@ import {
 import StepInventoryModal from './StepInventoryModal';
 import OperationsDropdown from './OperationsDropdown';
 import QRCodeGenerator from './QRCodeGenerator';
+import { TableSkeleton } from './SkeletonLoader';
 import AdvancedFilters from './AdvancedFilters';
 
 const Inventory = () => {
@@ -497,12 +498,7 @@ const Inventory = () => {
   };
 
  if (loading) {
- return (
- <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
- <span className="ml-2 text-gray-600">Caricamento inventario...</span>
- </div>
- );
+ return <TableSkeleton rows={10} cols={8} />;
  }
 
   if (error) {

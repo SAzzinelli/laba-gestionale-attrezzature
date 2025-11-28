@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import StepInventoryModal from './StepInventoryModal';
 import QuickRequestModal from './QuickRequestModal';
+import { DashboardSkeleton } from './SkeletonLoader';
 
 const Dashboard = ({ onNavigate }) => {
  const [stats, setStats] = useState({
@@ -301,11 +302,7 @@ setRecentReports(reportsData.slice(0, 5));
  }, [token, isAdmin, fetchDashboardData]);
 
  if (loading) {
- return (
- <div className="flex items-center justify-center h-64">
- <div className="spinner"></div>
- </div>
- );
+ return <DashboardSkeleton />;
  }
 
 return (

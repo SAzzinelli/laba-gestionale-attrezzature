@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import NewRequestModal from './NewRequestModal';
 import ReportBugModal from './ReportBugModal';
+import { UserDashboardSkeleton } from './SkeletonLoader';
 
 const UserDashboard = () => {
   const [stats, setStats] = useState({
@@ -132,11 +133,7 @@ const UserDashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <UserDashboardSkeleton />;
   }
 
   return (

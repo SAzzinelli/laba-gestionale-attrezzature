@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { TableSkeleton } from './SkeletonLoader';
 
 const Repairs = () => {
  const [repairs, setRepairs] = useState([]);
@@ -287,12 +288,7 @@ const handleCancelRepair = async (repairId) => {
  };
 
  if (loading) {
- return (
- <div className="flex items-center justify-center h-64">
- <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
- <span className="ml-2 text-gray-600">Caricamento riparazioni...</span>
- </div>
- );
+ return <TableSkeleton rows={8} cols={6} />;
  }
 
  return (

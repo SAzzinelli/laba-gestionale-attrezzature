@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import NewRequestModal from './NewRequestModal';
+import { ItemListSkeleton } from './SkeletonLoader';
 
 const MyLoans = () => {
   const [loans, setLoans] = useState([]);
@@ -73,11 +74,7 @@ const MyLoans = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <ItemListSkeleton count={4} />;
   }
 
   return (
