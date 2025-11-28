@@ -220,7 +220,7 @@ const QuickActionModal = ({ isOpen, onClose, action, onSuccess }) => {
        />
        <div>
          <span className="text-sm font-medium text-gray-900">🏠 Uso Interno</span>
-         <p className="text-xs text-gray-600">Solo per uso interno. Da restituire a fine utilizzo</p>
+         <p className="text-xs text-gray-600">Solo per uso interno<br />Da restituire a fine utilizzo</p>
        </div>
      </label>
      

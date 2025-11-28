@@ -301,7 +301,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     <p className="text-sm text-gray-600">{item.categoria_nome}</p>
                     {item.tipo_prestito === 'solo_interno' && (
                       <p className="text-xs text-orange-600 mt-1">
-                        ⚠️ Solo per uso interno. Da restituire a fine utilizzo
+                        ⚠️ Solo per uso interno<br />Da restituire a fine utilizzo
                       </p>
                     )}
                   </div>
@@ -496,7 +496,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     <div>
                       <h4 className="text-sm font-medium text-orange-800">Solo per uso interno</h4>
                       <p className="text-xs text-orange-700 mt-1">
-                        Solo per uso interno. Da restituire a fine utilizzo
+                        Solo per uso interno<br />Da restituire a fine utilizzo
                       </p>
                     </div>
                   </div>
