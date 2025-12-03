@@ -58,27 +58,27 @@
   --gray-800: #1f2937;
   --gray-900: #111827;
   
-  /* Spacing Scale */
-  --space-3xs: 0.125rem;
-  --space-2xs: 0.25rem;
-  --space-xs: 0.5rem;
-  --space-sm: 0.75rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --space-2xl: 3rem;
-  --space-3xl: 4rem;
+  /* Spacing Scale - Ridotto all'85% */
+  --space-3xs: 0.10625rem;
+  --space-2xs: 0.2125rem;
+  --space-xs: 0.425rem;
+  --space-sm: 0.6375rem;
+  --space-md: 0.85rem;
+  --space-lg: 1.275rem;
+  --space-xl: 1.7rem;
+  --space-2xl: 2.55rem;
+  --space-3xl: 3.4rem;
   
-  /* Typography Scale */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-  --text-4xl: 2.25rem;
-  --text-5xl: 3rem;
+  /* Typography Scale - Ridotto all'85% */
+  --text-xs: 0.6375rem;
+  --text-sm: 0.74375rem;
+  --text-base: 0.85rem;
+  --text-lg: 0.95625rem;
+  --text-xl: 1.0625rem;
+  --text-2xl: 1.275rem;
+  --text-3xl: 1.59375rem;
+  --text-4xl: 1.9125rem;
+  --text-5xl: 2.55rem;
   
   /* Shadow System */
   --shadow-soft: 0 2px 15px rgba(0, 0, 0, 0.08);
@@ -111,6 +111,8 @@ body {
   background-color: var(--bg-secondary);
   color: var(--text-primary);
   transition: background-color 0.2s ease, color 0.2s ease;
+  /* Riduzione scala UI - 85% della dimensione originale */
+  font-size: 0.9375rem; /* 15px invece di 16px */
 }
 
 /* Utility classes for consistent theming */
@@ -130,7 +132,7 @@ body {
 .btn-primary {
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
   color: white;
-  padding: 0.75rem 1.5rem;
+  padding: 0.6375rem 1.275rem;
   border-radius: var(--radius-lg);
   font-weight: 600;
   border: none;
@@ -139,10 +141,11 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.425rem;
   box-shadow: var(--shadow-soft);
   position: relative;
   overflow: hidden;
+  font-size: 0.85rem;
 }
 
 .btn-primary::before {
@@ -179,7 +182,7 @@ body {
 .btn-secondary {
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
-  padding: 0.75rem 1.5rem;
+  padding: 0.6375rem 1.275rem;
   border-radius: var(--radius-lg);
   font-weight: 500;
   border: 1px solid var(--border-primary);
@@ -188,8 +191,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.425rem;
   box-shadow: var(--shadow-soft);
+  font-size: 0.85rem;
 }
 
 .btn-secondary:hover {
@@ -440,8 +444,8 @@ body {
 .card {
   background-color: var(--bg-primary);
   border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
+  border-radius: 0.6375rem;
+  padding: 1.275rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.2s ease;
 }
@@ -685,8 +689,8 @@ body {
   width: 100%;
     display: flex;
     align-items: center;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  padding: 0.6375rem 0.85rem;
+  border-radius: 0.425rem;
   text-align: left;
   transition: all 0.2s ease;
   border: none;
@@ -694,6 +698,7 @@ body {
   cursor: pointer;
   color: var(--text-secondary);
   font-weight: 500;
+  font-size: 0.85rem;
 }
 
 .nav-button:hover {
@@ -717,13 +722,13 @@ body {
   flex-shrink: 0;
 }
 
-/* Sidebar */
+/* Sidebar - Ridotto all'85% */
 .sidebar {
   background-color: var(--bg-primary);
   border-right: 1px solid var(--border-primary);
   transition: width 0.2s ease, transform 0.2s ease;
   height: 100vh;
-  width: 16rem; /* 64 = 16rem */
+  width: 13.6rem; /* 85% di 16rem */
   position: fixed;
   top: 0;
   left: 0;
@@ -1201,20 +1206,20 @@ footer {
   flex-shrink: 0 !important;
 }
 
-/* Fix KPI icons specifically */
+/* Fix KPI icons specifically - Ridotto all'85% */
 .icon-lg {
-  width: 3rem !important;
-  height: 3rem !important;
-  min-width: 3rem !important;
-  min-height: 3rem !important;
-  max-width: 3rem !important;
-  max-height: 3rem !important;
+  width: 2.55rem !important;
+  height: 2.55rem !important;
+  min-width: 2.55rem !important;
+  min-height: 2.55rem !important;
+  max-width: 2.55rem !important;
+  max-height: 2.55rem !important;
   flex-shrink: 0 !important;
 }
 
-/* Fix KPI text overflow and overlaps */
+/* Fix KPI text overflow and overlaps - Ridotto all'85% */
 .kpi-value {
-  font-size: 1.875rem !important;
+  font-size: 1.59375rem !important;
   font-weight: 700 !important;
   line-height: 1.2 !important;
   word-break: break-word !important;
@@ -1225,24 +1230,24 @@ footer {
 }
 
 .kpi-label {
-  font-size: 0.875rem !important;
-  line-height: 1.25rem !important;
-  margin-top: 0.25rem !important;
+  font-size: 0.74375rem !important;
+  line-height: 1.0625rem !important;
+  margin-top: 0.2125rem !important;
   word-break: break-word !important;
   overflow-wrap: break-word !important;
   max-width: 100% !important;
   display: block !important;
 }
 
-/* Ensure KPI cards have proper spacing */
+/* Ensure KPI cards have proper spacing - Ridotto all'85% */
 .kpi-card {
-  min-height: 120px !important;
+  min-height: 102px !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
   align-items: center !important;
   text-align: center !important;
-  padding: 1.5rem !important;
+  padding: 1.275rem !important;
 }
 
 .icon-sm {
@@ -1411,45 +1416,45 @@ footer {
 
 /* Large tablets (834px+) */
 @media (min-width: 834px) {
-  /* iPad-like experience */
+  /* iPad-like experience - Ridotto all'85% */
   .sidebar-desktop {
-    width: 16rem;
+    width: 13.6rem;
   }
 }
 
-/* Desktop (1024px+) */
+/* Desktop (1024px+) - Ridotto all'85% */
 @media (min-width: 1024px) {
   .sidebar-desktop {
     display: flex !important;
-    width: 16rem;
+    width: 13.6rem;
   }
   
-  /* Desktop-optimized spacing */
+  /* Desktop-optimized spacing - Ridotto all'85% */
   .card {
-    padding: 2rem;
+    padding: 1.7rem;
   }
   
   .kpi-card {
-    padding: 2rem !important;
+    padding: 1.7rem !important;
   }
   
-  /* Desktop button sizes */
+  /* Desktop button sizes - Ridotto all'85% */
   .btn-primary, .btn-secondary, .btn-success {
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    min-height: 44px;
+    padding: 0.6375rem 1.275rem;
+    font-size: 0.85rem;
+    min-height: 37.4px;
   }
 }
 
-/* Large Desktop (1280px+) */
+/* Large Desktop (1280px+) - Ridotto all'85% */
 @media (min-width: 1280px) {
   /* More generous spacing for large screens */
   .max-w-7xl {
-    max-width: 80rem;
+    max-width: 68rem;
   }
   
   .card {
-    padding: 2.5rem;
+    padding: 2.125rem;
   }
 }
 
