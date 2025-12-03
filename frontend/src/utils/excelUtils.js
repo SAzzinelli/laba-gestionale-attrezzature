@@ -1,3 +1,5 @@
+import * as XLSX from 'xlsx';
+
 // Export inventario to Excel - ora gestito dal backend
 export const exportInventoryToExcel = async (token) => {
   try {
