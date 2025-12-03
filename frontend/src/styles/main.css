@@ -1673,3 +1673,57 @@ button.text-lg,
 .space-y-2 > * + * {
   margin-top: 0.35rem !important; /* 70% di 0.5rem */
 }
+
+/* Aumento dimensioni per tabelle e liste utenti - 85% invece di 70% */
+table th,
+table td {
+  font-size: 0.85rem !important; /* 85% invece di 70% per text-sm */
+  padding: 0.85rem 1.275rem !important; /* 85% invece di 70% per py-4 px-6 */
+}
+
+table th {
+  font-size: 0.7875rem !important; /* 85% invece di 70% per text-xs */
+  font-weight: 600 !important;
+}
+
+/* Avatar nelle tabelle */
+table .w-8.h-8 {
+  width: 1.7rem !important; /* 85% invece di 70% */
+  height: 1.7rem !important;
+  font-size: 0.7rem !important;
+}
+
+/* Badge nelle tabelle */
+table .text-xs {
+  font-size: 0.7rem !important; /* 85% invece di 70% */
+  padding: 0.35rem 0.7rem !important; /* px-2 py-1 a 85% */
+}
+
+/* Testo nelle celle tabella */
+table .text-sm {
+  font-size: 0.85rem !important; /* 85% invece di 70% */
+}
+
+/* Bottoni nelle tabelle */
+table button {
+  font-size: 0.7rem !important; /* 85% invece di 70% */
+  padding: 0.35rem 0.7rem !important;
+}
+
+/* Card mobile per utenti */
+.bg-white.rounded-lg.shadow-lg.border.border-gray-200.p-4 {
+  padding: 0.85rem !important; /* 85% invece di 70% */
+}
+
+.bg-white.rounded-lg.shadow-lg.border.border-gray-200.p-4 .text-lg {
+  font-size: 0.95625rem !important; /* 85% invece di 70% */
+}
+
+.bg-white.rounded-lg.shadow-lg.border.border-gray-200.p-4 .text-sm {
+  font-size: 0.85rem !important; /* 85% invece di 70% */
+}
+
+.bg-white.rounded-lg.shadow-lg.border.border-gray-200.p-4 .w-12.h-12 {
+  width: 2.55rem !important; /* 85% invece di 70% */
+  height: 2.55rem !important;
+}
