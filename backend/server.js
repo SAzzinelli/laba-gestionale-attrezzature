@@ -19,7 +19,7 @@ import migrationRouter from "./routes/migration.js";
 import debugRouter from "./routes/debug.js";
 import penaltiesRouter from "./routes/penalties.js";
 import excelRouter from "./routes/excel.js";
-import { initDatabase } from './utils/postgres.js';
+import { initDatabase, query } from './utils/postgres.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -41,6 +41,18 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 app.get("/api/health", (_, res) => res.json({ ok: true, version: "1.0a", build: "304" }));
+
+// Keepalive endpoint per mantenere attivo il database Supabase
+app.get("/api/keepalive", async (_, res) => {
+  try {
+    // Query semplice per mantenere attiva la connessione al database
+    await query('SELECT 1');
+    res.json({ ok: true, message: 'Database keepalive successful', timestamp: new Date().toISOString() });
+  } catch (error) {
+    console.error('❌ Errore keepalive database:', error.message);
+    res.status(500).json({ ok: false, error: 'Database keepalive failed' });
+  }
+});
 
 app.use("/api/inventario", inventarioRouter);
 app.use("/api/prestiti", prestitiRouter);
