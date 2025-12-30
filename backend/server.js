@@ -58,20 +58,44 @@ app.get("/api/keepalive", async (_, res) => {
     let restActivity = null;
     if (supabase) {
       try {
-        const { count, error, data } = await supabase
+        console.log('🔄 Tentativo chiamata REST Supabase...');
+        const result = await supabase
           .from('users')
           .select('*', { count: 'exact', head: true });
         
-        if (error) {
-          console.warn('⚠️ Errore chiamata REST Supabase:', JSON.stringify(error));
-          restActivity = { error: error.message, rest_request: false };
+        console.log('📊 Risultato Supabase:', { 
+          hasError: !!result.error, 
+          count: result.count,
+          errorCode: result.error?.code,
+          errorMessage: result.error?.message 
+        });
+        
+        if (result.error) {
+          const errorDetails = {
+            message: result.error.message,
+            code: result.error.code,
+            details: result.error.details,
+            hint: result.error.hint
+          };
+          console.warn('⚠️ Errore chiamata REST Supabase:', JSON.stringify(errorDetails, null, 2));
+          restActivity = { 
+            error: result.error.message || 'Unknown error',
+            code: result.error.code,
+            rest_request: false 
+          };
         } else {
-          restActivity = { count: count || 0, rest_request: true };
-          console.log('✅ Chiamata REST Supabase riuscita, count:', count);
+          restActivity = { count: result.count || 0, rest_request: true };
+          console.log('✅ Chiamata REST Supabase riuscita, count:', result.count);
         }
       } catch (supabaseError) {
-        console.warn('⚠️ Chiamata REST Supabase non riuscita (non critico):', supabaseError.message);
-        restActivity = { error: supabaseError.message, rest_request: false };
+        console.error('❌ Eccezione chiamata REST Supabase:', {
+          message: supabaseError.message,
+          stack: supabaseError.stack
+        });
+        restActivity = { 
+          error: supabaseError.message || 'Unknown exception', 
+          rest_request: false 
+        };
       }
     } else {
       console.warn('⚠️ Client Supabase non disponibile');
