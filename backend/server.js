@@ -61,8 +61,11 @@ app.get("/api/keepalive", async (_, res) => {
         .from('users')
         .select('*', { count: 'exact', head: true });
       
-      if (!error) {
+      if (error) {
+        console.warn('⚠️ Errore chiamata REST Supabase:', error.message);
+      } else {
         restActivity = { count: count || 0, rest_request: true };
+        console.log('✅ Chiamata REST Supabase riuscita, count:', count);
       }
     } catch (supabaseError) {
       console.warn('⚠️ Chiamata REST Supabase non riuscita (non critico):', supabaseError.message);
