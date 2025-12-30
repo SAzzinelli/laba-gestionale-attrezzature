@@ -20,6 +20,7 @@ import debugRouter from "./routes/debug.js";
 import penaltiesRouter from "./routes/penalties.js";
 import excelRouter from "./routes/excel.js";
 import { initDatabase, query } from './utils/postgres.js';
+import supabase from './utils/supabaseStorage.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -45,13 +46,27 @@ app.get("/api/health", (_, res) => res.json({ ok: true, version: "1.0a", build: 
 // Keepalive endpoint per mantenere attivo il database Supabase
 app.get("/api/keepalive", async (_, res) => {
   try {
-    // Query significativa su tabelle reali per garantire che Supabase rilevi attività
-    // Eseguiamo query su più tabelle per massimizzare l'attività rilevata
+    // 1. Query dirette PostgreSQL (mantengono attivo il database)
     const [usersCount, inventarioCount, prestitiCount] = await Promise.all([
       query('SELECT COUNT(*) as count FROM users'),
       query('SELECT COUNT(*) as count FROM inventario'),
       query('SELECT COUNT(*) as count FROM prestiti WHERE stato = $1', ['attivo'])
     ]);
+    
+    // 2. Chiamata API REST Supabase (appare nelle statistiche "REST Requests")
+    // Facciamo una query semplice che verrà tracciata come attività REST
+    let restActivity = null;
+    try {
+      const { count, error } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true });
+      
+      if (!error) {
+        restActivity = { count: count || 0, rest_request: true };
+      }
+    } catch (supabaseError) {
+      console.warn('⚠️ Chiamata REST Supabase non riuscita (non critico):', supabaseError.message);
+    }
     
     res.json({ 
       ok: true, 
@@ -60,7 +75,8 @@ app.get("/api/keepalive", async (_, res) => {
       stats: {
         users: usersCount[0]?.count || 0,
         inventario: inventarioCount[0]?.count || 0,
-        prestiti_attivi: prestitiCount[0]?.count || 0
+        prestiti_attivi: prestitiCount[0]?.count || 0,
+        rest_api: restActivity
       }
     });
   } catch (error) {
