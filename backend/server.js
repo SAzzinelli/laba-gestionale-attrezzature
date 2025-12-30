@@ -45,9 +45,24 @@ app.get("/api/health", (_, res) => res.json({ ok: true, version: "1.0a", build: 
 // Keepalive endpoint per mantenere attivo il database Supabase
 app.get("/api/keepalive", async (_, res) => {
   try {
-    // Query semplice per mantenere attiva la connessione al database
-    await query('SELECT 1');
-    res.json({ ok: true, message: 'Database keepalive successful', timestamp: new Date().toISOString() });
+    // Query significativa su tabelle reali per garantire che Supabase rilevi attività
+    // Eseguiamo query su più tabelle per massimizzare l'attività rilevata
+    const [usersCount, inventarioCount, prestitiCount] = await Promise.all([
+      query('SELECT COUNT(*) as count FROM users'),
+      query('SELECT COUNT(*) as count FROM inventario'),
+      query('SELECT COUNT(*) as count FROM prestiti WHERE stato = $1', ['attivo'])
+    ]);
+    
+    res.json({ 
+      ok: true, 
+      message: 'Database keepalive successful', 
+      timestamp: new Date().toISOString(),
+      stats: {
+        users: usersCount[0]?.count || 0,
+        inventario: inventarioCount[0]?.count || 0,
+        prestiti_attivi: prestitiCount[0]?.count || 0
+      }
+    });
   } catch (error) {
     console.error('❌ Errore keepalive database:', error.message);
     res.status(500).json({ ok: false, error: 'Database keepalive failed' });
