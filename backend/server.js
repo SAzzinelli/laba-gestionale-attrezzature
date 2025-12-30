@@ -54,61 +54,63 @@ app.get("/api/keepalive", async (_, res) => {
     ]);
     
     // 2. Chiamata API REST Supabase (appare nelle statistiche "REST Requests")
-    // Facciamo una query semplice che verrà tracciata come attività REST
-    // Proviamo con inventario che probabilmente ha meno restrizioni RLS
+    // Facciamo una chiamata HTTP diretta all'API REST per bypassare eventuali problemi RLS
+    // Anche se fallisce, la chiamata HTTP viene comunque tracciata da Supabase
     let restActivity = null;
-    if (supabase) {
+    const supabaseUrl = process.env.SUPABASE_URL || 'https://kzqabwmtpmlhaueqiuoc.supabase.co';
+    const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6cWFid210cG1saGF1ZXFpdW9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzMjQ4NzEsImV4cCI6MjA1MDkwMDg3MX0.8Qj6bFqMXLt_RqGu0MmqN1gb436H1vYcKLCB8cmTLIQ';
+    
+    if (supabaseUrl && supabaseKey) {
       try {
-        console.log('🔄 Tentativo chiamata REST Supabase su tabella inventario...');
-        // Proviamo prima con inventario (più probabile che sia accessibile)
-        let result = await supabase
-          .from('inventario')
-          .select('*', { count: 'exact', head: true });
-        
-        // Se fallisce, proviamo con corsi
-        if (result.error) {
-          console.log('⚠️ Errore su inventario, provo con corsi...');
-          result = await supabase
-            .from('corsi')
-            .select('*', { count: 'exact', head: true });
-        }
-        
-        console.log('📊 Risultato Supabase:', { 
-          hasError: !!result.error, 
-          count: result.count,
-          errorCode: result.error?.code,
-          errorMessage: result.error?.message 
+        console.log('🔄 Chiamata HTTP diretta all\'API REST Supabase...');
+        // Chiamata HTTP diretta all'API REST - anche se fallisce per RLS, viene tracciata
+        const response = await fetch(`${supabaseUrl}/rest/v1/inventario?select=id&limit=1`, {
+          method: 'GET',
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'count=exact'
+          }
         });
         
-        if (result.error) {
-          // Anche se c'è un errore, la chiamata REST è stata fatta e verrà tracciata
-          console.warn('⚠️ Errore chiamata REST Supabase (ma la chiamata è stata tracciata):', {
-            message: result.error.message || 'Empty error message',
-            code: result.error.code || 'No error code'
-          });
+        const contentType = response.headers.get('content-type');
+        const countHeader = response.headers.get('content-range');
+        
+        console.log('📊 Risposta Supabase REST:', {
+          status: response.status,
+          statusText: response.statusText,
+          contentType,
+          countHeader
+        });
+        
+        // Anche se la risposta è 401/403 (RLS), la chiamata è stata tracciata
+        if (response.ok || response.status === 401 || response.status === 403) {
           restActivity = { 
-            error: result.error.message || 'RLS or permission issue',
-            code: result.error.code,
-            rest_request: true // Anche con errore, la chiamata REST è stata fatta
+            rest_request: true,
+            http_status: response.status,
+            tracked: true // La chiamata è stata tracciata anche con errore RLS
           };
+          console.log('✅ Chiamata REST Supabase tracciata (status:', response.status, ')');
         } else {
-          restActivity = { count: result.count || 0, rest_request: true };
-          console.log('✅ Chiamata REST Supabase riuscita, count:', result.count);
+          restActivity = { 
+            rest_request: true,
+            http_status: response.status,
+            tracked: true
+          };
+          console.log('⚠️ Chiamata REST Supabase tracciata ma con status:', response.status);
         }
-      } catch (supabaseError) {
-        console.error('❌ Eccezione chiamata REST Supabase:', {
-          message: supabaseError.message,
-          stack: supabaseError.stack
-        });
-        // Anche in caso di eccezione, la chiamata è stata tentata
+      } catch (fetchError) {
+        console.error('❌ Errore chiamata HTTP REST Supabase:', fetchError.message);
+        // Anche in caso di errore di rete, proviamo comunque
         restActivity = { 
-          error: supabaseError.message || 'Unknown exception', 
-          rest_request: true // La chiamata è stata comunque tentata
+          error: fetchError.message, 
+          rest_request: false 
         };
       }
     } else {
-      console.warn('⚠️ Client Supabase non disponibile');
-      restActivity = { error: 'Client Supabase non configurato', rest_request: false };
+      console.warn('⚠️ Configurazione Supabase non disponibile');
+      restActivity = { error: 'Configurazione Supabase mancante', rest_request: false };
     }
     
     res.json({ 
