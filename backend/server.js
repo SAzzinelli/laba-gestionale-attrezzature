@@ -56,19 +56,26 @@ app.get("/api/keepalive", async (_, res) => {
     // 2. Chiamata API REST Supabase (appare nelle statistiche "REST Requests")
     // Facciamo una query semplice che verrà tracciata come attività REST
     let restActivity = null;
-    try {
-      const { count, error } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true });
-      
-      if (error) {
-        console.warn('⚠️ Errore chiamata REST Supabase:', error.message);
-      } else {
-        restActivity = { count: count || 0, rest_request: true };
-        console.log('✅ Chiamata REST Supabase riuscita, count:', count);
+    if (supabase) {
+      try {
+        const { count, error, data } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+          console.warn('⚠️ Errore chiamata REST Supabase:', JSON.stringify(error));
+          restActivity = { error: error.message, rest_request: false };
+        } else {
+          restActivity = { count: count || 0, rest_request: true };
+          console.log('✅ Chiamata REST Supabase riuscita, count:', count);
+        }
+      } catch (supabaseError) {
+        console.warn('⚠️ Chiamata REST Supabase non riuscita (non critico):', supabaseError.message);
+        restActivity = { error: supabaseError.message, rest_request: false };
       }
-    } catch (supabaseError) {
-      console.warn('⚠️ Chiamata REST Supabase non riuscita (non critico):', supabaseError.message);
+    } else {
+      console.warn('⚠️ Client Supabase non disponibile');
+      restActivity = { error: 'Client Supabase non configurato', rest_request: false };
     }
     
     res.json({ 
