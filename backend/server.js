@@ -66,14 +66,12 @@ app.get("/api/keepalive", async (_, res) => {
           .select('*', { count: 'exact', head: true });
         
         if (result.error) {
-          console.warn('⚠️ Errore chiamata REST Supabase:', {
-            message: result.error.message,
-            code: result.error.code,
-            details: result.error.details
-          });
+          console.warn('⚠️ Errore chiamata REST Supabase:', JSON.stringify(result.error, null, 2));
           restActivity = { 
             error: result.error.message || 'Unknown error',
             code: result.error.code,
+            details: result.error.details,
+            hint: result.error.hint,
             rest_request: false
           };
         } else {
