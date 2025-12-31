@@ -313,10 +313,19 @@ export async function initDatabase() {
     // Il seeding automatico è stato rimosso per preservare le categorie custom
     console.log('ℹ️ Categorie: nessun seeding automatico - usa le categorie custom esistenti');
 
-    // Disabilita RLS sulla tabella keepalive_log (non contiene dati sensibili)
+    // Abilita RLS sulla tabella keepalive_log e crea policy permissiva
     try {
-      await client.query('ALTER TABLE keepalive_log DISABLE ROW LEVEL SECURITY');
-      console.log('✅ RLS disabilitato su keepalive_log');
+      await client.query('ALTER TABLE keepalive_log ENABLE ROW LEVEL SECURITY');
+      // Crea policy permissiva per accesso anonimo (non contiene dati sensibili)
+      await client.query(`
+        CREATE POLICY IF NOT EXISTS "Allow anonymous access for keepalive"
+        ON keepalive_log
+        FOR ALL
+        TO anon
+        USING (true)
+        WITH CHECK (true)
+      `);
+      console.log('✅ RLS abilitato e policy creata su keepalive_log');
     } catch (error) {
       console.log('ℹ️ RLS già configurato su keepalive_log');
     }
