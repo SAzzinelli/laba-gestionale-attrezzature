@@ -316,9 +316,10 @@ export async function initDatabase() {
     // Abilita RLS sulla tabella keepalive_log e crea policy permissiva
     try {
       await client.query('ALTER TABLE keepalive_log ENABLE ROW LEVEL SECURITY');
-      // Crea policy permissiva per accesso anonimo (non contiene dati sensibili)
+      // Elimina la policy se esiste già, poi la ricrea (PostgreSQL non supporta IF NOT EXISTS per POLICY)
+      await client.query('DROP POLICY IF EXISTS "Allow anonymous access for keepalive" ON keepalive_log');
       await client.query(`
-        CREATE POLICY IF NOT EXISTS "Allow anonymous access for keepalive"
+        CREATE POLICY "Allow anonymous access for keepalive"
         ON keepalive_log
         FOR ALL
         TO anon
@@ -327,7 +328,7 @@ export async function initDatabase() {
       `);
       console.log('✅ RLS abilitato e policy creata su keepalive_log');
     } catch (error) {
-      console.log('ℹ️ RLS già configurato su keepalive_log');
+      console.log('ℹ️ RLS già configurato su keepalive_log:', error.message);
     }
 
     // Inserisci record iniziale in keepalive_log se non esiste

@@ -11,7 +11,9 @@ ALTER TABLE "public"."keepalive_log" ENABLE ROW LEVEL SECURITY;
 
 -- Crea policy permissiva per accesso anonimo (SELECT, INSERT, UPDATE, DELETE)
 -- Questa tabella non contiene dati sensibili, quindi possiamo permettere tutto
-CREATE POLICY IF NOT EXISTS "Allow anonymous access for keepalive"
+-- Prima elimina la policy se esiste già, poi la ricrea
+DROP POLICY IF EXISTS "Allow anonymous access for keepalive" ON "public"."keepalive_log";
+CREATE POLICY "Allow anonymous access for keepalive"
 ON "public"."keepalive_log"
 FOR ALL
 TO anon
