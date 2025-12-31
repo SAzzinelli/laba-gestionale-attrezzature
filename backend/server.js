@@ -54,15 +54,15 @@ app.get("/api/keepalive", async (_, res) => {
     ]);
     
     // 2. Chiamata API REST Supabase (appare nelle statistiche "REST Requests")
-    // Usa il client Supabase con head: true per fare solo COUNT (non espone dati reali)
-    // Richiede policy RLS che permettono SELECT anonimo (vedi migrations/rls_keepalive_policies.sql)
+    // Usa una tabella dedicata 'keepalive_log' che non contiene dati sensibili
+    // RLS è disabilitato su questa tabella (vedi migrations/rls_keepalive_policies.sql)
     let restActivity = null;
     if (supabase) {
       try {
-        console.log('🔄 Chiamata REST Supabase con client...');
-        // Usa head: true per fare solo COUNT senza restituire dati
+        console.log('🔄 Chiamata REST Supabase su tabella keepalive_log...');
+        // Query su tabella dedicata (senza dati sensibili, RLS disabilitato)
         const result = await supabase
-          .from('inventario')
+          .from('keepalive_log')
           .select('*', { count: 'exact', head: true });
         
         if (result.error) {
@@ -72,7 +72,7 @@ app.get("/api/keepalive", async (_, res) => {
             details: result.error.details
           });
           restActivity = { 
-            error: result.error.message || 'RLS policy issue',
+            error: result.error.message || 'Unknown error',
             code: result.error.code,
             rest_request: false
           };

@@ -221,6 +221,13 @@ export async function initDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         expires_at TIMESTAMP NOT NULL
       );
+
+      -- Tabella keepalive_log (per tracciare attività REST API in Supabase)
+      CREATE TABLE IF NOT EXISTS keepalive_log (
+        id SERIAL PRIMARY KEY,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status VARCHAR(50) DEFAULT 'ok'
+      );
     `);
 
     // Aggiungi colonna immagine_url se non esiste
@@ -305,6 +312,25 @@ export async function initDatabase() {
     // NON inserire categorie hardcoded - le categorie devono essere gestite manualmente
     // Il seeding automatico è stato rimosso per preservare le categorie custom
     console.log('ℹ️ Categorie: nessun seeding automatico - usa le categorie custom esistenti');
+
+    // Disabilita RLS sulla tabella keepalive_log (non contiene dati sensibili)
+    try {
+      await client.query('ALTER TABLE keepalive_log DISABLE ROW LEVEL SECURITY');
+      console.log('✅ RLS disabilitato su keepalive_log');
+    } catch (error) {
+      console.log('ℹ️ RLS già configurato su keepalive_log');
+    }
+
+    // Inserisci record iniziale in keepalive_log se non esiste
+    try {
+      const keepaliveExists = await client.query('SELECT id FROM keepalive_log LIMIT 1');
+      if (keepaliveExists.rows.length === 0) {
+        await client.query('INSERT INTO keepalive_log (status) VALUES ($1)', ['initialized']);
+        console.log('✅ Record iniziale inserito in keepalive_log');
+      }
+    } catch (error) {
+      console.log('ℹ️ keepalive_log già inizializzato');
+    }
 
     client.release();
     
