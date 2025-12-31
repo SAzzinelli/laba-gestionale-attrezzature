@@ -289,7 +289,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  {/* Footer */}
  <div className="text-center">
  <p className="text-xs text-gray-500 ">
- © 2025 {branding}. Tutti i diritti riservati.
+ © 2026 {branding}. Tutti i diritti riservati.
  </p>
  </div>
  </div>

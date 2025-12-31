@@ -550,4 +550,4 @@ Questo progetto è proprietario di **LABA Firenze**. Tutti i diritti riservati.
 
 **Sviluppato con ❤️ per LABA Firenze**
 
-*Versione 2.1.0 - Gennaio 2025*
+*Versione 2.0.0 - Build 100 - 2026*
