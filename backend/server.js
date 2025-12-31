@@ -55,15 +55,26 @@ app.get("/api/keepalive", async (_, res) => {
     
     // 2. Chiamata API REST Supabase (appare nelle statistiche "REST Requests")
     // Usa una tabella dedicata 'keepalive_log' che non contiene dati sensibili
-    // RLS è disabilitato su questa tabella (vedi migrations/rls_keepalive_policies.sql)
+    // RLS è abilitato con policy permissiva (vedi migrations/rls_keepalive_policies.sql)
     let restActivity = null;
     if (supabase) {
       try {
         console.log('🔄 Chiamata REST Supabase su tabella keepalive_log...');
-        // Query su tabella dedicata (senza dati sensibili, RLS disabilitato)
+        // Query su tabella dedicata (senza dati sensibili, RLS con policy permissiva)
         const result = await supabase
           .from('keepalive_log')
-          .select('*', { count: 'exact', head: true });
+          .select('id', { count: 'exact', head: true });
+        
+        console.log('📊 Risultato completo Supabase:', {
+          hasError: !!result.error,
+          count: result.count,
+          error: result.error ? {
+            message: result.error.message,
+            code: result.error.code,
+            details: result.error.details,
+            hint: result.error.hint
+          } : null
+        });
         
         if (result.error) {
           console.warn('⚠️ Errore chiamata REST Supabase:', JSON.stringify(result.error, null, 2));
@@ -82,7 +93,10 @@ app.get("/api/keepalive", async (_, res) => {
           console.log('✅ Chiamata REST Supabase riuscita, count:', result.count);
         }
       } catch (supabaseError) {
-        console.error('❌ Eccezione chiamata REST Supabase:', supabaseError.message);
+        console.error('❌ Eccezione chiamata REST Supabase:', {
+          message: supabaseError.message,
+          stack: supabaseError.stack
+        });
         restActivity = { 
           error: supabaseError.message, 
           rest_request: false 
