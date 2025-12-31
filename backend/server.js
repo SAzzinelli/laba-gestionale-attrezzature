@@ -59,7 +59,11 @@ app.get("/api/keepalive", async (_, res) => {
     let restActivity = null;
     if (supabase) {
       try {
-        console.log('🔄 Chiamata REST Supabase su tabella keepalive_log...');
+        const supabaseUrl = process.env.SUPABASE_URL || 'https://kzqabwmtpmlhaueqiuoc.supabase.co';
+        console.log('🔄 Chiamata REST Supabase su tabella keepalive_log...', {
+          url: supabaseUrl,
+          hasAnonKey: !!process.env.SUPABASE_ANON_KEY
+        });
         // Query su tabella dedicata (senza dati sensibili, RLS con policy permissiva)
         const result = await supabase
           .from('keepalive_log')
