@@ -189,6 +189,15 @@ const inRepairItems = activeRepairs.reduce((total, repair) => {
  const availableQuantity = item.unita_disponibili || 0;
  const loanedQuantity = totalQuantity - availableQuantity;
  
+ // Verifica se l'oggetto ha riparazioni attive
+ const itemRepairs = activeRepairs.filter(repair => repair.inventario_id === item.id);
+ const hasActiveRepairs = itemRepairs.length > 0;
+ 
+ // Se l'oggetto è in riparazione, NON considerarlo come scorta bassa
+ if (hasActiveRepairs) {
+ return; // Salta questo oggetto - è in riparazione, non è una scorta bassa
+ }
+ 
  // REGOLA SPECIALE: Se c'è solo 1 oggetto e è disponibile, NON è scarsità
  if (totalQuantity === 1 && availableQuantity === 1) {
  return; // Salta questo oggetto - oggetti singoli disponibili NON sono scarsità
@@ -217,6 +226,7 @@ const inRepairItems = activeRepairs.reduce((total, repair) => {
  }
  
  // Se disponibili = 0, significa che TUTTI sono in prestito (ESAURITO)
+ // Ma solo se NON è in riparazione (già controllato sopra)
  if (availableQuantity === 0) {
  lowStockItems.push({
  ...item,
