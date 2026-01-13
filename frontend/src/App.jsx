@@ -30,6 +30,7 @@ function AppInner() {
   const [selectedRequestFromNotification, setSelectedRequestFromNotification] = useState(null);
   
   const [penaltiesCount, setPenaltiesCount] = useState(0);
+  const { isAdmin, user, logout, token } = useAuth();
 
   // Fetch penalties count
   useEffect(() => {
@@ -70,7 +71,6 @@ function AppInner() {
   ];
   
   const [notifications, setNotifications] = useState([]);
-  const { isAdmin, user, logout, token } = useAuth();
  // const { isDark, toggleTheme } = useTheme();
  
  // Hook per notifiche in tempo reale
