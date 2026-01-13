@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
@@ -112,11 +112,7 @@ const canManagePenalties = useMemo(() => {
  'Regia e Videomaking'
  ];
 
- useEffect(() => {
- fetchUsers();
- }, []);
-
- const fetchUsers = async () => {
+ const fetchUsers = useCallback(async () => {
    try {
      setLoading(true);
      const response = await fetch(`${API_BASE_URL}/api/auth/users`, {
@@ -136,7 +132,11 @@ const canManagePenalties = useMemo(() => {
    } finally {
      setLoading(false);
    }
- };
+ }, [token]);
+
+ useEffect(() => {
+ fetchUsers();
+ }, [fetchUsers]);
 
 const normalizedUsers = useMemo(() => (users || []).map(mapFetchedUser), [users]);
 
