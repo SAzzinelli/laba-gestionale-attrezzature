@@ -58,9 +58,9 @@ const getRoleBadge = (role) => {
   return { text: 'Utente', className: 'bg-green-100 text-green-800' };
 };
 
-const currentRole = normalizeRole(currentUser?.ruolo);
-const isSystemAdmin = currentUser?.id === -1 || currentRole === 'admin';
-const isCurrentSupervisor = currentRole === 'supervisor';
+const currentRole = useMemo(() => normalizeRole(currentUser?.ruolo), [currentUser]);
+const isSystemAdmin = useMemo(() => currentUser?.id === -1 || currentRole === 'admin', [currentUser, currentRole]);
+const isCurrentSupervisor = useMemo(() => currentRole === 'supervisor', [currentRole]);
 
 const canDeleteUser = useMemo(() => {
   return (targetUser) => {
