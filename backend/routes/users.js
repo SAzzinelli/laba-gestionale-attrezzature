@@ -106,12 +106,44 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 
     // Controlla se l'utente ha prestiti attivi
     // Verifica sia tramite il campo 'chi' che tramite le richieste collegate
+    // IMPORTANTE: Solo prestiti con stato esattamente 'attivo' sono considerati attivi
+    // Gli stati 'restituito', 'completato', NULL o vuoti NON sono considerati attivi
     const fullName = `${userName} ${userSurname}`.trim();
+    
+    // Prima verifica tutti i prestiti dell'utente per debug
+    const allUserLoans = await query(`
+      SELECT p.id, p.stato, p.chi, p.data_uscita, p.data_rientro, r.utente_id as richiesta_utente_id
+      FROM prestiti p 
+      LEFT JOIN richieste r ON r.id = p.richiesta_id
+      WHERE (
+        -- Controllo tramite campo chi (nome/email)
+        p.chi = $1 OR 
+        p.chi = $2 OR 
+        p.chi LIKE $3 OR 
+        p.chi LIKE $4 OR
+        (p.chi LIKE $5 AND p.chi LIKE $6)
+        OR
+        -- Controllo tramite richiesta collegata
+        r.utente_id = $7
+      )
+    `, [
+      userEmail,
+      fullName,
+      `%${userEmail}%`,
+      `%${fullName}%`,
+      `%${userName}%`,
+      `%${userSurname}%`,
+      userId
+    ]);
+    
+    console.log(`[DELETE USER] Prestiti trovati per utente ${userId} (${userEmail}):`, allUserLoans);
+    
+    // Conta solo i prestiti con stato esattamente 'attivo' (case-sensitive)
     const activeLoans = await query(`
       SELECT COUNT(*)::int as count 
       FROM prestiti p 
       LEFT JOIN richieste r ON r.id = p.richiesta_id
-      WHERE p.stato = 'attivo'
+      WHERE LOWER(TRIM(p.stato)) = 'attivo'
       AND (
         -- Controllo tramite campo chi (nome/email)
         p.chi = $1 OR 
@@ -132,6 +164,8 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       `%${userSurname}%`,
       userId
     ]);
+    
+    console.log(`[DELETE USER] Prestiti attivi trovati: ${activeLoans[0]?.count || 0}`);
     
     if (activeLoans[0]?.count > 0) {
       return res.status(400).json({ 

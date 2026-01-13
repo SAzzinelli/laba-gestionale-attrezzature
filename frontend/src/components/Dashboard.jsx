@@ -182,9 +182,15 @@ const inRepairItems = activeRepairs.reduce((total, repair) => {
 
 // Conta solo le richieste attive (in_attesa e approvata), escludendo quelle rifiutate o completate
 const activeRequests = requestsData.filter(request => {
-  const stato = (request.stato || '').toString().toLowerCase();
-  return stato === 'in_attesa' || stato === 'approvata';
+  const stato = (request.stato || '').toString().toLowerCase().trim();
+  const isActive = stato === 'in_attesa' || stato === 'approvata';
+  return isActive;
 });
+
+// Debug: log per verificare il conteggio
+console.log('[Dashboard] Total requests:', requestsData.length);
+console.log('[Dashboard] Active requests (in_attesa/approvata):', activeRequests.length);
+console.log('[Dashboard] Request states:', requestsData.map(r => ({ id: r.id, stato: r.stato })));
  
  // Calcola scorte basse basate sui PRESTITI ATTIVI e sulla SCARSITÀ
  const calculateLowStockItems = () => {
