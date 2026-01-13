@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import pool from '../utils/postgres.js';
+import { normalizeRole } from '../utils/roles.js';
 
 const router = Router();
 
@@ -38,11 +39,16 @@ const assignPenalty = async (userId, prestitoId, delayDays, createdBy = null) =>
     const strikes = calculateStrikes(delayDays);
     const motivo = `Ritardo di ${delayDays} giorno/i nella restituzione`;
     
+    // Gestisci created_by: se l'admin speciale (id = -1), usa NULL invece di -1
+    // perché -1 non esiste nella tabella users
+    const createdById = createdBy === -1 ? null : createdBy;
+    const blockedById = createdBy === -1 ? null : createdBy;
+    
     // Inserisci la penalità dettagliata
     await client.query(
       `INSERT INTO user_penalties (user_id, prestito_id, tipo, giorni_ritardo, strike_assegnati, motivo, created_by)
        VALUES ($1, $2, 'ritardo', $3, $4, $5, $6)`,
-      [userId, prestitoId, delayDays, strikes, motivo, createdBy]
+      [userId, prestitoId, delayDays, strikes, motivo, createdById]
     );
     
     // Aggiorna i strike totali dell'utente
@@ -66,7 +72,7 @@ const assignPenalty = async (userId, prestitoId, delayDays, createdBy = null) =>
              blocked_at = CURRENT_TIMESTAMP,
              blocked_by = $1
          WHERE id = $2`,
-        [createdBy, userId]
+        [blockedById, userId]
       );
     }
     
@@ -93,7 +99,10 @@ router.get('/user/:userId', requireAuth, async (req, res) => {
     const { userId } = req.params;
     
     // Verifica che l'utente possa vedere queste informazioni
-    if (req.user.role !== 'admin' && req.user.id !== parseInt(userId)) {
+    const userRole = normalizeRole(req.user.ruolo, req.user.id, req.user.email);
+    const isAdmin = req.user.id === -1 || userRole === 'admin' || userRole === 'supervisor';
+    
+    if (!isAdmin && req.user.id !== parseInt(userId)) {
       return res.status(403).json({ error: 'Non autorizzato' });
     }
     
@@ -180,11 +189,16 @@ router.post('/assign-manual', requireAuth, requireRole('admin'), async (req, res
     
     await client.query('BEGIN');
     
+    // Gestisci created_by: se l'admin speciale (id = -1), usa NULL invece di -1
+    // perché -1 non esiste nella tabella users
+    const createdById = req.user.id === -1 ? null : req.user.id;
+    const blockedById = req.user.id === -1 ? null : req.user.id;
+    
     // Inserisci la penalità manuale (prestito_id può essere NULL)
     await client.query(
       `INSERT INTO user_penalties (user_id, prestito_id, tipo, giorni_ritardo, strike_assegnati, motivo, created_by)
        VALUES ($1, $2, 'manuale', 0, $3, $4, $5)`,
-      [userId, prestitoId || null, strikesNum, motivo || 'Penalità assegnata manualmente dall\'amministratore', req.user.id]
+      [userId, prestitoId || null, strikesNum, motivo || 'Penalità assegnata manualmente dall\'amministratore', createdById]
     );
     
     // Aggiorna i strike totali dell'utente
@@ -208,7 +222,7 @@ router.post('/assign-manual', requireAuth, requireRole('admin'), async (req, res
              blocked_at = CURRENT_TIMESTAMP,
              blocked_by = $1
          WHERE id = $2`,
-        [req.user.id, userId]
+        [blockedById, userId]
       );
     }
     
