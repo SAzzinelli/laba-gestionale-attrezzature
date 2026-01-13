@@ -322,6 +322,8 @@ setError(err.message);
 const openPenaltyModal = async (user) => {
 setSelectedUserForPenalty(user);
 setShowPenaltyModal(true);
+setManualPenaltyStrikes(1);
+setManualPenaltyMotivo('');
 await fetchUserPenalties(user.id);
 };
 
@@ -358,6 +360,59 @@ throw new Error(errorData.error || 'Errore nello sblocco utente');
 
 await fetchUsers();
 setShowPenaltyModal(false);
+} catch (err) {
+setError(err.message);
+}
+};
+
+const [manualPenaltyStrikes, setManualPenaltyStrikes] = useState(1);
+const [manualPenaltyMotivo, setManualPenaltyMotivo] = useState('');
+
+const handleAssignManualPenalty = async () => {
+try {
+if (!manualPenaltyStrikes || manualPenaltyStrikes < 1 || manualPenaltyStrikes > 3) {
+setError('Il numero di strike deve essere tra 1 e 3');
+return;
+}
+
+const currentStrikes = selectedUserForPenalty.penalty_strikes || 0;
+const newTotal = currentStrikes + manualPenaltyStrikes;
+
+if (newTotal > 3) {
+const confirm = window.confirm(
+`ATTENZIONE: L'utente ha attualmente ${currentStrikes} strike. Assegnando ${manualPenaltyStrikes} strike, l'utente avrà ${newTotal} strike (supera il limite di 3). Vuoi continuare?`
+);
+if (!confirm) return;
+}
+
+const response = await fetch(`${API_BASE_URL}/api/penalties/assign-manual`, {
+method: 'POST',
+headers: {
+'Authorization': `Bearer ${token}`,
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({
+userId: selectedUserForPenalty.id,
+strikes: manualPenaltyStrikes,
+motivo: manualPenaltyMotivo || undefined
+})
+});
+
+if (!response.ok) {
+const errorData = await response.json();
+throw new Error(errorData.error || 'Errore nell\'assegnazione penalità');
+}
+
+const data = await response.json();
+alert(data.message || 'Penalità assegnata con successo');
+
+// Reset form
+setManualPenaltyStrikes(1);
+setManualPenaltyMotivo('');
+
+// Refresh data
+await fetchUsers();
+await fetchUserPenalties(selectedUserForPenalty.id);
 } catch (err) {
 setError(err.message);
 }
@@ -1218,8 +1273,10 @@ Nessuna Penalità
 <div key={penalty.id} className="bg-white border border-gray-200 rounded-lg p-4">
 <div className="flex items-start justify-between mb-2">
 <div>
-<p className="font-medium text-gray-900">{penalty.articolo_nome}</p>
-<p className="text-sm text-gray-600">{penalty.motivo}</p>
+<p className="font-medium text-gray-900">
+{penalty.articolo_nome || (penalty.tipo === 'manuale' ? 'Penalità Manuale' : 'Penalità')}
+</p>
+<p className="text-sm text-gray-600">{penalty.motivo || 'Nessun motivo specificato'}</p>
 </div>
 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
 penalty.strike_assegnati >= 2 ? 'bg-red-100 text-red-800' :
@@ -1230,7 +1287,9 @@ penalty.strike_assegnati === 1 ? 'bg-orange-100 text-orange-800' :
 </span>
 </div>
 <div className="text-xs text-gray-500 flex items-center justify-between">
-<span>Ritardo: {penalty.giorni_ritardo} giorni</span>
+<span>
+{penalty.tipo === 'manuale' ? 'Penalità Manuale' : `Ritardo: ${penalty.giorni_ritardo} giorni`}
+</span>
 <span>{new Date(penalty.created_at).toLocaleDateString('it-IT')}</span>
 </div>
 {penalty.created_by_name && (
@@ -1243,6 +1302,55 @@ Assegnata da: {penalty.created_by_name} {penalty.created_by_surname}
 </div>
 )}
 </div>
+
+{/* Assign Manual Penalty */}
+{!selectedUserForPenalty.is_blocked && (
+<div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+<h4 className="text-md font-semibold text-blue-900 mb-3">Assegna Penalità Manuale</h4>
+<div className="space-y-3">
+<div>
+<label className="block text-sm font-medium text-gray-700 mb-1">
+Numero di Strike (1-3)
+</label>
+<select
+value={manualPenaltyStrikes}
+onChange={(e) => setManualPenaltyStrikes(parseInt(e.target.value))}
+className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+>
+<option value={1}>1 Strike</option>
+<option value={2}>2 Strike</option>
+<option value={3}>3 Strike</option>
+</select>
+<p className="text-xs text-gray-500 mt-1">
+Strike attuali: {selectedUserForPenalty.penalty_strikes || 0} / 3
+{selectedUserForPenalty.penalty_strikes + manualPenaltyStrikes > 3 && (
+<span className="text-red-600 font-semibold ml-2">
+⚠️ Supererà il limite di 3!
+</span>
+)}
+</p>
+</div>
+<div>
+<label className="block text-sm font-medium text-gray-700 mb-1">
+Motivo (opzionale)
+</label>
+<textarea
+value={manualPenaltyMotivo}
+onChange={(e) => setManualPenaltyMotivo(e.target.value)}
+placeholder="Inserisci il motivo della penalità..."
+rows={3}
+className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+/>
+</div>
+<button
+onClick={handleAssignManualPenalty}
+className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+>
+Assegna Penalità
+</button>
+</div>
+</div>
+)}
 
 {/* Actions */}
 {selectedUserForPenalty.is_blocked && (

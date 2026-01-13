@@ -185,7 +185,7 @@ export async function initDatabase() {
       CREATE TABLE IF NOT EXISTS user_penalties (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        prestito_id INTEGER NOT NULL REFERENCES prestiti(id) ON DELETE CASCADE,
+        prestito_id INTEGER REFERENCES prestiti(id) ON DELETE SET NULL,
         tipo VARCHAR(50) DEFAULT 'ritardo',
         giorni_ritardo INTEGER DEFAULT 0,
         strike_assegnati INTEGER DEFAULT 1,
@@ -272,6 +272,17 @@ export async function initDatabase() {
       console.log('✅ Colonna tipo_utilizzo aggiunta alla tabella richieste');
     } catch (error) {
       console.log('ℹ️ Colonna tipo_utilizzo già esistente');
+    }
+
+    // Modifica prestito_id in user_penalties per permettere NULL (per penalità manuali)
+    try {
+      await client.query(`
+        ALTER TABLE user_penalties 
+        ALTER COLUMN prestito_id DROP NOT NULL
+      `);
+      console.log('✅ Colonna prestito_id modificata per permettere NULL');
+    } catch (error) {
+      console.log('ℹ️ Colonna prestito_id già modificata o tabella non esiste');
     }
 
     // Inserisci admin user se non esiste

@@ -102,8 +102,8 @@ router.get('/user/:userId', requireAuth, async (req, res) => {
               i.nome as articolo_nome,
               creator.name as created_by_name, creator.surname as created_by_surname
        FROM user_penalties p
-       JOIN prestiti pr ON p.prestito_id = pr.id
-       JOIN inventario i ON pr.inventario_id = i.id
+       LEFT JOIN prestiti pr ON p.prestito_id = pr.id
+       LEFT JOIN inventario i ON pr.inventario_id = i.id
        LEFT JOIN users creator ON p.created_by = creator.id
        WHERE p.user_id = $1
        ORDER BY p.created_at DESC`,
@@ -146,6 +146,90 @@ router.post('/assign', requireAuth, requireRole('admin'), async (req, res) => {
   } catch (error) {
     console.error('Errore nell\'assegnazione penalità:', error);
     res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// POST /api/penalties/assign-manual - Assegna penalità manualmente senza prestito (solo admin)
+router.post('/assign-manual', requireAuth, requireRole('admin'), async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { userId, strikes, motivo, prestitoId } = req.body;
+    
+    if (!userId || !strikes) {
+      return res.status(400).json({ error: 'ID utente e numero di strike sono obbligatori' });
+    }
+    
+    // Valida che strikes sia tra 1 e 3
+    const strikesNum = parseInt(strikes);
+    if (isNaN(strikesNum) || strikesNum < 1 || strikesNum > 3) {
+      return res.status(400).json({ error: 'Il numero di strike deve essere tra 1 e 3' });
+    }
+    
+    // Verifica che l'utente esista
+    const userResult = await client.query('SELECT id, penalty_strikes FROM users WHERE id = $1', [userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Utente non trovato' });
+    }
+    
+    const currentStrikes = userResult.rows[0].penalty_strikes || 0;
+    const newTotalStrikes = currentStrikes + strikesNum;
+    
+    // Avvisa se supera il limite di 3, ma permette comunque l'assegnazione
+    const willExceed = newTotalStrikes > 3;
+    
+    await client.query('BEGIN');
+    
+    // Inserisci la penalità manuale (prestito_id può essere NULL)
+    await client.query(
+      `INSERT INTO user_penalties (user_id, prestito_id, tipo, giorni_ritardo, strike_assegnati, motivo, created_by)
+       VALUES ($1, $2, 'manuale', 0, $3, $4, $5)`,
+      [userId, prestitoId || null, strikesNum, motivo || 'Penalità assegnata manualmente dall\'amministratore', req.user.id]
+    );
+    
+    // Aggiorna i strike totali dell'utente
+    const result = await client.query(
+      `UPDATE users 
+       SET penalty_strikes = penalty_strikes + $1,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING penalty_strikes`,
+      [strikesNum, userId]
+    );
+    
+    const totalStrikes = result.rows[0].penalty_strikes;
+    
+    // Se ha raggiunto o superato 3 strike, blocca l'utente
+    if (totalStrikes >= 3) {
+      await client.query(
+        `UPDATE users 
+         SET is_blocked = TRUE,
+             blocked_reason = 'Utente bloccato per aver accumulato 3 o più penalità',
+             blocked_at = CURRENT_TIMESTAMP,
+             blocked_by = $1
+         WHERE id = $2`,
+        [req.user.id, userId]
+      );
+    }
+    
+    await client.query('COMMIT');
+    
+    res.json({
+      message: willExceed 
+        ? `Penalità assegnata. ATTENZIONE: L'utente ha ora ${totalStrikes} strike (supera il limite di 3).`
+        : 'Penalità assegnata con successo',
+      strikesAssigned: strikesNum,
+      totalStrikes: totalStrikes,
+      isBlocked: totalStrikes >= 3,
+      willExceed: willExceed
+    });
+    
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Errore nell\'assegnazione penalità manuale:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  } finally {
+    client.release();
   }
 });
 
