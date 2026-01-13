@@ -89,12 +89,12 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(400).json({ error: 'Non è possibile eliminare l\'admin principale' });
     }
     
-    // Prima ottengo l'email dell'utente
-    const userResult = await query('SELECT email, ruolo FROM users WHERE id = $1', [userId]);
+    // Prima ottengo i dati dell'utente
+    const userResult = await query('SELECT email, ruolo, name, surname FROM users WHERE id = $1', [userId]);
     if (userResult.length === 0) {
       return res.status(404).json({ error: 'Utente non trovato' });
     }
-    const { email: userEmail, ruolo: targetRole } = userResult[0];
+    const { email: userEmail, ruolo: targetRole, name: userName, surname: userSurname } = userResult[0];
 
     const requesterRole = (req.user?.ruolo || '').toLowerCase();
     const isSupervisor = requesterRole === 'supervisor';
@@ -105,11 +105,33 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     }
 
     // Controlla se l'utente ha prestiti attivi
+    // Verifica sia tramite il campo 'chi' che tramite le richieste collegate
+    const fullName = `${userName} ${userSurname}`.trim();
     const activeLoans = await query(`
       SELECT COUNT(*)::int as count 
       FROM prestiti p 
-      WHERE (p.chi LIKE $1 OR p.chi = $2) AND p.stato = 'attivo'
-    `, [`%${userEmail}%`, userEmail]);
+      LEFT JOIN richieste r ON r.id = p.richiesta_id
+      WHERE p.stato = 'attivo'
+      AND (
+        -- Controllo tramite campo chi (nome/email)
+        p.chi = $1 OR 
+        p.chi = $2 OR 
+        p.chi LIKE $3 OR 
+        p.chi LIKE $4 OR
+        (p.chi LIKE $5 AND p.chi LIKE $6)
+        OR
+        -- Controllo tramite richiesta collegata
+        r.utente_id = $7
+      )
+    `, [
+      userEmail,
+      fullName,
+      `%${userEmail}%`,
+      `%${fullName}%`,
+      `%${userName}%`,
+      `%${userSurname}%`,
+      userId
+    ]);
     
     if (activeLoans[0]?.count > 0) {
       return res.status(400).json({ 
