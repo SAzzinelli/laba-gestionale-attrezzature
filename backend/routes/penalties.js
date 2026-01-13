@@ -225,9 +225,13 @@ router.post('/assign-manual', requireAuth, requireRole('admin'), async (req, res
     });
     
   } catch (error) {
-    await client.query('ROLLBACK');
+    await client.query('ROLLBACK').catch(() => {});
     console.error('Errore nell\'assegnazione penalità manuale:', error);
-    res.status(500).json({ error: 'Errore interno del server' });
+    console.error('Stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Errore interno del server',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   } finally {
     client.release();
   }
@@ -308,6 +312,85 @@ router.post('/check-and-assign', requireAuth, requireRole('admin'), async (req, 
   } catch (error) {
     console.error('Errore nel controllo e assegnazione penalità:', error);
     res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// DELETE /api/penalties/:penaltyId - Rimuovi una penalità (solo admin)
+router.delete('/:penaltyId', requireAuth, requireRole('admin'), async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { penaltyId } = req.params;
+    
+    if (!penaltyId) {
+      return res.status(400).json({ error: 'ID penalità mancante' });
+    }
+    
+    // Ottieni i dettagli della penalità
+    const penaltyResult = await client.query(
+      'SELECT user_id, strike_assegnati FROM user_penalties WHERE id = $1',
+      [penaltyId]
+    );
+    
+    if (penaltyResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Penalità non trovata' });
+    }
+    
+    const penalty = penaltyResult.rows[0];
+    const userId = penalty.user_id;
+    const strikesToRemove = penalty.strike_assegnati || 0;
+    
+    await client.query('BEGIN');
+    
+    // Elimina la penalità
+    await client.query('DELETE FROM user_penalties WHERE id = $1', [penaltyId]);
+    
+    // Aggiorna i strike totali dell'utente (non può andare sotto 0)
+    const userResult = await client.query(
+      `UPDATE users 
+       SET penalty_strikes = GREATEST(0, penalty_strikes - $1),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING penalty_strikes, is_blocked`,
+      [strikesToRemove, userId]
+    );
+    
+    const newTotalStrikes = userResult.rows[0].penalty_strikes;
+    const wasBlocked = userResult.rows[0].is_blocked;
+    
+    // Se l'utente era bloccato e ora ha meno di 3 strike, sbloccalo
+    if (wasBlocked && newTotalStrikes < 3) {
+      await client.query(
+        `UPDATE users 
+         SET is_blocked = FALSE,
+             blocked_reason = NULL,
+             blocked_at = NULL,
+             blocked_by = NULL,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [userId]
+      );
+    }
+    
+    await client.query('COMMIT');
+    
+    res.json({
+      message: 'Penalità rimossa con successo',
+      strikesRemoved: strikesToRemove,
+      totalStrikes: newTotalStrikes,
+      wasUnblocked: wasBlocked && newTotalStrikes < 3
+    });
+    
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('Errore nella rimozione penalità:', error);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Errore interno del server',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  } finally {
+    client.release();
   }
 });
 

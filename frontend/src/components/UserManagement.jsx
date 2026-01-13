@@ -400,7 +400,7 @@ motivo: manualPenaltyMotivo || undefined
 
 if (!response.ok) {
 const errorData = await response.json();
-throw new Error(errorData.error || 'Errore nell\'assegnazione penalità');
+throw new Error(errorData.error || errorData.details || 'Errore nell\'assegnazione penalità');
 }
 
 const data = await response.json();
@@ -413,6 +413,50 @@ setManualPenaltyMotivo('');
 // Refresh data
 await fetchUsers();
 await fetchUserPenalties(selectedUserForPenalty.id);
+// Aggiorna anche selectedUserForPenalty per riflettere i nuovi strike
+const updatedUser = await fetch(`${API_BASE_URL}/api/auth/users`, {
+headers: { 'Authorization': `Bearer ${token}` }
+}).then(r => r.json()).then(users => users.find(u => u.id === selectedUserForPenalty.id));
+if (updatedUser) {
+setSelectedUserForPenalty(updatedUser);
+}
+} catch (err) {
+setError(err.message);
+}
+};
+
+const handleRemovePenalty = async (penaltyId) => {
+try {
+if (!window.confirm('Sei sicuro di voler rimuovere questa penalità? Gli strike verranno sottratti dal totale dell\'utente.')) {
+return;
+}
+
+const response = await fetch(`${API_BASE_URL}/api/penalties/${penaltyId}`, {
+method: 'DELETE',
+headers: {
+'Authorization': `Bearer ${token}`,
+'Content-Type': 'application/json'
+}
+});
+
+if (!response.ok) {
+const errorData = await response.json();
+throw new Error(errorData.error || errorData.details || 'Errore nella rimozione penalità');
+}
+
+const data = await response.json();
+alert(data.message || 'Penalità rimossa con successo');
+
+// Refresh data
+await fetchUsers();
+await fetchUserPenalties(selectedUserForPenalty.id);
+// Aggiorna anche selectedUserForPenalty
+const updatedUser = await fetch(`${API_BASE_URL}/api/auth/users`, {
+headers: { 'Authorization': `Bearer ${token}` }
+}).then(r => r.json()).then(users => users.find(u => u.id === selectedUserForPenalty.id));
+if (updatedUser) {
+setSelectedUserForPenalty(updatedUser);
+}
 } catch (err) {
 setError(err.message);
 }
@@ -1276,12 +1320,13 @@ Nessuna Penalità
 {userPenalties.map((penalty) => (
 <div key={penalty.id} className="bg-white border border-gray-200 rounded-lg p-4">
 <div className="flex items-start justify-between mb-2">
-<div>
+<div className="flex-1">
 <p className="font-medium text-gray-900">
 {penalty.articolo_nome || (penalty.tipo === 'manuale' ? 'Penalità Manuale' : 'Penalità')}
 </p>
 <p className="text-sm text-gray-600">{penalty.motivo || 'Nessun motivo specificato'}</p>
 </div>
+<div className="flex items-center gap-2">
 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
 penalty.strike_assegnati >= 2 ? 'bg-red-100 text-red-800' :
 penalty.strike_assegnati === 1 ? 'bg-orange-100 text-orange-800' :
@@ -1289,6 +1334,16 @@ penalty.strike_assegnati === 1 ? 'bg-orange-100 text-orange-800' :
 }`}>
 {penalty.strike_assegnati} Strike
 </span>
+<button
+onClick={() => handleRemovePenalty(penalty.id)}
+className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+title="Rimuovi penalità"
+>
+<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+</svg>
+</button>
+</div>
 </div>
 <div className="text-xs text-gray-500 flex items-center justify-between">
 <span>
