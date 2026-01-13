@@ -9,6 +9,7 @@ const r = Router();
 r.get('/', requireAuth, async (req, res) => {
   try {
     // Scorte basse - Allineato con il calcolo dell'inventario
+    // Esclude gli oggetti con riparazioni attive o unità in riparazione
     const scorteBasse = await query(`
       SELECT 
         i.*,
@@ -29,6 +30,16 @@ r.get('/', requireAuth, async (req, res) => {
         END as stato_scorte
       FROM inventario i
       LEFT JOIN inventario_unita iu ON iu.inventario_id = i.id AND iu.stato = 'disponibile'
+      WHERE NOT EXISTS (
+        SELECT 1 FROM riparazioni r 
+        WHERE r.inventario_id = i.id 
+        AND r.stato = 'in_corso'
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM inventario_unita iu_repair 
+        WHERE iu_repair.inventario_id = i.id 
+        AND iu_repair.stato = 'in_riparazione'
+      )
       GROUP BY i.id
       HAVING (
         COUNT(iu.id) = 0 OR 

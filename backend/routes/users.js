@@ -77,14 +77,20 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = parseInt(id, 10);
+    
+    // Verifica che l'ID sia valido
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'ID utente non valido' });
+    }
     
     // Non permettere eliminazione dell'admin speciale
-    if (id === '-1' || id === -1) {
+    if (userId === -1) {
       return res.status(400).json({ error: 'Non è possibile eliminare l\'admin principale' });
     }
     
     // Prima ottengo l'email dell'utente
-    const userResult = await query('SELECT email, ruolo FROM users WHERE id = $1', [id]);
+    const userResult = await query('SELECT email, ruolo FROM users WHERE id = $1', [userId]);
     if (userResult.length === 0) {
       return res.status(404).json({ error: 'Utente non trovato' });
     }
@@ -100,7 +106,7 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 
     // Controlla se l'utente ha prestiti attivi
     const activeLoans = await query(`
-      SELECT COUNT(*) as count 
+      SELECT COUNT(*)::int as count 
       FROM prestiti p 
       WHERE (p.chi LIKE $1 OR p.chi = $2) AND p.stato = 'attivo'
     `, [`%${userEmail}%`, userEmail]);
@@ -111,20 +117,43 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       });
     }
     
-    // Controlla se l'utente ha richieste in attesa
+    // Controlla se l'utente ha richieste in attesa o approvate
     const pendingRequests = await query(`
-      SELECT COUNT(*) as count 
+      SELECT COUNT(*)::int as count 
       FROM richieste r 
-      WHERE r.utente_id = $1 AND r.stato = 'in_attesa'
-    `, [id]);
+      WHERE r.utente_id = $1 AND r.stato IN ('in_attesa', 'approvata')
+    `, [userId]);
     
     if (pendingRequests[0]?.count > 0) {
       return res.status(400).json({ 
-        error: 'Impossibile eliminare: utente ha richieste in attesa. Gestisci prima le richieste.' 
+        error: 'Impossibile eliminare: utente ha richieste in attesa o approvate. Gestisci prima le richieste.' 
       });
     }
     
-    const result = await query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
+    // Controlla se l'utente ha segnalazioni aperte
+    const openReports = await query(`
+      SELECT COUNT(*)::int as count 
+      FROM segnalazioni s 
+      WHERE s.user_id = $1 AND s.stato = 'aperta'
+    `, [userId]);
+    
+    if (openReports[0]?.count > 0) {
+      return res.status(400).json({ 
+        error: 'Impossibile eliminare: utente ha segnalazioni aperte. Gestisci prima le segnalazioni.' 
+      });
+    }
+    
+    // Elimina prima i riferimenti nelle tabelle correlate (se necessario)
+    // Le penalità hanno ON DELETE CASCADE, quindi vengono eliminate automaticamente
+    
+    // Elimina le richieste completate/rifiutate dell'utente
+    await query('DELETE FROM richieste WHERE utente_id = $1', [userId]);
+    
+    // Elimina le segnalazioni chiuse dell'utente
+    await query('DELETE FROM segnalazioni WHERE user_id = $1 AND stato != \'aperta\'', [userId]);
+    
+    // Elimina l'utente
+    const result = await query('DELETE FROM users WHERE id = $1 RETURNING id', [userId]);
     
     if (result.length === 0) {
       return res.status(404).json({ error: 'Utente non trovato' });
@@ -133,7 +162,19 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     res.json({ message: 'Utente eliminato con successo' });
   } catch (error) {
     console.error('Errore DELETE user:', error);
-    res.status(500).json({ error: 'Errore nell\'eliminazione utente' });
+    console.error('Stack:', error.stack);
+    
+    // Gestisci errori specifici di foreign key constraint
+    if (error.code === '23503') { // Foreign key violation
+      return res.status(400).json({ 
+        error: 'Impossibile eliminare: l\'utente ha ancora riferimenti attivi nel sistema. Verifica prestiti, richieste o segnalazioni.' 
+      });
+    }
+    
+    res.status(500).json({ 
+      error: error.message || 'Errore nell\'eliminazione utente',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
