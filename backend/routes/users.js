@@ -240,13 +240,54 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     // Elimina prima i riferimenti nelle tabelle correlate (se necessario)
     // Le penalità hanno ON DELETE CASCADE, quindi vengono eliminate automaticamente
     
-    // Elimina le richieste completate/rifiutate dell'utente
+    // IMPORTANTE: Ordine di eliminazione per rispettare i vincoli di foreign key
+    // 1. Prima elimina i prestiti completati/restituiti dell'utente che referenziano le richieste
+    console.log(`[DELETE USER] Eliminazione prestiti completati/restituiti che referenziano richieste...`);
+    await query(`
+      DELETE FROM prestiti 
+      WHERE LOWER(TRIM(COALESCE(stato, ''))) != 'attivo'
+      AND richiesta_id IN (SELECT id FROM richieste WHERE utente_id = $1)
+    `, [userId]);
+    
+    // 2. Poi elimina gli altri prestiti completati/restituiti dell'utente (non referenziati da richieste)
+    console.log(`[DELETE USER] Eliminazione altri prestiti completati/restituiti...`);
+    await query(`
+      DELETE FROM prestiti 
+      WHERE LOWER(TRIM(COALESCE(stato, ''))) != 'attivo'
+      AND (
+        chi = $1 OR 
+        chi = $2 OR 
+        chi LIKE $3 OR 
+        chi LIKE $4 OR
+        (chi LIKE $5 AND chi LIKE $6)
+      )
+    `, [
+      userEmail,
+      fullName,
+      `%${userEmail}%`,
+      `%${fullName}%`,
+      `%${userName}%`,
+      `%${userSurname}%`
+    ]);
+    
+    // 3. Rimuovi i riferimenti alle richieste dai prestiti rimanenti (se ce ne sono)
+    console.log(`[DELETE USER] Rimozione riferimenti richieste dai prestiti rimanenti...`);
+    await query(`
+      UPDATE prestiti 
+      SET richiesta_id = NULL 
+      WHERE richiesta_id IN (SELECT id FROM richieste WHERE utente_id = $1)
+    `, [userId]);
+    
+    // 4. Elimina le richieste completate/rifiutate dell'utente (ora che i prestiti non le referenziano più)
+    console.log(`[DELETE USER] Eliminazione richieste...`);
     await query('DELETE FROM richieste WHERE utente_id = $1', [userId]);
     
-    // Elimina le segnalazioni chiuse dell'utente
+    // 4. Elimina le segnalazioni chiuse dell'utente
+    console.log(`[DELETE USER] Eliminazione segnalazioni chiuse...`);
     await query('DELETE FROM segnalazioni WHERE user_id = $1 AND stato != \'aperta\'', [userId]);
     
-    // Elimina l'utente
+    // 5. Elimina l'utente
+    console.log(`[DELETE USER] Eliminazione utente...`);
     const result = await query('DELETE FROM users WHERE id = $1 RETURNING id', [userId]);
     
     if (result.length === 0) {
