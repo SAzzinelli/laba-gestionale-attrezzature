@@ -141,7 +141,7 @@ const canManagePenalties = useMemo(() => {
 const normalizedUsers = useMemo(() => (users || []).map(mapFetchedUser), [users]);
 
 // Filter users based on active tab
-const getFilteredUsers = () => {
+const filteredUsers = useMemo(() => {
   if (activeTab === 'supervisors') {
     return normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'supervisor');
   } else if (activeTab === 'admins') {
@@ -152,11 +152,11 @@ const getFilteredUsers = () => {
       return role !== 'supervisor' && role !== 'admin';
     });
   }
-};
-const filteredUsers = getFilteredUsers();
-const regularUsers = normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'user');
-const supervisorUsers = normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'supervisor');
-const adminUsers = normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'admin');
+}, [normalizedUsers, activeTab]);
+
+const regularUsers = useMemo(() => normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'user'), [normalizedUsers]);
+const supervisorUsers = useMemo(() => normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'supervisor'), [normalizedUsers]);
+const adminUsers = useMemo(() => normalizedUsers.filter(user => normalizeRole(user.ruolo) === 'admin'), [normalizedUsers]);
 
  const handleInputChange = (e) => {
  const { name, value } = e.target;
@@ -369,6 +369,11 @@ setError(err.message);
 
 const handleAssignManualPenalty = async () => {
 try {
+if (!selectedUserForPenalty) {
+setError('Nessun utente selezionato');
+return;
+}
+
 if (!manualPenaltyStrikes || manualPenaltyStrikes < 1 || manualPenaltyStrikes > 3) {
 setError('Il numero di strike deve essere tra 1 e 3');
 return;
@@ -426,6 +431,11 @@ setError(err.message);
 
 const handleRemovePenalty = async (penaltyId) => {
 try {
+if (!selectedUserForPenalty) {
+setError('Nessun utente selezionato');
+return;
+}
+
 if (!window.confirm('Sei sicuro di voler rimuovere questa penalità? Gli strike verranno sottratti dal totale dell\'utente.')) {
 return;
 }
