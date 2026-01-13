@@ -15,7 +15,7 @@ const Footer = ({ onSystemClick }) => {
           </div>
           
           <div className="text-xs text-gray-600">
-            <p>Versione 2.0.0 (build 100)</p>
+            <p>Versione 2.0.0 (build 498)</p>
             <p>© 2026 LABA Firenze</p>
           </div>
         </div>

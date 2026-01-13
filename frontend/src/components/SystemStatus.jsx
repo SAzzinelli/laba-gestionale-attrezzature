@@ -109,9 +109,9 @@ const SystemStatus = () => {
               <h1 className="text-4xl font-bold text-gray-900 mb-2">Sistema Online</h1>
               <p className="text-lg text-gray-600">Monitoraggio in tempo reale dello stato del sistema</p>
               <div className="mt-2 flex items-center space-x-4">
-                <span className="text-sm text-gray-500">Build: 500</span>
+                <span className="text-sm text-gray-500">Build: 498</span>
                 <span className="text-sm text-gray-500">•</span>
-                <span className="text-sm text-gray-500">Versione: 2.1.0</span>
+                <span className="text-sm text-gray-500">Versione: 2.0.0</span>
                 <span className="text-sm text-gray-500">•</span>
                 <span className="text-sm text-gray-500">Ultimo aggiornamento: 15/09/2025</span>
               </div>
