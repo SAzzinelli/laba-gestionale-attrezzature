@@ -70,7 +70,12 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
                 <div className="flex items-center justify-center w-10 h-10 mr-3">
                   {item.icon}
                 </div>
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium flex-1">{item.label}</span>
+                {item.badge !== null && item.badge !== undefined && item.badge > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                    {item.badge}
+                  </span>
+                )}
               </button>
             ))}
           </nav>
