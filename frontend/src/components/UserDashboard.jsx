@@ -385,55 +385,50 @@ const UserDashboard = () => {
           {recentData.recentRequests.length > 0 ? (
             <div className="space-y-3">
               {recentData.recentRequests.map((request, index) => {
-                const getRequestStyles = (stato) => {
+                const getRequestPillStyles = (stato) => {
                   switch(stato) {
                     case 'in_attesa':
                     case 'pending':
                       return {
-                        cardBg: 'bg-yellow-50 border-yellow-200 shadow-yellow-100/30',
                         pillBg: 'bg-yellow-100',
                         pillText: 'text-yellow-800'
                       };
                     case 'approvata':
                       return {
-                        cardBg: 'bg-green-50 border-green-200 shadow-green-100/30',
                         pillBg: 'bg-green-100',
                         pillText: 'text-green-800'
                       };
                     case 'rifiutata':
                       return {
-                        cardBg: 'bg-red-50 border-red-200 shadow-red-100/30',
                         pillBg: 'bg-red-100',
                         pillText: 'text-red-800'
                       };
                     default:
                       return {
-                        cardBg: 'bg-gray-50 border-gray-200',
                         pillBg: 'bg-gray-100',
                         pillText: 'text-gray-800'
                       };
                   }
                 };
                 
-                const styles = getRequestStyles(request.stato);
+                const pillStyles = getRequestPillStyles(request.stato);
                 
                 return (
                   <div 
                     key={index} 
-                    onClick={() => handleRequestClick(request)}
-                    className={`flex items-center justify-between p-3 rounded-lg hover:shadow-md cursor-pointer transition-all duration-200 hover:scale-[1.02] border ${styles.cardBg}`}
+                    className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-white"
                   >
                     <div>
                       <p className="font-medium text-gray-900">{request.oggetto_nome || request.articolo_nome || 'Oggetto'}</p>
                       <p className="text-sm text-gray-600">
                         {request.stato === 'approvata' && request.dal && request.al ? (
-                          <span>Uscita: {formatDate(request.dal)} - Rientro: {formatDate(request.al)}</span>
+                          <span><strong>Uscita:</strong> {formatDate(request.dal)} - <strong>Rientro:</strong> {formatDate(request.al)}</span>
                         ) : (
                           <span>{formatDate(request.created_at)}</span>
                         )}
                       </p>
                     </div>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles.pillBg} ${styles.pillText}`}>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${pillStyles.pillBg} ${pillStyles.pillText}`}>
                       {request.stato === 'approvata' ? 'Approvata' :
                        request.stato === 'in_attesa' || request.stato === 'pending' ? 'In Attesa' : 'Rifiutata'}
                     </span>
