@@ -5,6 +5,13 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const r = Router();
 
+function isAdminUser(u) {
+  if (!u) return false;
+  if (u.id === -1) return true;
+  const role = (u.ruolo || '').toLowerCase();
+  return role === 'admin' || role === 'supervisor';
+}
+
 // GET /api/richieste
 r.get('/', requireAuth, async (req, res) => {
   try {
@@ -12,8 +19,8 @@ r.get('/', requireAuth, async (req, res) => {
     let result;
     
     if (wantAll) {
-      if (req.user.ruolo !== 'admin') {
-        return res.status(403).json({ error: 'Solo admin' });
+      if (!isAdminUser(req.user)) {
+        return res.status(403).json({ error: 'Solo admin o supervisori' });
       }
       result = await query(`
         SELECT r.*, 
@@ -242,7 +249,7 @@ r.delete('/:id', requireAuth, async (req, res) => {
     
     const request = checkResult[0];
     
-    if (request.utente_id !== req.user.id && req.user.ruolo !== 'admin') {
+    if (request.utente_id !== req.user.id && !isAdminUser(req.user)) {
       return res.status(403).json({ error: 'Non autorizzato' });
     }
     
