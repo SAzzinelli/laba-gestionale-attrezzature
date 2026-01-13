@@ -194,19 +194,28 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       });
     }
     
-    // Controlla se l'utente ha richieste in attesa o approvate
+    // Controlla se l'utente ha richieste in attesa o approvate CON prestiti ancora attivi
+    // Una richiesta "approvata" con prestito già "restituito" o "completato" NON blocca l'eliminazione
     const pendingRequests = await query(`
-      SELECT id, stato 
+      SELECT r.id, r.stato, p.id as prestito_id, p.stato as prestito_stato
       FROM richieste r 
-      WHERE r.utente_id = $1 AND r.stato IN ('in_attesa', 'approvata')
+      LEFT JOIN prestiti p ON p.richiesta_id = r.id
+      WHERE r.utente_id = $1 
+      AND (
+        -- Richieste in attesa bloccano sempre
+        r.stato = 'in_attesa'
+        OR
+        -- Richieste approvate bloccano solo se non hanno prestito o se il prestito è ancora attivo
+        (r.stato = 'approvata' AND (p.id IS NULL OR LOWER(TRIM(COALESCE(p.stato, ''))) = 'attivo'))
+      )
     `, [userId]);
     
-    console.log(`[DELETE USER] Richieste in attesa/approvate trovate:`, pendingRequests);
+    console.log(`[DELETE USER] Richieste in attesa/approvate (con prestiti attivi) trovate:`, pendingRequests);
     
     if (pendingRequests.length > 0) {
       console.log(`[DELETE USER] BLOCCATO: Richieste in attesa/approvate trovate`);
       return res.status(400).json({ 
-        error: 'Impossibile eliminare: utente ha richieste in attesa o approvate. Gestisci prima le richieste.' 
+        error: 'Impossibile eliminare: utente ha richieste in attesa o approvate con prestiti ancora attivi. Gestisci prima le richieste.' 
       });
     }
     
