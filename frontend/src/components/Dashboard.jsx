@@ -180,11 +180,33 @@ const inRepairItems = activeRepairs.reduce((total, repair) => {
   return total;
 }, 0);
 
-// Conta solo le richieste attive (in_attesa e approvata), escludendo quelle rifiutate o completate
+// Conta solo le richieste veramente attive:
+// - in_attesa: sempre attive
+// - approvata: solo se non ha prestito o se il prestito è ancora 'attivo'
+// Escludi quelle rifiutate, completate o con prestito già restituito/completato
 const activeRequests = requestsData.filter(request => {
   const stato = (request.stato || '').toString().toLowerCase().trim();
-  const isActive = stato === 'in_attesa' || stato === 'approvata';
-  return isActive;
+  const prestitoStato = (request.prestito_stato || '').toString().toLowerCase().trim();
+  
+  // Richieste in attesa sono sempre attive
+  if (stato === 'in_attesa') {
+    return true;
+  }
+  
+  // Richieste approvate sono attive solo se:
+  // - Non hanno un prestito associato (non ancora convertite in prestito), OPPURE
+  // - Hanno un prestito associato ma è ancora 'attivo'
+  if (stato === 'approvata') {
+    // Se non c'è prestito associato, la richiesta è ancora attiva
+    if (!request.prestito_id) {
+      return true;
+    }
+    // Se c'è un prestito, è attiva solo se il prestito è ancora 'attivo'
+    return prestitoStato === 'attivo';
+  }
+  
+  // Tutte le altre (rifiutata, completata, etc.) non sono attive
+  return false;
 });
 
 // Debug: log per verificare il conteggio

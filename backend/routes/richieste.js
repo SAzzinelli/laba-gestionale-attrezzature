@@ -26,17 +26,21 @@ r.get('/', requireAuth, async (req, res) => {
         SELECT r.*, 
                u.name as utente_nome, u.surname as utente_cognome, u.email as utente_email,
                u.penalty_strikes, u.is_blocked, u.blocked_reason,
-               i.nome as oggetto_nome, i.nome as articolo_nome
+               i.nome as oggetto_nome, i.nome as articolo_nome,
+               p.stato as prestito_stato, p.id as prestito_id
         FROM richieste r
         LEFT JOIN users u ON r.utente_id = u.id
         LEFT JOIN inventario i ON r.inventario_id = i.id
+        LEFT JOIN prestiti p ON p.richiesta_id = r.id
         ORDER BY r.created_at DESC
       `);
     } else {
       result = await query(`
-        SELECT r.*, i.nome as oggetto_nome, i.nome as articolo_nome
+        SELECT r.*, i.nome as oggetto_nome, i.nome as articolo_nome,
+               p.stato as prestito_stato, p.id as prestito_id
         FROM richieste r
         LEFT JOIN inventario i ON r.inventario_id = i.id
+        LEFT JOIN prestiti p ON p.richiesta_id = r.id
         WHERE r.utente_id = $1
         ORDER BY r.created_at DESC
       `, [req.user.id]);
