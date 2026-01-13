@@ -16,6 +16,8 @@ const [activeTab, setActiveTab] = useState('users');
 const [showPenaltyModal, setShowPenaltyModal] = useState(false);
 const [selectedUserForPenalty, setSelectedUserForPenalty] = useState(null);
 const [userPenalties, setUserPenalties] = useState([]);
+const [manualPenaltyStrikes, setManualPenaltyStrikes] = useState(1);
+const [manualPenaltyMotivo, setManualPenaltyMotivo] = useState('');
 const { token, user: currentUser } = useAuth();
 
 const normalizeRole = (value) => (value || '').toString().trim().toLowerCase();
@@ -364,9 +366,6 @@ setShowPenaltyModal(false);
 setError(err.message);
 }
 };
-
-const [manualPenaltyStrikes, setManualPenaltyStrikes] = useState(1);
-const [manualPenaltyMotivo, setManualPenaltyMotivo] = useState('');
 
 const handleAssignManualPenalty = async () => {
 try {
