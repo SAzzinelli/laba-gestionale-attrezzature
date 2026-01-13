@@ -110,6 +110,22 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     // Gli stati 'restituito', 'completato', NULL o vuoti NON sono considerati attivi
     const fullName = `${userName} ${userSurname}`.trim();
     
+    console.log(`[DELETE USER] Valori di ricerca:`, {
+      userId,
+      userEmail,
+      userName,
+      userSurname,
+      fullName,
+      searchPatterns: {
+        exactEmail: userEmail,
+        exactFullName: fullName,
+        likeEmail: `%${userEmail}%`,
+        likeFullName: `%${fullName}%`,
+        likeName: `%${userName}%`,
+        likeSurname: `%${userSurname}%`
+      }
+    });
+    
     // Prima verifica tutti i prestiti dell'utente per debug
     const allUserLoans = await query(`
       SELECT p.id, p.stato, p.chi, p.data_uscita, p.data_rientro, r.utente_id as richiesta_utente_id
@@ -138,12 +154,12 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     
     console.log(`[DELETE USER] Prestiti trovati per utente ${userId} (${userEmail}):`, allUserLoans);
     
-    // Conta solo i prestiti con stato esattamente 'attivo' (case-sensitive)
-    const activeLoans = await query(`
-      SELECT COUNT(*)::int as count 
+    // Conta solo i prestiti con stato esattamente 'attivo' (case-insensitive)
+    const activeLoansDetails = await query(`
+      SELECT p.id, p.stato, p.chi, p.data_uscita, p.data_rientro, r.utente_id as richiesta_utente_id, r.stato as richiesta_stato
       FROM prestiti p 
       LEFT JOIN richieste r ON r.id = p.richiesta_id
-      WHERE LOWER(TRIM(p.stato)) = 'attivo'
+      WHERE LOWER(TRIM(COALESCE(p.stato, ''))) = 'attivo'
       AND (
         -- Controllo tramite campo chi (nome/email)
         p.chi = $1 OR 
@@ -165,22 +181,30 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       userId
     ]);
     
-    console.log(`[DELETE USER] Prestiti attivi trovati: ${activeLoans[0]?.count || 0}`);
+    console.log(`[DELETE USER] Prestiti attivi trovati: ${activeLoansDetails.length}`);
+    console.log(`[DELETE USER] Dettagli prestiti attivi:`, JSON.stringify(activeLoansDetails, null, 2));
     
-    if (activeLoans[0]?.count > 0) {
+    const activeLoansCount = activeLoansDetails.length;
+    
+    if (activeLoansCount > 0) {
+      console.log(`[DELETE USER] BLOCCATO: Prestiti attivi trovati`);
       return res.status(400).json({ 
-        error: 'Impossibile eliminare: utente ha prestiti attivi. Termina prima i prestiti.' 
+        error: 'Impossibile eliminare: utente ha prestiti attivi. Termina prima i prestiti.',
+        details: activeLoansDetails
       });
     }
     
     // Controlla se l'utente ha richieste in attesa o approvate
     const pendingRequests = await query(`
-      SELECT COUNT(*)::int as count 
+      SELECT id, stato 
       FROM richieste r 
       WHERE r.utente_id = $1 AND r.stato IN ('in_attesa', 'approvata')
     `, [userId]);
     
-    if (pendingRequests[0]?.count > 0) {
+    console.log(`[DELETE USER] Richieste in attesa/approvate trovate:`, pendingRequests);
+    
+    if (pendingRequests.length > 0) {
+      console.log(`[DELETE USER] BLOCCATO: Richieste in attesa/approvate trovate`);
       return res.status(400).json({ 
         error: 'Impossibile eliminare: utente ha richieste in attesa o approvate. Gestisci prima le richieste.' 
       });
@@ -188,16 +212,21 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
     
     // Controlla se l'utente ha segnalazioni aperte
     const openReports = await query(`
-      SELECT COUNT(*)::int as count 
+      SELECT id, stato 
       FROM segnalazioni s 
       WHERE s.user_id = $1 AND s.stato = 'aperta'
     `, [userId]);
     
-    if (openReports[0]?.count > 0) {
+    console.log(`[DELETE USER] Segnalazioni aperte trovate:`, openReports);
+    
+    if (openReports.length > 0) {
+      console.log(`[DELETE USER] BLOCCATO: Segnalazioni aperte trovate`);
       return res.status(400).json({ 
         error: 'Impossibile eliminare: utente ha segnalazioni aperte. Gestisci prima le segnalazioni.' 
       });
     }
+    
+    console.log(`[DELETE USER] Tutti i controlli superati, procedendo con l'eliminazione...`);
     
     // Elimina prima i riferimenti nelle tabelle correlate (se necessario)
     // Le penalità hanno ON DELETE CASCADE, quindi vengono eliminate automaticamente
