@@ -619,8 +619,15 @@ body: JSON.stringify({
  onChange={(e) => {
  const newDal = e.target.value;
  const today = new Date().toISOString().split('T')[0];
+ const maxDate = new Date();
+ maxDate.setDate(maxDate.getDate() + 3);
+ const maxDateStr = maxDate.toISOString().split('T')[0];
  if (newDal < today) {
  setError('La data di inizio non può essere nel passato');
+ return;
+ }
+ if (newDal > maxDateStr) {
+ setError('La data di inizio non può essere più di 3 giorni nel futuro');
  return;
  }
  setError(null);
@@ -634,6 +641,11 @@ body: JSON.stringify({
  }));
  }}
  min={new Date().toISOString().split('T')[0]}
+ max={(() => {
+   const maxDate = new Date();
+   maxDate.setDate(maxDate.getDate() + 3);
+   return maxDate.toISOString().split('T')[0];
+ })()}
  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  </div>
@@ -656,6 +668,13 @@ body: JSON.stringify({
      setError('La data di fine non può essere prima della data di inizio');
      return;
    }
+   const maxDate = new Date();
+   maxDate.setDate(maxDate.getDate() + 3);
+   const maxDateStr = maxDate.toISOString().split('T')[0];
+   if (newAl > maxDateStr) {
+     setError('La data di fine non può essere più di 3 giorni nel futuro');
+     return;
+   }
    setError(null);
    setDateRange(prev => ({ ...prev, al: newAl }));
  }}
@@ -663,6 +682,11 @@ body: JSON.stringify({
  disabled={selectedItem?.tipo_prestito === 'solo_interno' || 
           (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
  min={dateRange.dal || new Date().toISOString().split('T')[0]}
+ max={(() => {
+   const maxDate = new Date();
+   maxDate.setDate(maxDate.getDate() + 3);
+   return maxDate.toISOString().split('T')[0];
+ })()}
  className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 ${
    (selectedItem?.tipo_prestito === 'solo_interno' || 
     (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 

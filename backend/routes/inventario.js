@@ -588,7 +588,36 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       });
     }
     
-    // Prima elimina le unità associate
+    // Prima rimuovi i riferimenti unit_id dalle richieste completate/approvate che referenziano le unità
+    // Questo risolve il problema della foreign key constraint richieste_unit_id_fkey
+    const unitsToDelete = await query('SELECT id FROM inventario_unita WHERE inventario_id = $1', [id]);
+    for (const unit of unitsToDelete) {
+      // Rimuovi il riferimento unit_id dalle richieste che lo referenziano
+      // Solo per richieste completate/approvate (quelle attive devono essere gestite prima)
+      await query(`
+        UPDATE richieste 
+        SET unit_id = NULL 
+        WHERE unit_id = $1 AND stato IN ('approvata', 'rifiutata', 'completata')
+      `, [unit.id]);
+      
+      // Rimuovi anche il riferimento richiesta_riservata_id dalle unità che referenziano questa unità
+      await query(`
+        UPDATE inventario_unita 
+        SET richiesta_riservata_id = NULL 
+        WHERE richiesta_riservata_id IN (
+          SELECT id FROM richieste WHERE unit_id = $1
+        )
+      `, [unit.id]);
+    }
+    
+    // Rimuovi anche tutti i riferimenti richiesta_riservata_id dalle unità che verranno eliminate
+    await query(`
+      UPDATE inventario_unita 
+      SET richiesta_riservata_id = NULL 
+      WHERE inventario_id = $1 AND richiesta_riservata_id IS NOT NULL
+    `, [id]);
+    
+    // Ora elimina le unità associate
     await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
     
     // Poi elimina l'articolo principale

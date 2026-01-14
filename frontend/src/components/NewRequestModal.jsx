@@ -565,6 +565,12 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     value={dateRange.dal}
                     onChange={handleInputChange}
                     required
+                    min={new Date().toISOString().split('T')[0]}
+                    max={(() => {
+                      const maxDate = new Date();
+                      maxDate.setDate(maxDate.getDate() + 3);
+                      return maxDate.toISOString().split('T')[0];
+                    })()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -586,6 +592,12 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     required
                     disabled={selectedObject.tipo_prestito === 'solo_interno' || 
                              (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
+                    min={dateRange.dal || new Date().toISOString().split('T')[0]}
+                    max={(() => {
+                      const maxDate = new Date();
+                      maxDate.setDate(maxDate.getDate() + 3);
+                      return maxDate.toISOString().split('T')[0];
+                    })()}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                       (selectedObject.tipo_prestito === 'solo_interno' || 
                        (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
