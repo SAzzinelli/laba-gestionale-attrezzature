@@ -154,6 +154,16 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
         setLoading(false);
         return;
       }
+    } else {
+      // Validazione limite massimo 3 giorni per prestiti esterni
+      const diffTime = dataFine.getTime() - dataInizio.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays > 3) {
+        setError('Il prestito massimo consentito è di 3 giorni');
+        setLoading(false);
+        return;
+      }
     }
 
     try {

@@ -133,6 +133,11 @@ r.post('/', requireAuth, async (req, res) => {
     
     const item = inventarioCheck[0];
     
+    // Validazione limite massimo 3 giorni per prestiti esterni
+    // Calcola la differenza in giorni tra dataFine e dataInizio
+    const diffTime = dataFine.getTime() - dataInizio.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
     // Validazione speciale per tipo di utilizzo
     if (item.tipo_prestito === 'solo_interno') {
       // Solo interno: data massima = stesso giorno
@@ -162,6 +167,20 @@ r.post('/', requireAuth, async (req, res) => {
             error: 'Per utilizzo interno, la data di fine deve essere lo stesso giorno della data di inizio' 
           });
         }
+      } else if (tipo_utilizzo === 'esterno') {
+        // Per prestiti esterni, massimo 3 giorni
+        if (diffDays > 3) {
+          return res.status(400).json({ 
+            error: 'Il prestito massimo consentito è di 3 giorni' 
+          });
+        }
+      }
+    } else {
+      // Per oggetti solo esterni, valida limite 3 giorni
+      if (diffDays > 3) {
+        return res.status(400).json({ 
+          error: 'Il prestito massimo consentito è di 3 giorni' 
+        });
       }
     }
     

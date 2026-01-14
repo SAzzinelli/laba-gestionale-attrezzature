@@ -24,9 +24,9 @@ const QuickRequestModal = ({ isOpen, onClose, request, onSuccess }) => {
  'Content-Type': 'application/json',
  'Authorization': `Bearer ${token}`
  },
- body: JSON.stringify({
- motivo_rifiuto: selectedAction === 'rifiuta' ? motivation : null
- })
+        body: JSON.stringify({
+          motivazione: selectedAction === 'rifiuta' ? motivation : null
+        })
  });
 
  if (!response.ok) {
