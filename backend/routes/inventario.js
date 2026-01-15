@@ -617,6 +617,17 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       WHERE inventario_id = $1 AND richiesta_riservata_id IS NOT NULL
     `, [id]);
     
+    // IMPORTANTE: Prima rimuovi i riferimenti richiesta_id dai prestiti completati/restituiti
+    // Questo risolve il problema della foreign key constraint prestiti_richiesta_id_fkey
+    await query(`
+      UPDATE prestiti 
+      SET richiesta_id = NULL 
+      WHERE richiesta_id IN (
+        SELECT id FROM richieste 
+        WHERE inventario_id = $1 AND stato IN ('approvata', 'rifiutata', 'completata')
+      ) AND stato IN ('restituito', 'completato', 'chiuso')
+    `, [id]);
+    
     // IMPORTANTE: Elimina le richieste completate/approvate/rifiutate che referenziano questo inventario
     // Questo risolve il problema della foreign key constraint richieste_inventario_id_fkey
     // Solo per richieste completate (quelle in attesa sono già state controllate sopra)
