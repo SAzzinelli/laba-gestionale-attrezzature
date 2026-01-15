@@ -617,6 +617,14 @@ r.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       WHERE inventario_id = $1 AND richiesta_riservata_id IS NOT NULL
     `, [id]);
     
+    // IMPORTANTE: Elimina le richieste completate/approvate/rifiutate che referenziano questo inventario
+    // Questo risolve il problema della foreign key constraint richieste_inventario_id_fkey
+    // Solo per richieste completate (quelle in attesa sono già state controllate sopra)
+    await query(`
+      DELETE FROM richieste 
+      WHERE inventario_id = $1 AND stato IN ('approvata', 'rifiutata', 'completata')
+    `, [id]);
+    
     // Ora elimina le unità associate
     await query('DELETE FROM inventario_unita WHERE inventario_id = $1', [id]);
     
