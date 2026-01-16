@@ -18,8 +18,24 @@ function getTransporter() {
   if (!transporter) {
     if (!SMTP_PASSWORD) {
       console.warn('⚠️ SMTP_PASSWORD non configurata. Le email non verranno inviate.');
+      console.warn('⚠️ Configurazione SMTP:', {
+        host: SMTP_HOST,
+        port: SMTP_PORT,
+        secure: SMTP_SECURE,
+        user: SMTP_USER,
+        passwordSet: !!SMTP_PASSWORD
+      });
       return null;
     }
+
+    console.log('📧 Configurazione SMTP:', {
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_SECURE,
+      user: SMTP_USER,
+      from: EMAIL_FROM,
+      fromName: EMAIL_FROM_NAME
+    });
 
     transporter = nodemailer.createTransport({
       host: SMTP_HOST,
@@ -28,6 +44,9 @@ function getTransporter() {
       auth: {
         user: SMTP_USER,
         pass: SMTP_PASSWORD
+      },
+      tls: {
+        rejectUnauthorized: false // Necessario per alcuni server SMTP o ambienti di sviluppo
       }
     });
   }
@@ -46,15 +65,18 @@ function getTransporter() {
  * @returns {Promise<Object>} Risultato invio email
  */
 export async function sendApprovalEmail({ to, studentName, itemName, startDate, endDate, notes }) {
+  console.log('📧 Tentativo invio email di approvazione:', { to, studentName, itemName });
+  
   const emailTransporter = getTransporter();
   
   if (!emailTransporter) {
-    console.warn('⚠️ Email non inviata: SMTP non configurato');
+    console.error('❌ Email non inviata: SMTP non configurato');
+    console.error('❌ Verifica le variabili d\'ambiente: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD');
     return { success: false, error: 'SMTP non configurato' };
   }
 
   if (!to) {
-    console.warn('⚠️ Email non inviata: destinatario mancante');
+    console.error('❌ Email non inviata: destinatario mancante');
     return { success: false, error: 'Destinatario mancante' };
   }
 
@@ -211,16 +233,26 @@ Per domande o assistenza, contatta la segreteria.
   };
 
   try {
+    console.log('📧 Invio email in corso...');
     const info = await emailTransporter.sendMail(mailOptions);
-    console.log('✅ Email di approvazione inviata:', {
+    console.log('✅ Email di approvazione inviata con successo!', {
       to,
       messageId: info.messageId,
-      response: info.response
+      response: info.response,
+      accepted: info.accepted,
+      rejected: info.rejected
     });
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('❌ Errore invio email di approvazione:', error);
-    return { success: false, error: error.message };
+    console.error('❌ Errore invio email di approvazione:', {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      response: error.response,
+      responseCode: error.responseCode,
+      stack: error.stack
+    });
+    return { success: false, error: error.message, details: error };
   }
 }
 

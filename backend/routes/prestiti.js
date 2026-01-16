@@ -325,7 +325,8 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
     // Invia email di notifica allo studente (non blocca l'approvazione se fallisce)
     if (requestData.email) {
       try {
-        await sendApprovalEmail({
+        console.log(`📧 Tentativo invio email a ${requestData.email} per approvazione richiesta ${id}`);
+        const emailResult = await sendApprovalEmail({
           to: requestData.email,
           studentName: userFullName,
           itemName: requestData.inventario_nome || 'Attrezzatura',
@@ -333,12 +334,25 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
           endDate: dataRientroAdjusted,
           notes: requestData.note || null
         });
+        
+        if (emailResult.success) {
+          console.log(`✅ Email inviata con successo a ${requestData.email}`);
+        } else {
+          console.error(`❌ Email NON inviata a ${requestData.email}:`, emailResult.error);
+          if (emailResult.details) {
+            console.error('Dettagli errore:', emailResult.details);
+          }
+        }
       } catch (emailError) {
         // Log dell'errore ma non blocca l'approvazione
-        console.error('⚠️ Errore invio email di approvazione (non bloccante):', emailError);
+        console.error('❌ Errore invio email di approvazione (non bloccante):', {
+          message: emailError.message,
+          stack: emailError.stack,
+          email: requestData.email
+        });
       }
     } else {
-      console.warn('⚠️ Email non inviata: utente senza email registrata');
+      console.warn('⚠️ Email non inviata: utente senza email registrata per richiesta', id);
     }
     
     res.json({ 
