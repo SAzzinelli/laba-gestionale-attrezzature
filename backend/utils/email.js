@@ -370,6 +370,250 @@ Per domande o assistenza, contatta la segreteria.
 }
 
 /**
+ * Invia email di notifica nuova richiesta all'admin
+ * @param {Object} options - Opzioni per l'email
+ * @param {string} options.studentName - Nome completo studente
+ * @param {string} options.studentEmail - Email studente
+ * @param {string} options.itemName - Nome oggetto richiesto
+ * @param {string} options.startDate - Data inizio prestito (YYYY-MM-DD)
+ * @param {string} options.endDate - Data fine prestito (YYYY-MM-DD)
+ * @param {string} [options.motivo] - Motivo della richiesta
+ * @param {string} [options.note] - Note aggiuntive
+ * @param {number} [options.requestId] - ID della richiesta
+ * @returns {Promise<Object>} Risultato invio email
+ */
+export async function sendNewRequestNotification({ studentName, studentEmail, itemName, startDate, endDate, motivo, note, requestId }) {
+  const adminEmail = process.env.EMAIL_FROM || 'service@labafirenze.com';
+  
+  console.log('📧 Invio email notifica nuova richiesta all\'admin:', { 
+    to: adminEmail, 
+    studentName, 
+    itemName,
+    requestId 
+  });
+
+  if (!studentName || !itemName || !startDate || !endDate) {
+    console.error('❌ Email non inviata: dati mancanti');
+    return { success: false, error: 'Dati mancanti' };
+  }
+
+  // Formatta le date in formato italiano
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('it-IT', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const formattedStartDate = formatDate(startDate);
+  const formattedEndDate = formatDate(endDate);
+
+  const subject = `🔔 Nuova Richiesta di Noleggio - ${studentName}`;
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .header {
+          background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+          border-radius: 8px 8px 0 0;
+        }
+        .content {
+          background: #ffffff;
+          padding: 30px;
+          border: 1px solid #e5e7eb;
+          border-top: none;
+          border-radius: 0 0 8px 8px;
+        }
+        .alert-icon {
+          font-size: 48px;
+          margin-bottom: 20px;
+        }
+        .info-box {
+          background: #fef3c7;
+          border-left: 4px solid #f59e0b;
+          padding: 15px;
+          margin: 20px 0;
+          border-radius: 4px;
+        }
+        .detail-row {
+          margin: 15px 0;
+          padding: 10px 0;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-label {
+          font-weight: 600;
+          color: #033157;
+          margin-bottom: 5px;
+        }
+        .detail-value {
+          color: #666;
+        }
+        .footer {
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #e5e7eb;
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+        }
+        .button {
+          display: inline-block;
+          background: #0ea5e9;
+          color: white;
+          padding: 12px 24px;
+          text-decoration: none;
+          border-radius: 6px;
+          margin-top: 20px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="alert-icon">🔔</div>
+        <h1 style="margin: 0; font-size: 24px;">Nuova Richiesta di Noleggio</h1>
+      </div>
+      <div class="content">
+        <p>È stata ricevuta una nuova richiesta di noleggio che richiede la tua attenzione.</p>
+        
+        <div class="info-box">
+          <p style="margin: 0;"><strong>⚠️ Azione richiesta:</strong> Accedi al gestionale per approvare o rifiutare la richiesta.</p>
+        </div>
+        
+        <h2 style="color: #033157; margin-top: 30px;">Dettagli della Richiesta</h2>
+        
+        <div class="detail-row">
+          <div class="detail-label">Studente</div>
+          <div class="detail-value">${studentName}${studentEmail ? ` (${studentEmail})` : ''}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Oggetto Richiesto</div>
+          <div class="detail-value">${itemName}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Data Inizio</div>
+          <div class="detail-value">${formattedStartDate}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Data Fine (Riconsegna)</div>
+          <div class="detail-value">${formattedEndDate}</div>
+        </div>
+        
+        ${motivo ? `
+        <div class="detail-row">
+          <div class="detail-label">Motivo</div>
+          <div class="detail-value">${motivo}</div>
+        </div>
+        ` : ''}
+        
+        ${note ? `
+        <div class="detail-row">
+          <div class="detail-label">Note</div>
+          <div class="detail-value">${note}</div>
+        </div>
+        ` : ''}
+        
+        ${requestId ? `
+        <div class="detail-row">
+          <div class="detail-label">ID Richiesta</div>
+          <div class="detail-value">#${requestId}</div>
+        </div>
+        ` : ''}
+        
+        <div class="footer">
+          <p>LABA Firenze - Gestionale Attrezzature</p>
+          <p>Accedi al gestionale per gestire questa richiesta.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Nuova Richiesta di Noleggio - LABA Firenze
+
+È stata ricevuta una nuova richiesta di noleggio che richiede la tua attenzione.
+
+⚠️ Azione richiesta: Accedi al gestionale per approvare o rifiutare la richiesta.
+
+Dettagli della Richiesta:
+- Studente: ${studentName}${studentEmail ? ` (${studentEmail})` : ''}
+- Oggetto Richiesto: ${itemName}
+- Data Inizio: ${formattedStartDate}
+- Data Fine (Riconsegna): ${formattedEndDate}
+${motivo ? `- Motivo: ${motivo}` : ''}
+${note ? `- Note: ${note}` : ''}
+${requestId ? `- ID Richiesta: #${requestId}` : ''}
+
+LABA Firenze - Gestionale Attrezzature
+Accedi al gestionale per gestire questa richiesta.
+  `.trim();
+
+  // Prova prima con Mailgun API REST, poi fallback a SMTP
+  try {
+    if (MAILGUN_API_KEY) {
+      console.log('📧 Invio email notifica nuova richiesta tramite Mailgun API REST...');
+      const result = await sendViaMailgunAPI({ to: adminEmail, subject, html, text });
+      console.log('✅ Email notifica nuova richiesta inviata con successo via Mailgun API!', {
+        to: adminEmail,
+        messageId: result.id || result.message
+      });
+      return { success: true, messageId: result.id || result.message };
+    } else {
+      // Fallback a SMTP
+      console.log('📧 Invio email notifica nuova richiesta tramite SMTP (fallback)...');
+      const emailTransporter = getTransporter();
+      
+      if (!emailTransporter) {
+        console.error('❌ Email non inviata: né Mailgun API né SMTP configurati');
+        return { success: false, error: 'Nessun metodo di invio email configurato' };
+      }
+
+      const mailOptions = {
+        from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
+        to: adminEmail,
+        subject: subject,
+        html: html,
+        text: text
+      };
+
+      const info = await emailTransporter.sendMail(mailOptions);
+      console.log('✅ Email notifica nuova richiesta inviata con successo via SMTP!', {
+        to: adminEmail,
+        messageId: info.messageId
+      });
+      return { success: true, messageId: info.messageId };
+    }
+  } catch (error) {
+    console.error('❌ Errore invio email notifica nuova richiesta:', {
+      message: error.message,
+      code: error.code,
+      response: error.response,
+      stack: error.stack
+    });
+    return { success: false, error: error.message, details: error };
+  }
+}
+
+/**
  * Test connessione email (Mailgun API o SMTP)
  */
 export async function testEmailConnection() {

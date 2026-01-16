@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { query } from '../utils/postgres.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { sendNewRequestNotification } from '../utils/email.js';
 
 const r = Router();
 
@@ -199,6 +200,35 @@ r.post('/', requireAuth, async (req, res) => {
       `, [result[0].id, unit_id]);
       
       console.log(`✅ Unità ${unit_id} riservata per richiesta ${result[0].id}`);
+    }
+    
+    // Invia email di notifica all'admin
+    try {
+      // Ottieni i dati dell'utente e dell'oggetto per l'email
+      const userData = await query('SELECT name, surname, email FROM users WHERE id = $1', [req.user.id]);
+      const itemData = await query('SELECT nome FROM inventario WHERE id = $1', [actualInventarioId]);
+      
+      if (userData.length > 0 && itemData.length > 0) {
+        const user = userData[0];
+        const item = itemData[0];
+        const studentName = `${user.name || ''} ${user.surname || ''}`.trim() || req.user.email;
+        
+        await sendNewRequestNotification({
+          studentName: studentName,
+          studentEmail: user.email,
+          itemName: item.nome,
+          startDate: dal,
+          endDate: al,
+          motivo: motivo || null,
+          note: note || null,
+          requestId: result[0].id
+        });
+        
+        console.log(`✅ Email notifica nuova richiesta inviata all'admin per richiesta ${result[0].id}`);
+      }
+    } catch (emailError) {
+      // Non bloccare la creazione della richiesta se l'email fallisce
+      console.error('⚠️ Errore invio email notifica nuova richiesta (non bloccante):', emailError);
     }
     
     res.status(201).json(result[0]);
