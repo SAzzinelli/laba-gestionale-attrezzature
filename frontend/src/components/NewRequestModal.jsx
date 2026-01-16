@@ -18,6 +18,20 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const { token, user } = useAuth();
 
+  // Funzione per slittare la domenica a lunedì
+  const skipSunday = (dateStr) => {
+    if (!dateStr) return dateStr;
+    const date = new Date(dateStr);
+    const dayOfWeek = date.getDay(); // 0 = domenica, 1 = lunedì, ..., 6 = sabato
+    
+    if (dayOfWeek === 0) { // Domenica
+      // Slitta a lunedì
+      date.setDate(date.getDate() + 1);
+    }
+    
+    return date.toISOString().split('T')[0]; // Ritorna in formato YYYY-MM-DD
+  };
+
   useEffect(() => {
     if (isOpen) {
       fetchInventory();
@@ -253,6 +267,15 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
             setError('Il noleggio può durare massimo 3 giorni dalla data di inizio');
             return prev; // Non aggiornare se supera il limite
           }
+          
+          // Slitta automaticamente la domenica a lunedì
+          const selectedDate = new Date(value);
+          if (selectedDate.getDay() === 0) { // Domenica
+            const mondayDate = new Date(selectedDate);
+            mondayDate.setDate(mondayDate.getDate() + 1);
+            newRange.al = mondayDate.toISOString().split('T')[0];
+          }
+          
           // Pulisci errori se la validazione passa
           setError(null);
         }
@@ -638,12 +661,15 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                       if (dateRange.dal) {
                         const maxDate = new Date(dateRange.dal);
                         maxDate.setDate(maxDate.getDate() + 3);
-                        return maxDate.toISOString().split('T')[0];
+                        // Se il max date è domenica, slitta a lunedì
+                        const maxDateStr = maxDate.toISOString().split('T')[0];
+                        return skipSunday(maxDateStr);
                       }
                       // Se non c'è data di inizio, usa oggi + 3 come fallback
                       const maxDate = new Date();
                       maxDate.setDate(maxDate.getDate() + 3);
-                      return maxDate.toISOString().split('T')[0];
+                      const maxDateStr = maxDate.toISOString().split('T')[0];
+                      return skipSunday(maxDateStr);
                     })()}
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                       (selectedObject.tipo_prestito === 'solo_interno' || 

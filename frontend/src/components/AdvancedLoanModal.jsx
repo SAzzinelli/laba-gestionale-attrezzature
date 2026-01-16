@@ -4,6 +4,20 @@ import { useAuth } from '../auth/AuthContext';
 const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  const [step, setStep] = useState(1); // 1: Seleziona oggetto, 2: Seleziona utente, 3: Seleziona unità, 4: Tipo utilizzo, 5: Date
  const [inventory, setInventory] = useState([]);
+ 
+ // Funzione per slittare la domenica a lunedì
+ const skipSunday = (dateStr) => {
+   if (!dateStr) return dateStr;
+   const date = new Date(dateStr);
+   const dayOfWeek = date.getDay(); // 0 = domenica, 1 = lunedì, ..., 6 = sabato
+   
+   if (dayOfWeek === 0) { // Domenica
+     // Slitta a lunedì
+     date.setDate(date.getDate() + 1);
+   }
+   
+   return date.toISOString().split('T')[0]; // Ritorna in formato YYYY-MM-DD
+ };
  const [users, setUsers] = useState([]);
  const [selectedItem, setSelectedItem] = useState(null);
  const [selectedUser, setSelectedUser] = useState(null);
@@ -665,6 +679,16 @@ onChange={(e) => {
       setError('Il noleggio può durare massimo 3 giorni dalla data di inizio');
       return;
     }
+    
+    // Slitta automaticamente la domenica a lunedì
+    const selectedDate = new Date(newAl);
+    if (selectedDate.getDay() === 0) { // Domenica
+      const mondayDate = new Date(selectedDate);
+      mondayDate.setDate(mondayDate.getDate() + 1);
+      setDateRange(prev => ({ ...prev, al: mondayDate.toISOString().split('T')[0] }));
+      setError(null);
+      return;
+    }
   }
   setError(null);
   setDateRange(prev => ({ ...prev, al: newAl }));
@@ -678,12 +702,15 @@ max={(() => {
   if (dateRange.dal) {
     const maxDate = new Date(dateRange.dal);
     maxDate.setDate(maxDate.getDate() + 3);
-    return maxDate.toISOString().split('T')[0];
+    // Se il max date è domenica, slitta a lunedì
+    const maxDateStr = maxDate.toISOString().split('T')[0];
+    return skipSunday(maxDateStr);
   }
   // Se non c'è data di inizio, usa oggi + 3 come fallback
   const maxDate = new Date();
   maxDate.setDate(maxDate.getDate() + 3);
-  return maxDate.toISOString().split('T')[0];
+  const maxDateStr = maxDate.toISOString().split('T')[0];
+  return skipSunday(maxDateStr);
 })()}
  className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 ${
    (selectedItem?.tipo_prestito === 'solo_interno' || 
