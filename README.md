@@ -194,17 +194,22 @@ EMAIL_FROM_NAME=LABA Firenze - Gestionale Attrezzature
 
 # OPZIONE 2: Mailgun (Consigliato - 5000 email/mese gratis)
 # 1. Crea account su https://www.mailgun.com (già fatto ✅)
-# 2. Vai su Sending → Domain Settings
-# 3. Se usi il sandbox (per test): copia "Default SMTP login" e "Default password"
-# 4. Se verifichi un dominio: vai su "SMTP credentials" e genera una password
+# 2. Verifica il dominio aggiungendo i record DNS richiesti
+# 3. Vai su Domain Settings → SMTP credentials
+# 4. Crea un utente SMTP (es. service@labafirenze.com) e genera una password
 # 5. Configura queste variabili su Railway:
-# SMTP_HOST=smtp.mailgun.org
-# SMTP_PORT=587
-# SMTP_SECURE=false
-# SMTP_USER=postmaster@sandboxXXXXX.mailgun.org  # O postmaster@tuodominio.com se verificato
-# SMTP_PASSWORD=password-smtp-mailgun  # Password SMTP da Mailgun
+# SMTP_HOST=smtp.eu.mailgun.org  # Per regione EU (o smtp.mailgun.org per US)
+# SMTP_PORT=587  # O 2525 (alternativa), o 465 per SSL
+# SMTP_SECURE=false  # true solo per porta 465
+# SMTP_USER=service@labafirenze.com  # Email completa dell'utente SMTP
+# SMTP_PASSWORD=password-smtp-mailgun  # Password SMTP generata da Mailgun
 # EMAIL_FROM=service@labafirenze.com
 # EMAIL_FROM_NAME=LABA Firenze - Gestionale Attrezzature
+# 
+# NOTE:
+# - Se porta 587 non funziona, prova 2525 (stessa configurazione)
+# - Se ancora non funziona, prova porta 465 con SMTP_SECURE=true
+# - Assicurati che il dominio sia completamente verificato su Mailgun
 
 # OPZIONE 3: SendGrid (100 email/giorno gratis)
 # 1. Crea account su https://sendgrid.com
