@@ -143,6 +143,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/penalties", penaltiesRouter);
 app.use("/api/migration", migrationRouter);
 app.use("/api/excel", excelRouter);
+app.use("/api/debug", debugRouter);
 
 // serve frontend build if built
 const __filename = fileURLToPath(import.meta.url);
