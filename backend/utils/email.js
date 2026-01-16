@@ -28,26 +28,42 @@ function getTransporter() {
       return null;
     }
 
+    // Rimuovi spazi dalla password (Gmail App Password non deve avere spazi)
+    const cleanPassword = SMTP_PASSWORD.replace(/\s+/g, '');
+    if (SMTP_PASSWORD !== cleanPassword) {
+      console.warn('⚠️ La password SMTP contiene spazi. Rimossi automaticamente.');
+      console.warn('⚠️ IMPORTANTE: Assicurati che la password per app di Gmail non abbia spazi nelle variabili d\'ambiente!');
+    }
+
     console.log('📧 Configurazione SMTP:', {
       host: SMTP_HOST,
       port: SMTP_PORT,
       secure: SMTP_SECURE,
       user: SMTP_USER,
       from: EMAIL_FROM,
-      fromName: EMAIL_FROM_NAME
+      fromName: EMAIL_FROM_NAME,
+      passwordLength: cleanPassword.length
     });
 
+    // Rimuovi spazi dalla password
+    const cleanPassword = SMTP_PASSWORD.replace(/\s+/g, '');
+    
     transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
       secure: SMTP_SECURE,
       auth: {
         user: SMTP_USER,
-        pass: SMTP_PASSWORD
+        pass: cleanPassword
       },
       tls: {
         rejectUnauthorized: false // Necessario per alcuni server SMTP o ambienti di sviluppo
-      }
+      },
+      connectionTimeout: 10000, // 10 secondi per stabilire connessione
+      greetingTimeout: 10000, // 10 secondi per greeting
+      socketTimeout: 10000, // 10 secondi per operazioni socket
+      debug: true, // Abilita debug per vedere cosa succede
+      logger: true // Log dettagliati
     });
   }
   return transporter;
@@ -267,17 +283,46 @@ export async function testEmailConnection() {
   }
 
   try {
-    // Timeout di 10 secondi per la verifica SMTP
+    console.log('🔍 Tentativo connessione a SMTP...', {
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_SECURE,
+      user: SMTP_USER
+    });
+    
+    // Timeout di 15 secondi per la verifica SMTP (aumentato per Gmail)
     const verifyPromise = emailTransporter.verify();
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Timeout: verifica SMTP ha impiegato più di 10 secondi')), 10000)
+      setTimeout(() => reject(new Error('Connection timeout')), 15000)
     );
     
     await Promise.race([verifyPromise, timeoutPromise]);
-    console.log('✅ Connessione SMTP verificata');
+    console.log('✅ Connessione SMTP verificata con successo');
     return { success: true };
   } catch (error) {
-    console.error('❌ Errore verifica SMTP:', error);
-    return { success: false, error: error.message || 'Errore sconosciuto durante verifica SMTP' };
+    console.error('❌ Errore verifica SMTP:', {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      response: error.response,
+      responseCode: error.responseCode
+    });
+    
+    // Messaggi di errore più specifici
+    let errorMessage = error.message || 'Errore sconosciuto durante verifica SMTP';
+    
+    if (error.message.includes('timeout') || error.message === 'Connection timeout') {
+      errorMessage = 'Connection timeout - Impossibile connettersi al server SMTP. Verifica:\n' +
+        '1. La password per app di Gmail è corretta (senza spazi)\n' +
+        '2. L\'account Gmail ha "Verifica in 2 passaggi" abilitata\n' +
+        '3. La password per app non è scaduta\n' +
+        '4. Non ci sono restrizioni di rete/firewall';
+    } else if (error.code === 'EAUTH') {
+      errorMessage = 'Autenticazione fallita - Verifica username e password SMTP';
+    } else if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'Connessione rifiutata - Verifica host e porta SMTP';
+    }
+    
+    return { success: false, error: errorMessage };
   }
 }
