@@ -376,14 +376,21 @@ export async function testEmailConnection() {
   // Prova prima con Mailgun API
   if (MAILGUN_API_KEY) {
     try {
+      // Costruisci l'URL dell'API correttamente
+      // Per US: https://api.mailgun.net/v3/domain
+      // Per EU: https://api.eu.mailgun.net/v3/domain
+      const apiBaseUrl = MAILGUN_REGION === 'us' 
+        ? `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}`
+        : `https://api.${MAILGUN_REGION}.mailgun.net/v3/${MAILGUN_DOMAIN}`;
+      
       console.log('🔍 Test connessione Mailgun API...', {
         domain: MAILGUN_DOMAIN,
         region: MAILGUN_REGION,
-        apiUrl: MAILGUN_API_URL
+        apiUrl: apiBaseUrl
       });
       
-      // Test semplice: verifica che l'API risponda
-      const response = await fetch(`${MAILGUN_API_URL}`, {
+      // Test semplice: verifica che l'API risponda (GET /domains/{domain})
+      const response = await fetch(apiBaseUrl, {
         method: 'GET',
         headers: {
           'Authorization': `Basic ${Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64')}`
