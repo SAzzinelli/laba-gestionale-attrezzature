@@ -178,13 +178,29 @@ NODE_ENV=development
 CORS_ORIGIN=http://localhost:5173
 
 # Email (SMTP) - Per notifiche di approvazione richieste
+# OPZIONE 1: Gmail (con App Password)
+# 1. Abilita "Verifica in 2 passaggi" su Google Account
+# 2. Vai su: https://myaccount.google.com/apppasswords
+# 3. Genera una "App Password" (16 caratteri)
+# 4. Usa quella password qui sotto
+# LIMITI: 500 email/giorno (account gratuito), 2000/giorno (Google Workspace)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=service@labafirenze.com
-SMTP_PASSWORD=your-smtp-password
+SMTP_PASSWORD=xxxx xxxx xxxx xxxx  # App Password di 16 caratteri (senza spazi)
 EMAIL_FROM=service@labafirenze.com
 EMAIL_FROM_NAME=LABA Firenze - Gestionale Attrezzature
+
+# OPZIONE 2: Servizio Email Dedicato (Consigliato per produzione)
+# SendGrid (100 email/giorno gratis): https://sendgrid.com
+# Mailgun (5000 email/mese gratis): https://www.mailgun.com
+# AWS SES (molto economico): https://aws.amazon.com/ses/
+# Esempio SendGrid:
+# SMTP_HOST=smtp.sendgrid.net
+# SMTP_PORT=587
+# SMTP_USER=apikey
+# SMTP_PASSWORD=your-sendgrid-api-key
 ```
 
 ### **Variabili d'Ambiente Frontend**
