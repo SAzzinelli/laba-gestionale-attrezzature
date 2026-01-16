@@ -258,10 +258,17 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       setDateRange(prev => {
         const newRange = { ...prev, [name]: value };
         
-        // Validazione per data fine: max 3 giorni dalla data di inizio
+        // Validazione per data fine: max 3 giorni dalla data di inizio (o 4 se il 3° giorno è domenica)
         if (name === 'al' && newRange.dal) {
-          const maxDate = new Date(newRange.dal);
+          const startDate = new Date(newRange.dal);
+          const maxDate = new Date(startDate);
           maxDate.setDate(maxDate.getDate() + 3);
+          
+          // Se il 3° giorno è domenica, il max diventa lunedì (4 giorni)
+          if (maxDate.getDay() === 0) { // Domenica
+            maxDate.setDate(maxDate.getDate() + 1); // Slitta a lunedì
+          }
+          
           const maxDateStr = maxDate.toISOString().split('T')[0];
           if (value > maxDateStr) {
             setError('Il noleggio può durare massimo 3 giorni dalla data di inizio');

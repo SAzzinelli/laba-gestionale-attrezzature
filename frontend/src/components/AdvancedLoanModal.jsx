@@ -671,9 +671,17 @@ onChange={(e) => {
     return;
   }
   // Calcola max 3 giorni dalla data di inizio (non da oggi)
+  // Se il 3° giorno è domenica, il max diventa lunedì (4 giorni)
   if (dateRange.dal) {
-    const maxDate = new Date(dateRange.dal);
+    const startDate = new Date(dateRange.dal);
+    const maxDate = new Date(startDate);
     maxDate.setDate(maxDate.getDate() + 3);
+    
+    // Se il 3° giorno è domenica, il max diventa lunedì (4 giorni)
+    if (maxDate.getDay() === 0) { // Domenica
+      maxDate.setDate(maxDate.getDate() + 1); // Slitta a lunedì
+    }
+    
     const maxDateStr = maxDate.toISOString().split('T')[0];
     if (newAl > maxDateStr) {
       setError('Il noleggio può durare massimo 3 giorni dalla data di inizio');
