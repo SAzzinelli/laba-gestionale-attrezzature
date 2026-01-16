@@ -211,11 +211,20 @@ setError(err.message);
   if (searchTerm) {
     data = data.filter(item => {
       const unitaStr = Array.isArray(item.unita) ? item.unita.join(' ') : (item.unita || '');
-      return (item.articolo_nome || item.oggetto_nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-             unitaStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             (item.utente_nome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-             (item.utente_cognome || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-             (item.utente_email || '').toLowerCase().includes(searchTerm.toLowerCase());
+      const searchLower = searchTerm.toLowerCase();
+      
+      // Cerca nel nome completo (nome + cognome insieme)
+      const fullName = `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim().toLowerCase();
+      const chiField = (item.chi || '').toLowerCase();
+      
+      return (item.articolo_nome || item.oggetto_nome || '').toLowerCase().includes(searchLower) ||
+             unitaStr.toLowerCase().includes(searchLower) ||
+             (item.utente_nome || '').toLowerCase().includes(searchLower) ||
+             (item.utente_cognome || '').toLowerCase().includes(searchLower) ||
+             fullName.includes(searchLower) ||
+             chiField.includes(searchLower) ||
+             (item.utente_email || '').toLowerCase().includes(searchLower) ||
+             (item.note || '').toLowerCase().includes(searchLower);
     });
   }
 
