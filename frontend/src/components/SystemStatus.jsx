@@ -5,27 +5,23 @@ const SystemStatus = () => {
   const [systemData, setSystemData] = useState({
     overall: 'healthy',
     services: {
-      database: { status: 'healthy', responseTime: 45, uptime: '99.9%' },
-      api: { status: 'healthy', responseTime: 23, uptime: '99.8%' },
-      auth: { status: 'healthy', responseTime: 12, uptime: '99.9%' },
-      storage: { status: 'warning', responseTime: 156, uptime: '98.5%' },
-      notifications: { status: 'error', responseTime: 0, uptime: '95.2%' }
+      database: { status: 'healthy', responseTime: 0, uptime: '99.9%' },
+      api: { status: 'healthy', responseTime: 0, uptime: '99.8%' },
+      auth: { status: 'healthy', responseTime: 0, uptime: '99.9%' }
     },
     metrics: {
-      totalRequests: 15420,
-      activeUsers: 23,
-      memoryUsage: 68,
-      cpuUsage: 45,
-      diskUsage: 34
+      totalRequests: 0,
+      activeUsers: 0,
+      totalInventory: 0,
+      activeLoans: 0
     },
-    recentIncidents: [
-      { id: 1, service: 'Storage', message: 'High latency detected', time: '2 min ago', severity: 'warning' },
-      { id: 2, service: 'Notifications', message: 'Service temporarily unavailable', time: '15 min ago', severity: 'error' }
-    ]
+    apiEndpoints: [],
+    recentIncidents: []
   });
 
   const [expandedSections, setExpandedSections] = useState({});
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { token, isAdmin } = useAuth();
 
   // Controllo accesso admin
@@ -53,23 +49,86 @@ const SystemStatus = () => {
     );
   }
 
-  // Simulate real-time data updates
-  useEffect(() => {
-    const interval = setInterval(() => {
+  // Carica dati reali del sistema
+  const fetchSystemStatus = async () => {
+    if (!token) return;
+    
+    try {
+      setLoading(true);
+      
+      // Carica stato sistema
+      const statusRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/stats/system-status`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (statusRes.ok) {
+        const statusData = await statusRes.json();
+        setSystemData(prev => ({
+          ...prev,
+          overall: statusData.overall,
+          services: statusData.services,
+          metrics: statusData.metrics
+        }));
+      }
+
+      // Testa endpoint API reali
+      const endpoints = [
+        { name: '/api/auth/login', method: 'POST', url: '/api/auth/login' },
+        { name: '/api/inventario', method: 'GET', url: '/api/inventario' },
+        { name: '/api/prestiti', method: 'GET', url: '/api/prestiti?all=1' },
+        { name: '/api/richieste', method: 'GET', url: '/api/richieste?all=1' },
+        { name: '/api/segnalazioni', method: 'GET', url: '/api/segnalazioni' },
+        { name: '/api/stats', method: 'GET', url: '/api/stats' }
+      ];
+
+      const endpointTests = await Promise.all(
+        endpoints.map(async (endpoint) => {
+          const startTime = Date.now();
+          try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}${endpoint.url}`, {
+              method: endpoint.method === 'POST' ? 'POST' : 'GET',
+              headers: { 'Authorization': `Bearer ${token}` },
+              signal: AbortSignal.timeout(5000) // 5 secondi timeout
+            });
+            const responseTime = Date.now() - startTime;
+            return {
+              endpoint: endpoint.name,
+              method: endpoint.method,
+              status: response.ok ? 'healthy' : 'error',
+              responseTime: responseTime
+            };
+          } catch (error) {
+            const responseTime = Date.now() - startTime;
+            return {
+              endpoint: endpoint.name,
+              method: endpoint.method,
+              status: 'error',
+              responseTime: responseTime
+            };
+          }
+        })
+      );
+
       setSystemData(prev => ({
         ...prev,
-        metrics: {
-          ...prev.metrics,
-          totalRequests: prev.metrics.totalRequests + Math.floor(Math.random() * 5),
-          activeUsers: Math.max(1, prev.metrics.activeUsers + Math.floor(Math.random() * 3) - 1),
-          memoryUsage: Math.max(20, Math.min(90, prev.metrics.memoryUsage + (Math.random() - 0.5) * 10)),
-          cpuUsage: Math.max(10, Math.min(80, prev.metrics.cpuUsage + (Math.random() - 0.5) * 15))
-        }
+        apiEndpoints: endpointTests
       }));
-    }, 3000);
 
-    return () => clearInterval(interval);
-  }, []);
+      setLoading(false);
+    } catch (error) {
+      console.error('Errore caricamento stato sistema:', error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token && isAdmin) {
+      fetchSystemStatus();
+      // Aggiorna ogni 30 secondi
+      const interval = setInterval(fetchSystemStatus, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [token, isAdmin]);
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -80,10 +139,8 @@ const SystemStatus = () => {
 
   const refreshData = async () => {
     setIsRefreshing(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 2000);
+    await fetchSystemStatus();
+    setIsRefreshing(false);
   };
 
   const getStatusColor = (status) => {
@@ -124,6 +181,17 @@ const SystemStatus = () => {
     return null;
   };
 
+  if (loading && systemData.metrics.totalRequests === 0 && systemData.metrics.activeUsers === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Caricamento stato del sistema...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
@@ -131,14 +199,18 @@ const SystemStatus = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">Sistema Online</h1>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                {systemData.overall === 'healthy' ? 'Sistema Online' : 'Sistema con Avvisi'}
+              </h1>
               <p className="text-lg text-gray-600">Monitoraggio in tempo reale dello stato del sistema</p>
               <div className="mt-2 flex items-center space-x-4">
                 <span className="text-sm text-gray-500">Build: 498</span>
                 <span className="text-sm text-gray-500">•</span>
                 <span className="text-sm text-gray-500">Versione: 2.0.0</span>
                 <span className="text-sm text-gray-500">•</span>
-                <span className="text-sm text-gray-500">Ultimo aggiornamento: 15/09/2025</span>
+                <span className="text-sm text-gray-500">
+                  Ultimo aggiornamento: {new Date().toLocaleTimeString('it-IT')}
+                </span>
               </div>
             </div>
             <button
@@ -173,19 +245,19 @@ const SystemStatus = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-blue-600 mb-1">{systemData.metrics.totalRequests.toLocaleString()}</div>
-              <div className="text-sm text-gray-600">Richieste Totali</div>
+              <div className="text-sm text-gray-600">Richieste in Attesa</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-600 mb-1">{systemData.metrics.activeUsers}</div>
               <div className="text-sm text-gray-600">Utenti Attivi</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-1">{Math.round(systemData.metrics.memoryUsage)}%</div>
-              <div className="text-sm text-gray-600">Utilizzo Memoria</div>
+              <div className="text-3xl font-bold text-purple-600 mb-1">{systemData.metrics.totalInventory}</div>
+              <div className="text-sm text-gray-600">Elementi Inventario</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 mb-1">{Math.round(systemData.metrics.cpuUsage)}%</div>
-              <div className="text-sm text-gray-600">Utilizzo CPU</div>
+              <div className="text-3xl font-bold text-orange-600 mb-1">{systemData.metrics.activeLoans}</div>
+              <div className="text-sm text-gray-600">Prestiti Attivi</div>
             </div>
           </div>
         </div>
@@ -274,47 +346,41 @@ const SystemStatus = () => {
           
           {expandedSections.metrics && (
             <div className="p-6 border-t border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Memory Usage */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Total Requests */}
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-semibold text-gray-900">Memoria</h4>
-                    <span className="text-2xl font-bold text-blue-600">{Math.round(systemData.metrics.memoryUsage)}%</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-900">Richieste Totali</h4>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
-                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
-                      style={{ width: `${systemData.metrics.memoryUsage}%` }}
-                    ></div>
-                  </div>
+                  <div className="text-3xl font-bold text-blue-600">{systemData.metrics.totalRequests}</div>
+                  <p className="text-sm text-gray-600 mt-2">Richieste in attesa</p>
                 </div>
 
-                {/* CPU Usage */}
+                {/* Active Users */}
                 <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-semibold text-gray-900">CPU</h4>
-                    <span className="text-2xl font-bold text-purple-600">{Math.round(systemData.metrics.cpuUsage)}%</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-900">Utenti Attivi</h4>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
-                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all duration-500"
-                      style={{ width: `${systemData.metrics.cpuUsage}%` }}
-                    ></div>
-                  </div>
+                  <div className="text-3xl font-bold text-purple-600">{systemData.metrics.activeUsers}</div>
+                  <p className="text-sm text-gray-600 mt-2">Utenti registrati</p>
                 </div>
 
-                {/* Disk Usage */}
+                {/* Total Inventory */}
                 <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-semibold text-gray-900">Disco</h4>
-                    <span className="text-2xl font-bold text-green-600">{Math.round(systemData.metrics.diskUsage)}%</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-900">Inventario</h4>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
-                      className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500"
-                      style={{ width: `${systemData.metrics.diskUsage}%` }}
-                    ></div>
+                  <div className="text-3xl font-bold text-green-600">{systemData.metrics.totalInventory}</div>
+                  <p className="text-sm text-gray-600 mt-2">Elementi totali</p>
+                </div>
+
+                {/* Active Loans */}
+                <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-900">Prestiti Attivi</h4>
                   </div>
+                  <div className="text-3xl font-bold text-orange-600">{systemData.metrics.activeLoans}</div>
+                  <p className="text-sm text-gray-600 mt-2">Prestiti in corso</p>
                 </div>
               </div>
             </div>
@@ -338,14 +404,17 @@ const SystemStatus = () => {
           {expandedSections.api && (
             <div className="p-6 border-t border-gray-200">
               <div className="space-y-4">
-                {[
-                  { endpoint: '/api/auth/login', method: 'POST', status: 'healthy', responseTime: 45 },
-                  { endpoint: '/api/inventario', method: 'GET', status: 'healthy', responseTime: 23 },
-                  { endpoint: '/api/prestiti', method: 'GET', status: 'healthy', responseTime: 34 },
-                  { endpoint: '/api/richieste', method: 'POST', status: 'warning', responseTime: 156 },
-                  { endpoint: '/api/segnalazioni', method: 'POST', status: 'error', responseTime: 0 },
-                  { endpoint: '/api/stats', method: 'GET', status: 'healthy', responseTime: 67 }
-                ].map((api, index) => (
+                {loading && systemData.apiEndpoints.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-gray-600 mt-4">Caricamento endpoint...</p>
+                  </div>
+                ) : systemData.apiEndpoints.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    Nessun endpoint testato
+                  </div>
+                ) : (
+                  systemData.apiEndpoints.map((api, index) => (
                   <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div className={`relative w-3 h-3 rounded-full ${getStatusBg(api.status)} ${getPulseAnimation(api.status)}`}>
@@ -368,7 +437,8 @@ const SystemStatus = () => {
                       <div className="text-xs text-gray-500">Response Time</div>
                     </div>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}
