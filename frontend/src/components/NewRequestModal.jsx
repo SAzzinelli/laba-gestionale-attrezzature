@@ -15,6 +15,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
   });
   const [note, setNote] = useState('');
   const [tipoUtilizzo, setTipoUtilizzo] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const { token, user } = useAuth();
 
   useEffect(() => {
@@ -29,6 +30,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       });
       setNote('');
       setTipoUtilizzo('');
+      setSearchTerm('');
       setError(null);
       
       // Se selectedItem è passato, saltare lo step 1 e andare direttamente allo step 2
@@ -306,8 +308,28 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
           {step === 1 && (
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Seleziona l'oggetto da richiedere</h3>
+              
+              {/* Campo di ricerca */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Cerca oggetto</label>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Cerca per nome, categoria o note..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-                {inventory.map((item) => (
+                {inventory
+                  .filter((item) => {
+                    const matchesSearch = item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                         item.categoria_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                         item.note?.toLowerCase().includes(searchTerm.toLowerCase());
+                    return matchesSearch;
+                  })
+                  .map((item) => (
                   <div
                     key={item.id}
                     onClick={() => handleObjectSelect(item)}
@@ -339,14 +361,24 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                       </div>
                     )}
                   </div>
-                ))}
+                  ))}
               </div>
-              {inventory.length === 0 && (
+              {inventory.filter((item) => {
+                const matchesSearch = item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                     item.categoria_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                     item.note?.toLowerCase().includes(searchTerm.toLowerCase());
+                return matchesSearch;
+              }).length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
-                  <p>Nessun oggetto disponibile per il tuo corso</p>
+                  <p>
+                    {searchTerm 
+                      ? 'Nessun oggetto trovato con i criteri di ricerca'
+                      : 'Nessun oggetto disponibile per il tuo corso'
+                    }
+                  </p>
                 </div>
               )}
             </div>
