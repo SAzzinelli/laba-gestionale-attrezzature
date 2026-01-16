@@ -614,6 +614,484 @@ Accedi al gestionale per gestire questa richiesta.
 }
 
 /**
+ * Invia email di notifica rifiuto richiesta allo studente
+ * @param {Object} options - Opzioni per l'email
+ * @param {string} options.to - Email destinatario
+ * @param {string} options.studentName - Nome studente
+ * @param {string} options.itemName - Nome oggetto richiesto
+ * @param {string} options.startDate - Data inizio prestito (YYYY-MM-DD)
+ * @param {string} options.endDate - Data fine prestito (YYYY-MM-DD)
+ * @param {string} [options.reason] - Motivo del rifiuto
+ * @returns {Promise<Object>} Risultato invio email
+ */
+export async function sendRejectionEmail({ to, studentName, itemName, startDate, endDate, reason }) {
+  console.log('📧 Tentativo invio email di rifiuto:', { to, studentName, itemName });
+  
+  if (!to) {
+    console.error('❌ Email non inviata: destinatario mancante');
+    return { success: false, error: 'Destinatario mancante' };
+  }
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('it-IT', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const formattedStartDate = formatDate(startDate);
+  const formattedEndDate = formatDate(endDate);
+
+  const subject = '❌ Richiesta di Noleggio Rifiutata - LABA Firenze';
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .header {
+          background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+          border-radius: 8px 8px 0 0;
+        }
+        .content {
+          background: #ffffff;
+          padding: 30px;
+          border: 1px solid #e5e7eb;
+          border-top: none;
+          border-radius: 0 0 8px 8px;
+        }
+        .alert-icon {
+          font-size: 48px;
+          margin-bottom: 20px;
+        }
+        .info-box {
+          background: #fee2e2;
+          border-left: 4px solid #dc2626;
+          padding: 15px;
+          margin: 20px 0;
+          border-radius: 4px;
+        }
+        .detail-row {
+          margin: 15px 0;
+          padding: 10px 0;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-label {
+          font-weight: 600;
+          color: #033157;
+          margin-bottom: 5px;
+        }
+        .detail-value {
+          color: #666;
+        }
+        .footer {
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #e5e7eb;
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="alert-icon">❌</div>
+        <h1 style="margin: 0; font-size: 24px;">Richiesta Rifiutata</h1>
+      </div>
+      <div class="content">
+        <p>Ciao <strong>${studentName}</strong>,</p>
+        
+        <p>La tua richiesta di noleggio è stata <strong>rifiutata</strong>.</p>
+        
+        ${reason ? `
+        <div class="info-box">
+          <p style="margin: 0;"><strong>Motivo del rifiuto:</strong></p>
+          <p style="margin: 10px 0 0 0;">${reason}</p>
+        </div>
+        ` : ''}
+        
+        <h2 style="color: #033157; margin-top: 30px;">Dettagli della Richiesta</h2>
+        
+        <div class="detail-row">
+          <div class="detail-label">Oggetto</div>
+          <div class="detail-value">${itemName}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Data Inizio Richiesta</div>
+          <div class="detail-value">${formattedStartDate}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Data Fine Richiesta</div>
+          <div class="detail-value">${formattedEndDate}</div>
+        </div>
+        
+        <div class="info-box" style="background: #fef3c7; border-left-color: #f59e0b; margin-top: 20px;">
+          <p style="margin: 0;"><strong>💡 Suggerimento:</strong> Se hai domande sul motivo del rifiuto, contatta la segreteria.</p>
+        </div>
+        
+        <div class="footer">
+          <p>LABA Firenze - Gestionale Attrezzature</p>
+          <p>Per domande o assistenza, contatta la segreteria.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Richiesta di Noleggio Rifiutata - LABA Firenze
+
+Ciao ${studentName},
+
+La tua richiesta di noleggio è stata rifiutata.
+
+${reason ? `Motivo del rifiuto: ${reason}` : ''}
+
+Dettagli della Richiesta:
+- Oggetto: ${itemName}
+- Data Inizio Richiesta: ${formattedStartDate}
+- Data Fine Richiesta: ${formattedEndDate}
+
+💡 Suggerimento: Se hai domande sul motivo del rifiuto, contatta la segreteria.
+
+LABA Firenze - Gestionale Attrezzature
+Per domande o assistenza, contatta la segreteria.
+  `.trim();
+
+  // Prova prima con Mailgun API REST, poi fallback a SMTP
+  try {
+    if (MAILGUN_API_KEY) {
+      console.log('📧 Invio email di rifiuto tramite Mailgun API REST...');
+      const result = await sendViaMailgunAPI({ to, subject, html, text });
+      console.log('✅ Email di rifiuto inviata con successo via Mailgun API!', {
+        to,
+        messageId: result.id || result.message
+      });
+      return { success: true, messageId: result.id || result.message };
+    } else {
+      // Fallback a SMTP
+      console.log('📧 Invio email di rifiuto tramite SMTP (fallback)...');
+      const emailTransporter = getTransporter();
+      
+      if (!emailTransporter) {
+        console.error('❌ Email non inviata: né Mailgun API né SMTP configurati');
+        return { success: false, error: 'Nessun metodo di invio email configurato' };
+      }
+
+      const mailOptions = {
+        from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
+        to: to,
+        subject: subject,
+        html: html,
+        text: text
+      };
+
+      const info = await emailTransporter.sendMail(mailOptions);
+      console.log('✅ Email di rifiuto inviata con successo via SMTP!', {
+        to,
+        messageId: info.messageId
+      });
+      return { success: true, messageId: info.messageId };
+    }
+  } catch (error) {
+    console.error('❌ Errore invio email di rifiuto:', {
+      message: error.message,
+      code: error.code,
+      response: error.response,
+      stack: error.stack
+    });
+    return { success: false, error: error.message, details: error };
+  }
+}
+
+/**
+ * Invia email di notifica penalità allo studente
+ * @param {Object} options - Opzioni per l'email
+ * @param {string} options.to - Email destinatario
+ * @param {string} options.studentName - Nome studente
+ * @param {string} options.itemName - Nome oggetto del prestito
+ * @param {number} options.delayDays - Giorni di ritardo
+ * @param {number} options.strikesAssigned - Strike assegnati
+ * @param {number} options.totalStrikes - Strike totali dell'utente
+ * @param {boolean} options.isBlocked - Se l'utente è stato bloccato
+ * @param {string} [options.returnDate] - Data di restituzione prevista
+ * @param {string} [options.actualReturnDate] - Data di restituzione effettiva
+ * @returns {Promise<Object>} Risultato invio email
+ */
+export async function sendPenaltyEmail({ to, studentName, itemName, delayDays, strikesAssigned, totalStrikes, isBlocked, returnDate, actualReturnDate }) {
+  console.log('📧 Tentativo invio email di penalità:', { to, studentName, itemName, delayDays, strikesAssigned, totalStrikes });
+  
+  if (!to) {
+    console.error('❌ Email non inviata: destinatario mancante');
+    return { success: false, error: 'Destinatario mancante' };
+  }
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('it-IT', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const subject = isBlocked 
+    ? '🚫 Account Bloccato - Penalità per Ritardo - LABA Firenze'
+    : `⚠️ Penalità Assegnata - Ritardo nella Restituzione - LABA Firenze`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .header {
+          background: linear-gradient(135deg, ${isBlocked ? '#dc2626' : '#f59e0b'} 0%, ${isBlocked ? '#991b1b' : '#d97706'} 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+          border-radius: 8px 8px 0 0;
+        }
+        .content {
+          background: #ffffff;
+          padding: 30px;
+          border: 1px solid #e5e7eb;
+          border-top: none;
+          border-radius: 0 0 8px 8px;
+        }
+        .alert-icon {
+          font-size: 48px;
+          margin-bottom: 20px;
+        }
+        .info-box {
+          background: ${isBlocked ? '#fee2e2' : '#fef3c7'};
+          border-left: 4px solid ${isBlocked ? '#dc2626' : '#f59e0b'};
+          padding: 15px;
+          margin: 20px 0;
+          border-radius: 4px;
+        }
+        .detail-row {
+          margin: 15px 0;
+          padding: 10px 0;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-label {
+          font-weight: 600;
+          color: #033157;
+          margin-bottom: 5px;
+        }
+        .detail-value {
+          color: #666;
+        }
+        .strikes-box {
+          background: #f0f9ff;
+          border-left: 4px solid #0ea5e9;
+          padding: 15px;
+          margin: 20px 0;
+          border-radius: 4px;
+        }
+        .footer {
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #e5e7eb;
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="alert-icon">${isBlocked ? '🚫' : '⚠️'}</div>
+        <h1 style="margin: 0; font-size: 24px;">${isBlocked ? 'Account Bloccato' : 'Penalità Assegnata'}</h1>
+      </div>
+      <div class="content">
+        <p>Ciao <strong>${studentName}</strong>,</p>
+        
+        ${isBlocked ? `
+        <div class="info-box">
+          <p style="margin: 0;"><strong>🚫 Il tuo account è stato bloccato</strong> per aver accumulato 3 o più penalità per ritardi nella restituzione degli oggetti.</p>
+          <p style="margin: 10px 0 0 0;">Non puoi più effettuare nuove richieste di noleggio fino a quando non ti rechi di persona presso la segreteria per sbloccare il tuo account.</p>
+        </div>
+        ` : `
+        <p>Ti è stata assegnata una <strong>penalità</strong> per ritardo nella restituzione dell'attrezzatura.</p>
+        
+        ${totalStrikes >= 2 ? `
+        <div class="info-box">
+          <p style="margin: 0;"><strong>⚠️ ATTENZIONE:</strong> Hai accumulato ${totalStrikes} penalità. Con un altro ritardo, il tuo account verrà bloccato automaticamente.</p>
+        </div>
+        ` : ''}
+        `}
+        
+        <h2 style="color: #033157; margin-top: 30px;">Dettagli della Penalità</h2>
+        
+        <div class="detail-row">
+          <div class="detail-label">Oggetto</div>
+          <div class="detail-value">${itemName}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Giorni di Ritardo</div>
+          <div class="detail-value">${delayDays} giorno/i</div>
+        </div>
+        
+        ${returnDate ? `
+        <div class="detail-row">
+          <div class="detail-label">Data Restituzione Prevista</div>
+          <div class="detail-value">${formatDate(returnDate)}</div>
+        </div>
+        ` : ''}
+        
+        ${actualReturnDate ? `
+        <div class="detail-row">
+          <div class="detail-label">Data Restituzione Effettiva</div>
+          <div class="detail-value">${formatDate(actualReturnDate)}</div>
+        </div>
+        ` : ''}
+        
+        <div class="strikes-box">
+          <div class="detail-label">Strike Assegnati</div>
+          <div class="detail-value" style="font-size: 18px; font-weight: bold; color: #0ea5e9;">${strikesAssigned}</div>
+        </div>
+        
+        <div class="strikes-box">
+          <div class="detail-label">Strike Totali Accumulati</div>
+          <div class="detail-value" style="font-size: 18px; font-weight: bold; color: ${totalStrikes >= 3 ? '#dc2626' : totalStrikes >= 2 ? '#f59e0b' : '#0ea5e9'};">
+            ${totalStrikes} / 3
+          </div>
+          ${totalStrikes >= 3 ? '<p style="margin: 10px 0 0 0; color: #dc2626; font-weight: bold;">⚠️ Account bloccato</p>' : ''}
+        </div>
+        
+        <div class="info-box" style="background: #f0f9ff; border-left-color: #0ea5e9; margin-top: 20px;">
+          <p style="margin: 0;"><strong>📋 Sistema di Penalità:</strong></p>
+          <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+            <li>1-3 giorni di ritardo = 1 strike</li>
+            <li>4-7 giorni di ritardo = 2 strike</li>
+            <li>8+ giorni di ritardo = 3 strike (blocco immediato)</li>
+            <li>3 strike totali = blocco account</li>
+          </ul>
+        </div>
+        
+        ${isBlocked ? `
+        <div class="info-box" style="background: #fee2e2; border-left-color: #dc2626; margin-top: 20px;">
+          <p style="margin: 0;"><strong>🔓 Per sbloccare il tuo account:</strong> Recati di persona presso la segreteria.</p>
+        </div>
+        ` : ''}
+        
+        <div class="footer">
+          <p>LABA Firenze - Gestionale Attrezzature</p>
+          <p>Per domande o assistenza, contatta la segreteria.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+${isBlocked ? 'Account Bloccato' : 'Penalità Assegnata'} - LABA Firenze
+
+Ciao ${studentName},
+
+${isBlocked ? 
+  'Il tuo account è stato bloccato per aver accumulato 3 o più penalità per ritardi nella restituzione degli oggetti. Non puoi più effettuare nuove richieste di noleggio fino a quando non ti rechi di persona presso la segreteria per sbloccare il tuo account.' :
+  'Ti è stata assegnata una penalità per ritardo nella restituzione dell\'attrezzatura.' + (totalStrikes >= 2 ? ` ATTENZIONE: Hai accumulato ${totalStrikes} penalità. Con un altro ritardo, il tuo account verrà bloccato automaticamente.` : '')
+}
+
+Dettagli della Penalità:
+- Oggetto: ${itemName}
+- Giorni di Ritardo: ${delayDays} giorno/i
+${returnDate ? `- Data Restituzione Prevista: ${formatDate(returnDate)}` : ''}
+${actualReturnDate ? `- Data Restituzione Effettiva: ${formatDate(actualReturnDate)}` : ''}
+- Strike Assegnati: ${strikesAssigned}
+- Strike Totali Accumulati: ${totalStrikes} / 3
+${totalStrikes >= 3 ? '- ⚠️ Account bloccato' : ''}
+
+Sistema di Penalità:
+- 1-3 giorni di ritardo = 1 strike
+- 4-7 giorni di ritardo = 2 strike
+- 8+ giorni di ritardo = 3 strike (blocco immediato)
+- 3 strike totali = blocco account
+
+${isBlocked ? 'Per sbloccare il tuo account: Recati di persona presso la segreteria.' : ''}
+
+LABA Firenze - Gestionale Attrezzature
+Per domande o assistenza, contatta la segreteria.
+  `.trim();
+
+  // Prova prima con Mailgun API REST, poi fallback a SMTP
+  try {
+    if (MAILGUN_API_KEY) {
+      console.log('📧 Invio email di penalità tramite Mailgun API REST...');
+      const result = await sendViaMailgunAPI({ to, subject, html, text });
+      console.log('✅ Email di penalità inviata con successo via Mailgun API!', {
+        to,
+        messageId: result.id || result.message
+      });
+      return { success: true, messageId: result.id || result.message };
+    } else {
+      // Fallback a SMTP
+      console.log('📧 Invio email di penalità tramite SMTP (fallback)...');
+      const emailTransporter = getTransporter();
+      
+      if (!emailTransporter) {
+        console.error('❌ Email non inviata: né Mailgun API né SMTP configurati');
+        return { success: false, error: 'Nessun metodo di invio email configurato' };
+      }
+
+      const mailOptions = {
+        from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
+        to: to,
+        subject: subject,
+        html: html,
+        text: text
+      };
+
+      const info = await emailTransporter.sendMail(mailOptions);
+      console.log('✅ Email di penalità inviata con successo via SMTP!', {
+        to,
+        messageId: info.messageId
+      });
+      return { success: true, messageId: info.messageId };
+    }
+  } catch (error) {
+    console.error('❌ Errore invio email di penalità:', {
+      message: error.message,
+      code: error.code,
+      response: error.response,
+      stack: error.stack
+    });
+    return { success: false, error: error.message, details: error };
+  }
+}
+
+/**
  * Test connessione email (Mailgun API o SMTP)
  */
 export async function testEmailConnection() {

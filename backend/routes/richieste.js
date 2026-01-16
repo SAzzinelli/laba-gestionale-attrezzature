@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { query } from '../utils/postgres.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { sendNewRequestNotification } from '../utils/email.js';
+import { sendNewRequestNotification, sendRejectionEmail } from '../utils/email.js';
 
 const r = Router();
 
@@ -279,6 +279,34 @@ r.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
         // Richiesta approvata: l'unità rimane riservata fino alla creazione del prestito
         // (la gestione del prestito sarà nell'endpoint /prestiti)
         console.log(`✅ Unità ${request.unit_id} rimane riservata (richiesta approvata)`);
+      }
+    }
+    
+    // Invia email di notifica rifiuto allo studente se la richiesta è stata rifiutata
+    if (stato === 'rifiutata') {
+      try {
+        const userData = await query('SELECT name, surname, email FROM users WHERE id = $1', [request.utente_id]);
+        const itemData = await query('SELECT nome FROM inventario WHERE id = $1', [request.inventario_id]);
+        
+        if (userData.length > 0 && itemData.length > 0 && userData[0].email) {
+          const user = userData[0];
+          const item = itemData[0];
+          const studentName = `${user.name || ''} ${user.surname || ''}`.trim() || user.email;
+          
+          await sendRejectionEmail({
+            to: user.email,
+            studentName: studentName,
+            itemName: item.nome,
+            startDate: request.dal,
+            endDate: request.al,
+            reason: motivo || note || null
+          });
+          
+          console.log(`✅ Email notifica rifiuto inviata a ${user.email} per richiesta ${id}`);
+        }
+      } catch (emailError) {
+        // Non bloccare il rifiuto se l'email fallisce
+        console.error('⚠️ Errore invio email notifica rifiuto (non bloccante):', emailError);
       }
     }
     

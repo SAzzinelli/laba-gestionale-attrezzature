@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { query } from '../utils/postgres.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { sendApprovalEmail } from '../utils/email.js';
+import { sendApprovalEmail, sendRejectionEmail } from '../utils/email.js';
 
 const r = Router();
 
@@ -399,6 +399,36 @@ r.put('/:id/rifiuta', requireAuth, requireRole('admin'), async (req, res) => {
       `, [request[0].unit_id, id]);
       
       console.log(`✅ Unità ${request[0].unit_id} liberata dopo rifiuto richiesta ${id}`);
+    }
+    
+    // Invia email di notifica rifiuto allo studente
+    try {
+      const requestDetails = await query(`
+        SELECT r.*, u.name, u.surname, u.email, i.nome as inventario_nome
+        FROM richieste r
+        LEFT JOIN users u ON r.utente_id = u.id
+        LEFT JOIN inventario i ON r.inventario_id = i.id
+        WHERE r.id = $1
+      `, [id]);
+      
+      if (requestDetails.length > 0 && requestDetails[0].email) {
+        const reqData = requestDetails[0];
+        const studentName = `${reqData.name || ''} ${reqData.surname || ''}`.trim() || reqData.email;
+        
+        await sendRejectionEmail({
+          to: reqData.email,
+          studentName: studentName,
+          itemName: reqData.inventario_nome || 'Attrezzatura',
+          startDate: reqData.dal,
+          endDate: reqData.al,
+          reason: motivazione || null
+        });
+        
+        console.log(`✅ Email notifica rifiuto inviata a ${reqData.email} per richiesta ${id}`);
+      }
+    } catch (emailError) {
+      // Non bloccare il rifiuto se l'email fallisce
+      console.error('⚠️ Errore invio email notifica rifiuto (non bloccante):', emailError);
     }
     
     res.json({ message: 'Richiesta rifiutata' });
