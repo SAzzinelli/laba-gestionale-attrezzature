@@ -7,6 +7,7 @@ import ReportFault from '../components/ReportFault';
 import SystemStatus from '../components/SystemStatus.jsx';
 import Footer from '../components/Footer';
 import MobileMenu from '../components/MobileMenu';
+import NotificationsPanel from '../components/NotificationsPanel';
 
 // UserBadge Component (simplified to avoid overlap)
 function UserBadge() {
@@ -46,6 +47,7 @@ function UserBadge() {
 const UserArea = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { user, logout } = useAuth();
 
 
@@ -108,7 +110,7 @@ const UserArea = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
         {/* Mobile Header */}
-        <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 z-30">
+        <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 z-[100]">
           <div className="flex items-center justify-between">
             <div 
               className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
@@ -119,7 +121,9 @@ const UserArea = () => {
             <div className="flex items-center space-x-2">
               {/* Notification Bell */}
               <button
-                className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                onClick={() => setNotificationsOpen(true)}
+                className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors z-[101]"
+                type="button"
               >
                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -129,7 +133,8 @@ const UserArea = () => {
               {/* Hamburger Menu */}
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 ease-in-out hover:scale-105"
+                className="p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 ease-in-out hover:scale-105 z-[101]"
+                type="button"
               >
                 <svg className="w-6 h-6 transition-transform duration-200 ease-in-out" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
@@ -185,6 +190,12 @@ const UserArea = () => {
           onNavigate={setActiveView}
           user={user}
           logout={logout}
+        />
+
+        {/* Notifications Panel */}
+        <NotificationsPanel
+          isOpen={notificationsOpen}
+          onClose={() => setNotificationsOpen(false)}
         />
     </div>
   );

@@ -6,7 +6,8 @@ const MobileMenu = ({ isOpen, onClose, sidebarItems, activeView, onNavigate, use
   return (
     <div className={`fixed inset-0 z-40 lg:hidden overflow-hidden transition-opacity duration-300 ease-in-out ${
       isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-    }`}>
+    }`}
+    style={{ display: isOpen ? 'block' : 'none' }}>
       {/* Overlay with smooth fade animation like notifications */}
       <div 
         className={`absolute inset-0 bg-black transition-all duration-300 ease-in-out ${
