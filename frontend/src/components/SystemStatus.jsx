@@ -348,7 +348,141 @@ const SystemStatus = () => {
             </div>
           )}
         </div>
+
+        {/* Email Test Section */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 mt-8">
+          <div className="p-6 border-b border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900">Test Configurazione Email</h3>
+            <p className="text-sm text-gray-600 mt-2">Testa la connessione SMTP e invia email di prova</p>
+          </div>
+          
+          <div className="p-6">
+            <EmailTestSection token={token} />
+          </div>
+        </div>
       </div>
+    </div>
+  );
+};
+
+// Componente per test email
+const EmailTestSection = ({ token }) => {
+  const [testEmail, setTestEmail] = useState('');
+  const [testing, setTesting] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const testConnection = async () => {
+    setTesting(true);
+    setResult(null);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/debug/test-email`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      setResult({ success: response.ok, data });
+    } catch (error) {
+      setResult({ success: false, error: error.message });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const sendTestEmail = async () => {
+    if (!testEmail || !testEmail.includes('@')) {
+      setResult({ success: false, error: 'Inserisci un indirizzo email valido' });
+      return;
+    }
+
+    setTesting(true);
+    setResult(null);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/debug/send-test-email`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ to: testEmail })
+      });
+      const data = await response.json();
+      setResult({ success: response.ok, data });
+    } catch (error) {
+      setResult({ success: false, error: error.message });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={testConnection}
+          disabled={testing}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {testing ? 'Test in corso...' : 'Test Connessione SMTP'}
+        </button>
+      </div>
+
+      <div className="border-t border-gray-200 pt-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Invia Email di Test
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="email"
+            value={testEmail}
+            onChange={(e) => setTestEmail(e.target.value)}
+            placeholder="tua-email@example.com"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={sendTestEmail}
+            disabled={testing || !testEmail}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {testing ? 'Invio...' : 'Invia Test'}
+          </button>
+        </div>
+      </div>
+
+      {result && (
+        <div className={`mt-4 p-4 rounded-lg ${
+          result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+        }`}>
+          <div className="flex items-start">
+            <div className={`flex-shrink-0 ${result.success ? 'text-green-600' : 'text-red-600'}`}>
+              {result.success ? (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              )}
+            </div>
+            <div className="ml-3 flex-1">
+              <h4 className={`text-sm font-medium ${result.success ? 'text-green-800' : 'text-red-800'}`}>
+                {result.success ? 'Successo!' : 'Errore'}
+              </h4>
+              <div className="mt-2 text-sm">
+                {result.data && (
+                  <pre className="whitespace-pre-wrap text-xs bg-white p-2 rounded border overflow-auto max-h-40">
+                    {JSON.stringify(result.data, null, 2)}
+                  </pre>
+                )}
+                {result.error && (
+                  <p className="text-red-700">{result.error}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
