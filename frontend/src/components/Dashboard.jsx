@@ -839,7 +839,7 @@ return (
  {/* Alert Details Modal */}
  {selectedAlert && (
  <div className="modal-overlay" onClick={() => setSelectedAlert(null)}>
- <div className="modal-content max-w-5xl" onClick={(e) => e.stopPropagation()}>
+ <div className="modal-content max-w-6xl" onClick={(e) => e.stopPropagation()}>
  <div className="modal-header">
     <h2 className="text-xl font-bold text-primary">
     {selectedAlert.type === 'scorte' ? 'Scorte Basse' :
@@ -858,7 +858,7 @@ return (
  </div>
  
  <div className="modal-body">
- <div className="space-y-3">
+ <div className={`grid ${selectedAlert.type === 'scorte' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-3`}>
  {selectedAlert.data.map((item, index) => (
  <div key={index} className="card">
  <div className="flex items-center justify-between">
