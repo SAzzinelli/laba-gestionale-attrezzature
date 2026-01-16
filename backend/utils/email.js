@@ -377,20 +377,21 @@ export async function testEmailConnection() {
   if (MAILGUN_API_KEY) {
     try {
       // Costruisci l'URL dell'API correttamente
-      // Per US: https://api.mailgun.net/v3/domain
-      // Per EU: https://api.eu.mailgun.net/v3/domain
+      // Per US: https://api.mailgun.net/v3/domains/{domain}
+      // Per EU: https://api.eu.mailgun.net/v3/domains/{domain}
       const apiBaseUrl = MAILGUN_REGION === 'us' 
-        ? `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}`
-        : `https://api.${MAILGUN_REGION}.mailgun.net/v3/${MAILGUN_DOMAIN}`;
+        ? `https://api.mailgun.net/v3`
+        : `https://api.${MAILGUN_REGION}.mailgun.net/v3`;
+      const domainUrl = `${apiBaseUrl}/domains/${MAILGUN_DOMAIN}`;
       
       console.log('🔍 Test connessione Mailgun API...', {
         domain: MAILGUN_DOMAIN,
         region: MAILGUN_REGION,
-        apiUrl: apiBaseUrl
+        apiUrl: domainUrl
       });
       
-      // Test semplice: verifica che l'API risponda (GET /domains/{domain})
-      const response = await fetch(apiBaseUrl, {
+      // Test: verifica che il dominio esista e sia accessibile (GET /domains/{domain})
+      const response = await fetch(domainUrl, {
         method: 'GET',
         headers: {
           'Authorization': `Basic ${Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64')}`
@@ -398,12 +399,37 @@ export async function testEmailConnection() {
         signal: AbortSignal.timeout(10000) // 10 secondi timeout
       });
       
+      const responseText = await response.text();
+      
       if (response.ok) {
-        console.log('✅ Connessione Mailgun API verificata con successo');
-        return { success: true, method: 'Mailgun API' };
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch (e) {
+          result = { message: responseText };
+        }
+        console.log('✅ Connessione Mailgun API verificata con successo', result);
+        return { 
+          success: true, 
+          method: 'Mailgun API',
+          domain: result.domain?.name || MAILGUN_DOMAIN,
+          state: result.domain?.state || 'unknown'
+        };
       } else {
-        const errorText = await response.text();
-        throw new Error(`Mailgun API error: ${response.status} - ${errorText}`);
+        let errorMessage = `Mailgun API error: ${response.status} - ${responseText}`;
+        
+        if (response.status === 404) {
+          errorMessage = `Dominio non trovato: ${MAILGUN_DOMAIN}\n\n` +
+            'Verifica che:\n' +
+            `- MAILGUN_DOMAIN sia corretto (attuale: ${MAILGUN_DOMAIN})\n` +
+            `- Il dominio sia stato aggiunto su Mailgun\n` +
+            `- MAILGUN_REGION sia corretto (attuale: ${MAILGUN_REGION}, deve essere 'eu' o 'us')`;
+        } else if (response.status === 401) {
+          errorMessage = `Autenticazione fallita: API key non valida\n\n` +
+            'Verifica che MAILGUN_API_KEY sia corretta su Railway';
+        }
+        
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('❌ Errore verifica Mailgun API:', error);
