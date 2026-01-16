@@ -176,6 +176,15 @@ NODE_ENV=development
 
 # CORS
 CORS_ORIGIN=http://localhost:5173
+
+# Email (SMTP) - Per notifiche di approvazione richieste
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=service@labafirenze.com
+SMTP_PASSWORD=your-smtp-password
+EMAIL_FROM=service@labafirenze.com
+EMAIL_FROM_NAME=LABA Firenze - Gestionale Attrezzature
 ```
 
 ### **Variabili d'Ambiente Frontend**

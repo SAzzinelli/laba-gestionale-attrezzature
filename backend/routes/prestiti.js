@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { query } from '../utils/postgres.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { sendApprovalEmail } from '../utils/email.js';
 
 const r = Router();
 
@@ -250,11 +251,14 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(404).json({ error: 'Richiesta non trovata' });
     }
     
-    // Get request details with user info and penalty status
+    // Get request details with user info, penalty status, and inventory details
     const request = await query(`
-      SELECT r.*, u.name, u.surname, u.email, u.penalty_strikes, u.is_blocked, u.blocked_reason
+      SELECT r.*, 
+             u.name, u.surname, u.email, u.penalty_strikes, u.is_blocked, u.blocked_reason,
+             i.nome as inventario_nome
       FROM richieste r 
       LEFT JOIN users u ON r.utente_id = u.id 
+      LEFT JOIN inventario i ON r.inventario_id = i.id
       WHERE r.id = $1
     `, [id]);
     
@@ -316,6 +320,25 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
           LIMIT $2
         )
       `, [requestData.inventario_id, requestData.quantita || 1]);
+    }
+    
+    // Invia email di notifica allo studente (non blocca l'approvazione se fallisce)
+    if (requestData.email) {
+      try {
+        await sendApprovalEmail({
+          to: requestData.email,
+          studentName: userFullName,
+          itemName: requestData.inventario_nome || 'Attrezzatura',
+          startDate: requestData.dal,
+          endDate: dataRientroAdjusted,
+          notes: requestData.note || null
+        });
+      } catch (emailError) {
+        // Log dell'errore ma non blocca l'approvazione
+        console.error('⚠️ Errore invio email di approvazione (non bloccante):', emailError);
+      }
+    } else {
+      console.warn('⚠️ Email non inviata: utente senza email registrata');
     }
     
     res.json({ 
