@@ -299,6 +299,40 @@ router.post('/assign-manual', requireAuth, requireRole('admin'), async (req, res
     
     await client.query('COMMIT');
     
+    // Invia email di notifica penalità all'utente
+    try {
+      const userData = await client.query('SELECT name, surname, email FROM users WHERE id = $1', [userId]);
+      const loanData = prestitoId ? await client.query(`
+        SELECT p.data_rientro, p.data_uscita, i.nome as inventario_nome
+        FROM prestiti p
+        LEFT JOIN inventario i ON p.inventario_id = i.id
+        WHERE p.id = $1
+      `, [prestitoId]) : { rows: [] };
+      
+      if (userData.rows.length > 0 && userData.rows[0].email) {
+        const user = userData.rows[0];
+        const loan = loanData.rows[0] || {};
+        const studentName = `${user.name || ''} ${user.surname || ''}`.trim() || user.email;
+        
+        await sendPenaltyEmail({
+          to: user.email,
+          studentName: studentName,
+          itemName: loan.inventario_nome || 'Attrezzatura',
+          delayDays: 0, // Per penalità manuale, non c'è ritardo
+          strikesAssigned: strikesNum,
+          totalStrikes: totalStrikes,
+          isBlocked: totalStrikes >= 3,
+          returnDate: loan.data_rientro || null,
+          actualReturnDate: null
+        });
+        
+        console.log(`✅ Email notifica penalità manuale inviata a ${user.email}`);
+      }
+    } catch (emailError) {
+      // Non bloccare l'assegnazione della penalità se l'email fallisce
+      console.error('⚠️ Errore invio email notifica penalità manuale (non bloccante):', emailError);
+    }
+    
     res.json({
       message: willExceed 
         ? `Penalità assegnata. ATTENZIONE: L'utente ha ora ${totalStrikes} strike (supera il limite di 3).`
