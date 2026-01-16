@@ -3,14 +3,14 @@ import { useAuth } from '../auth/AuthContext';
 import AdvancedLoanModal from './AdvancedLoanModal';
 import { TableSkeleton } from './SkeletonLoader';
 
-const Loans = ({ selectedRequestFromNotification, onRequestHandled }) => {
+const Loans = ({ selectedRequestFromNotification, onRequestHandled, initialTab, onTabSet }) => {
  const [requests, setRequests] = useState([]);
  const [loans, setLoans] = useState([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState(null);
  const [showLoanModal, setShowLoanModal] = useState(false);
  const [selectedLoan, setSelectedLoan] = useState(null);
- const [activeTab, setActiveTab] = useState('active');
+ const [activeTab, setActiveTab] = useState(initialTab || 'active');
  const [searchTerm, setSearchTerm] = useState('');
  const [showRejectModal, setShowRejectModal] = useState(false);
  const [rejectRequestId, setRejectRequestId] = useState(null);
@@ -69,6 +69,17 @@ const Loans = ({ selectedRequestFromNotification, onRequestHandled }) => {
      }
    }
  }, [selectedRequestFromNotification, requests, onRequestHandled]);
+
+ // Gestisce il tab iniziale quando si naviga dalla dashboard
+ useEffect(() => {
+   if (initialTab) {
+     setActiveTab(initialTab);
+     // Notifica che il tab è stato impostato
+     if (onTabSet) {
+       onTabSet();
+     }
+   }
+ }, [initialTab, onTabSet]);
 
 const handleApprove = async (requestId) => {
 try {

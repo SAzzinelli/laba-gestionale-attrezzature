@@ -461,7 +461,12 @@ return (
  {stats.pendingRequests > 0 && (
  <div 
  className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 cursor-pointer hover:bg-yellow-100 transition-colors"
- onClick={() => onNavigate('prestiti')}
+ onClick={() => {
+   // Passa un parametro per indicare di aprire il tab "pending"
+   if (onNavigate) {
+     onNavigate('prestiti', { initialTab: 'pending' });
+   }
+ }}
  >
  <div className="flex items-center mb-3">
  <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
