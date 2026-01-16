@@ -19,6 +19,7 @@ import migrationRouter from "./routes/migration.js";
 import debugRouter from "./routes/debug.js";
 import penaltiesRouter from "./routes/penalties.js";
 import excelRouter from "./routes/excel.js";
+import cronRouter from "./routes/cron.js";
 import { initDatabase, query } from './utils/postgres.js';
 import supabase from './utils/supabaseStorage.js';
 
@@ -144,6 +145,7 @@ app.use("/api/penalties", penaltiesRouter);
 app.use("/api/migration", migrationRouter);
 app.use("/api/excel", excelRouter);
 app.use("/api/debug", debugRouter);
+app.use("/api/cron", cronRouter);
 
 // serve frontend build if built
 const __filename = fileURLToPath(import.meta.url);

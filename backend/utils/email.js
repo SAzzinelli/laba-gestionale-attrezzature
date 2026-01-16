@@ -1092,6 +1092,248 @@ Per domande o assistenza, contatta la segreteria.
 }
 
 /**
+ * Invia email di reminder per riconsegna il giorno prima
+ * @param {Object} options - Opzioni per l'email
+ * @param {string} options.to - Email destinatario
+ * @param {string} options.studentName - Nome studente
+ * @param {string} options.itemName - Nome oggetto del prestito
+ * @param {string} options.returnDate - Data di riconsegna prevista (YYYY-MM-DD)
+ * @param {string} [options.startDate] - Data di inizio prestito (YYYY-MM-DD)
+ * @returns {Promise<Object>} Risultato invio email
+ */
+export async function sendReminderEmail({ to, studentName, itemName, returnDate, startDate }) {
+  console.log('📧 Tentativo invio email di reminder:', { to, studentName, itemName, returnDate });
+  
+  if (!to) {
+    console.error('❌ Email non inviata: destinatario mancante');
+    return { success: false, error: 'Destinatario mancante' };
+  }
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('it-IT', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const formattedReturnDate = formatDate(returnDate);
+  const formattedStartDate = startDate ? formatDate(startDate) : null;
+
+  const subject = '🔔 Promemoria Riconsegna - LABA Firenze';
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .header {
+          background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+          color: white;
+          padding: 30px;
+          text-align: center;
+          border-radius: 8px 8px 0 0;
+        }
+        .content {
+          background: #ffffff;
+          padding: 30px;
+          border: 1px solid #e5e7eb;
+          border-top: none;
+          border-radius: 0 0 8px 8px;
+        }
+        .alert-icon {
+          font-size: 48px;
+          margin-bottom: 20px;
+        }
+        .info-box {
+          background: #eff6ff;
+          border-left: 4px solid #0ea5e9;
+          padding: 15px;
+          margin: 20px 0;
+          border-radius: 4px;
+        }
+        .warning-box {
+          background: #fef3c7;
+          border-left: 4px solid #f59e0b;
+          padding: 15px;
+          margin: 20px 0;
+          border-radius: 4px;
+        }
+        .detail-row {
+          margin: 15px 0;
+          padding: 10px 0;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-label {
+          font-weight: 600;
+          color: #033157;
+          margin-bottom: 5px;
+        }
+        .detail-value {
+          color: #666;
+        }
+        .highlight {
+          background: #f0f9ff;
+          padding: 15px;
+          margin: 20px 0;
+          border-radius: 4px;
+          text-align: center;
+        }
+        .highlight-date {
+          font-size: 24px;
+          font-weight: bold;
+          color: #0ea5e9;
+          margin: 10px 0;
+        }
+        .footer {
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #e5e7eb;
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="alert-icon">🔔</div>
+        <h1 style="margin: 0; font-size: 24px;">Promemoria Riconsegna</h1>
+      </div>
+      <div class="content">
+        <p>Ciao <strong>${studentName}</strong>,</p>
+        
+        <p>Ti ricordiamo che <strong>domani</strong> è prevista la riconsegna dell'attrezzatura che hai in prestito.</p>
+        
+        <div class="highlight">
+          <div class="detail-label">Data di Riconsegna</div>
+          <div class="highlight-date">${formattedReturnDate}</div>
+        </div>
+        
+        <h2 style="color: #033157; margin-top: 30px;">Dettagli del Prestito</h2>
+        
+        <div class="detail-row">
+          <div class="detail-label">Oggetto</div>
+          <div class="detail-value">${itemName}</div>
+        </div>
+        
+        ${formattedStartDate ? `
+        <div class="detail-row">
+          <div class="detail-label">Data Inizio Prestito</div>
+          <div class="detail-value">${formattedStartDate}</div>
+        </div>
+        ` : ''}
+        
+        <div class="detail-row">
+          <div class="detail-label">Data Riconsegna Prevista</div>
+          <div class="detail-value">${formattedReturnDate}</div>
+        </div>
+        
+        <div class="warning-box">
+          <p style="margin: 0;"><strong>⚠️ IMPORTANTE:</strong></p>
+          <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+            <li>Riconsegna l'attrezzatura <strong>entro domani</strong></li>
+            <li>Ritardi nella riconsegna comportano penalità</li>
+            <li>Se hai bisogno di prorogare, contatta la segreteria prima della scadenza</li>
+          </ul>
+        </div>
+        
+        <div class="info-box">
+          <p style="margin: 0;"><strong>💡 Ricorda:</strong> La riconsegna deve avvenire presso la segreteria durante gli orari di apertura.</p>
+        </div>
+        
+        <div class="footer">
+          <p>LABA Firenze - Gestionale Attrezzature</p>
+          <p>Per domande o assistenza, contatta la segreteria.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Promemoria Riconsegna - LABA Firenze
+
+Ciao ${studentName},
+
+Ti ricordiamo che domani è prevista la riconsegna dell'attrezzatura che hai in prestito.
+
+Data di Riconsegna: ${formattedReturnDate}
+
+Dettagli del Prestito:
+- Oggetto: ${itemName}
+${formattedStartDate ? `- Data Inizio Prestito: ${formattedStartDate}` : ''}
+- Data Riconsegna Prevista: ${formattedReturnDate}
+
+⚠️ IMPORTANTE:
+- Riconsegna l'attrezzatura entro domani
+- Ritardi nella riconsegna comportano penalità
+- Se hai bisogno di prorogare, contatta la segreteria prima della scadenza
+
+💡 Ricorda: La riconsegna deve avvenire presso la segreteria durante gli orari di apertura.
+
+LABA Firenze - Gestionale Attrezzature
+Per domande o assistenza, contatta la segreteria.
+  `.trim();
+
+  // Prova prima con Mailgun API REST, poi fallback a SMTP
+  try {
+    if (MAILGUN_API_KEY) {
+      console.log('📧 Invio email di reminder tramite Mailgun API REST...');
+      const result = await sendViaMailgunAPI({ to, subject, html, text });
+      console.log('✅ Email di reminder inviata con successo via Mailgun API!', {
+        to,
+        messageId: result.id || result.message
+      });
+      return { success: true, messageId: result.id || result.message };
+    } else {
+      // Fallback a SMTP
+      console.log('📧 Invio email di reminder tramite SMTP (fallback)...');
+      const emailTransporter = getTransporter();
+      
+      if (!emailTransporter) {
+        console.error('❌ Email non inviata: né Mailgun API né SMTP configurati');
+        return { success: false, error: 'Nessun metodo di invio email configurato' };
+      }
+
+      const mailOptions = {
+        from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
+        to: to,
+        subject: subject,
+        html: html,
+        text: text
+      };
+
+      const info = await emailTransporter.sendMail(mailOptions);
+      console.log('✅ Email di reminder inviata con successo via SMTP!', {
+        to,
+        messageId: info.messageId
+      });
+      return { success: true, messageId: info.messageId };
+    }
+  } catch (error) {
+    console.error('❌ Errore invio email di reminder:', {
+      message: error.message,
+      code: error.code,
+      response: error.response,
+      stack: error.stack
+    });
+    return { success: false, error: error.message, details: error };
+  }
+}
+
+/**
  * Test connessione email (Mailgun API o SMTP)
  */
 export async function testEmailConnection() {
