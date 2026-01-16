@@ -417,20 +417,12 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
           {/* Step 2: Seleziona ID Univoco */}
           {step === 2 && selectedObject && (
             <div className="space-y-4">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1 min-w-0 mr-4">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Seleziona ID Univoco</h3>
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Oggetto:</span>{' '}
-                    <span className="break-words">{selectedObject.nome}</span>
-                  </p>
-                </div>
-                <button
-                  onClick={() => setStep(1)}
-                  className="text-blue-600 hover:text-blue-800 text-sm whitespace-nowrap flex-shrink-0"
-                >
-                  ← Cambia oggetto
-                </button>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Seleziona ID Univoco</h3>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Oggetto:</span>{' '}
+                  <span className="break-words">{selectedObject.nome}</span>
+                </p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
@@ -462,29 +454,40 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   <p>Nessuna unità disponibile per questo oggetto</p>
                 </div>
               )}
+
+              {/* Actions */}
+              <div className="flex justify-between items-center space-x-3 pt-4 mt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Indietro
+                </button>
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Annulla
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
           {/* Step 3: Scegli Tipo Utilizzo (solo per oggetti "entrambi") */}
           {step === 3 && selectedObject && selectedUnit && selectedObject.tipo_prestito === 'entrambi' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Scegli il tipo di utilizzo</h3>
-                  <p className="text-sm text-gray-600">
-                    Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                  Cambia ID
-                </button>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Scegli il tipo di utilizzo</h3>
+                <p className="text-sm text-gray-600">
+                  Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
+                </p>
               </div>
 
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
@@ -546,22 +549,37 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex justify-between items-center space-x-3 pt-4 mt-6 border-t border-gray-200">
                 <button
                   type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => setStep(2)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors flex items-center gap-2"
                 >
-                  Annulla
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Indietro
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setStep(4)}
-                  disabled={!tipoUtilizzo}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Continua →
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Annulla
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep(4)}
+                    disabled={!tipoUtilizzo}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  >
+                    Continua
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -569,27 +587,11 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
           {/* Step 4: Date e Note */}
           {step === 4 && selectedObject && selectedUnit && (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Date e Note</h3>
-                  <p className="text-sm text-gray-600">
-                    Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Se l'oggetto è "entrambi" e siamo al step 4, torna al step 3 (scelta tipo)
-                    if (selectedObject.tipo_prestito === 'entrambi') {
-                      setStep(3);
-                    } else {
-                      setStep(2);
-                    }
-                  }}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  ← Indietro
-                </button>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Date e Note</h3>
+                <p className="text-sm text-gray-600">
+                  Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
+                </p>
               </div>
 
               {/* Tipo Prestito Info */}
@@ -712,28 +714,47 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
               )}
 
               {/* Actions */}
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex justify-between items-center space-x-3 pt-4 mt-6 border-t border-gray-200">
                 <button
                   type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => {
+                    // Se l'oggetto è "entrambi" e siamo al step 4, torna al step 3 (scelta tipo)
+                    if (selectedObject.tipo_prestito === 'entrambi') {
+                      setStep(3);
+                    } else {
+                      setStep(2);
+                    }
+                  }}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors flex items-center gap-2"
                 >
-                  Annulla
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Indietro
                 </button>
-                <button
-                  type="submit"
-                  disabled={loading || (selectedObject.tipo_prestito === 'entrambi' && !tipoUtilizzo)}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
-                      Creazione...
-                    </>
-                  ) : (
-                    'Crea Richiesta'
-                  )}
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Annulla
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || (selectedObject.tipo_prestito === 'entrambi' && !tipoUtilizzo)}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
+                        Creazione...
+                      </>
+                    ) : (
+                      'Crea Richiesta'
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           )}

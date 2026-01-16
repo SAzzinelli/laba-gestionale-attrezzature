@@ -631,23 +631,11 @@ const handleCancelRepair = async (repairId) => {
           {/* Step 3: Dettagli Riparazione */}
           {step === 3 && selectedObject && selectedUnit && (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Dettagli Riparazione</h3>
-                  <p className="text-sm text-gray-600">
-                    Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                  Cambia ID
-                </button>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Dettagli Riparazione</h3>
+                <p className="text-sm text-gray-600">
+                  Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
+                </p>
               </div>
 
               {/* Descrizione */}
@@ -721,20 +709,32 @@ const handleCancelRepair = async (repairId) => {
               )}
 
               {/* Actions */}
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex justify-between items-center space-x-3 pt-4 mt-6 border-t border-gray-200">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => setStep(2)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors flex items-center gap-2"
                 >
-                  Annulla
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Indietro
                 </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  {editingRepair ? 'Aggiorna' : 'Crea Riparazione'}
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Annulla
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {editingRepair ? 'Aggiorna' : 'Crea Riparazione'}
+                  </button>
+                </div>
               </div>
             </form>
           )}
