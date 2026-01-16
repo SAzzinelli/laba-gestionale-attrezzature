@@ -172,11 +172,35 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       }
     } else {
       // Validazione limite massimo 3 giorni per prestiti esterni
+      // Calcola la durata in giorni: dal giorno di inizio al giorno di fine (inclusi)
+      // Es: dal 22 al 24 = 3 giorni (22, 23, 24)
       const diffTime = dataFine.getTime() - dataInizio.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 per includere il giorno di inizio
       
-      if (diffDays > 3) {
-        setError('Il prestito massimo consentito è di 3 giorni');
+      // Gestione speciale per slittamento domenica -> lunedì
+      // Se la data di fine è lunedì e il giorno precedente era domenica, 
+      // e la durata originale fino alla domenica era 3 giorni, allora è valido (4 giorni totali)
+      const fineDayOfWeek = dataFine.getDay(); // 0 = domenica, 1 = lunedì
+      let isValidDuration = diffDays <= 3;
+      
+      if (fineDayOfWeek === 1) { // Lunedì
+        const previousDay = new Date(dataFine);
+        previousDay.setDate(previousDay.getDate() - 1);
+        const previousDayOfWeek = previousDay.getDay();
+        
+        if (previousDayOfWeek === 0) { // Se il giorno precedente era domenica
+          // Calcola la durata originale fino alla domenica (il 3° giorno)
+          const durataOriginale = Math.floor((previousDay.getTime() - dataInizio.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+          
+          // Se la durata originale era 3 giorni (es. Ven->Dom) e la fine è lunedì, è valido
+          if (durataOriginale === 3 && diffDays === 4) {
+            isValidDuration = true;
+          }
+        }
+      }
+      
+      if (!isValidDuration) {
+        setError('Il prestito massimo consentito è di 3 giorni dalla data di inizio (o 4 se include domenica)');
         setLoading(false);
         return;
       }
@@ -261,24 +285,52 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
         // Validazione per data fine: max 3 giorni dalla data di inizio (o 4 se il 3° giorno è domenica)
         if (name === 'al' && newRange.dal) {
           const startDate = new Date(newRange.dal);
-          const maxDate = new Date(startDate);
-          maxDate.setDate(maxDate.getDate() + 3);
+          const selectedEndDate = new Date(value);
           
-          // Se il 3° giorno è domenica, il max diventa lunedì (4 giorni)
+          // Calcola la durata in giorni (inclusi inizio e fine)
+          const diffTime = selectedEndDate.getTime() - startDate.getTime();
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 per includere il giorno di inizio
+          
+          // Calcola la data massima (3 giorni dalla data di inizio)
+          const maxDate = new Date(startDate);
+          maxDate.setDate(maxDate.getDate() + 2); // +2 perché includiamo inizio e fine (es: 22->24 = 3 giorni)
+          
+          // Se il 3° giorno (maxDate) è domenica, il max diventa lunedì (4 giorni totali)
           if (maxDate.getDay() === 0) { // Domenica
             maxDate.setDate(maxDate.getDate() + 1); // Slitta a lunedì
           }
           
           const maxDateStr = maxDate.toISOString().split('T')[0];
-          if (value > maxDateStr) {
-            setError('Il noleggio può durare massimo 3 giorni dalla data di inizio');
+          
+          // Validazione: controlla se la durata è valida
+          let isValidDuration = diffDays <= 3;
+          
+          // Gestione speciale per slittamento domenica -> lunedì
+          const selectedDayOfWeek = selectedEndDate.getDay();
+          if (selectedDayOfWeek === 1) { // Lunedì
+            const previousDay = new Date(selectedEndDate);
+            previousDay.setDate(previousDay.getDate() - 1);
+            const previousDayOfWeek = previousDay.getDay();
+            
+            if (previousDayOfWeek === 0) { // Se il giorno precedente era domenica
+              // Calcola la durata originale fino alla domenica (il 3° giorno)
+              const durataOriginale = Math.floor((previousDay.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+              
+              // Se la durata originale era 3 giorni e la fine è lunedì, è valido (4 giorni totali)
+              if (durataOriginale === 3 && diffDays === 4) {
+                isValidDuration = true;
+              }
+            }
+          }
+          
+          if (!isValidDuration || value > maxDateStr) {
+            setError('Il noleggio può durare massimo 3 giorni dalla data di inizio (o 4 se include domenica)');
             return prev; // Non aggiornare se supera il limite
           }
           
           // Slitta automaticamente la domenica a lunedì
-          const selectedDate = new Date(value);
-          if (selectedDate.getDay() === 0) { // Domenica
-            const mondayDate = new Date(selectedDate);
+          if (selectedDayOfWeek === 0) { // Domenica
+            const mondayDate = new Date(selectedEndDate);
             mondayDate.setDate(mondayDate.getDate() + 1);
             newRange.al = mondayDate.toISOString().split('T')[0];
           }
@@ -391,7 +443,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                       </div>
                     )}
                   </div>
-                  ))}
+                ))}
               </div>
               {inventory.filter((item) => {
                 const matchesSearch = item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -418,11 +470,11 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
           {step === 2 && selectedObject && (
             <div className="space-y-4">
               <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Seleziona ID Univoco</h3>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Oggetto:</span>{' '}
-                  <span className="break-words">{selectedObject.nome}</span>
-                </p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Seleziona ID Univoco</h3>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Oggetto:</span>{' '}
+                    <span className="break-words">{selectedObject.nome}</span>
+                  </p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
@@ -484,10 +536,10 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
           {step === 3 && selectedObject && selectedUnit && selectedObject.tipo_prestito === 'entrambi' && (
             <div className="space-y-4">
               <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Scegli il tipo di utilizzo</h3>
-                <p className="text-sm text-gray-600">
-                  Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
-                </p>
+                  <h3 className="text-lg font-medium text-gray-900">Scegli il tipo di utilizzo</h3>
+                  <p className="text-sm text-gray-600">
+                    Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
+                  </p>
               </div>
 
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
@@ -561,24 +613,24 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   Indietro
                 </button>
                 <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Annulla
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStep(4)}
-                    disabled={!tipoUtilizzo}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep(4)}
+                  disabled={!tipoUtilizzo}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                  >
+                >
                     Continua
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
-                  </button>
+                </button>
                 </div>
               </div>
             </div>
@@ -588,10 +640,10 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
           {step === 4 && selectedObject && selectedUnit && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Date e Note</h3>
-                <p className="text-sm text-gray-600">
-                  Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
-                </p>
+                  <h3 className="text-lg font-medium text-gray-900">Date e Note</h3>
+                  <p className="text-sm text-gray-600">
+                    Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
+                  </p>
               </div>
 
               {/* Tipo Prestito Info */}
@@ -670,16 +722,17 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     min={dateRange.dal || new Date().toISOString().split('T')[0]}
                     max={(() => {
                       // Calcola max 3 giorni dalla data di inizio (non da oggi)
+                      // +2 perché includiamo inizio e fine (es: 22->24 = 3 giorni: 22, 23, 24)
                       if (dateRange.dal) {
                         const maxDate = new Date(dateRange.dal);
-                        maxDate.setDate(maxDate.getDate() + 3);
+                        maxDate.setDate(maxDate.getDate() + 2); // +2 per avere 3 giorni totali
                         // Se il max date è domenica, slitta a lunedì
                         const maxDateStr = maxDate.toISOString().split('T')[0];
                         return skipSunday(maxDateStr);
                       }
-                      // Se non c'è data di inizio, usa oggi + 3 come fallback
+                      // Se non c'è data di inizio, usa oggi + 2 come fallback
                       const maxDate = new Date();
-                      maxDate.setDate(maxDate.getDate() + 3);
+                      maxDate.setDate(maxDate.getDate() + 2);
                       const maxDateStr = maxDate.toISOString().split('T')[0];
                       return skipSunday(maxDateStr);
                     })()}
@@ -733,27 +786,27 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   Indietro
                 </button>
                 <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Annulla
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading || (selectedObject.tipo_prestito === 'entrambi' && !tipoUtilizzo)}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
-                        Creazione...
-                      </>
-                    ) : (
-                      'Crea Richiesta'
-                    )}
-                  </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || (selectedObject.tipo_prestito === 'entrambi' && !tipoUtilizzo)}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
+                      Creazione...
+                    </>
+                  ) : (
+                    'Crea Richiesta'
+                  )}
+                </button>
                 </div>
               </div>
             </form>

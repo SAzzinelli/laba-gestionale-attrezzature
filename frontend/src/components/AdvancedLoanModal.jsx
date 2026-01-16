@@ -630,24 +630,24 @@ body: JSON.stringify({
  <input
  type="date"
  value={dateRange.dal}
-onChange={(e) => {
-const newDal = e.target.value;
-const today = new Date().toISOString().split('T')[0];
-if (newDal < today) {
-setError('La data di inizio non può essere nel passato');
-return;
-}
-setError(null);
-setDateRange(prev => ({ 
-  ...prev, 
-  dal: newDal,
-  // Se è uso interno, imposta automaticamente la data di fine
-  al: (selectedItem?.tipo_prestito === 'solo_interno' || 
-       (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
-      ? newDal : prev.al
-}));
-}}
-min={new Date().toISOString().split('T')[0]}
+ onChange={(e) => {
+ const newDal = e.target.value;
+ const today = new Date().toISOString().split('T')[0];
+ if (newDal < today) {
+ setError('La data di inizio non può essere nel passato');
+ return;
+ }
+ setError(null);
+ setDateRange(prev => ({ 
+   ...prev, 
+   dal: newDal,
+   // Se è uso interno, imposta automaticamente la data di fine
+   al: (selectedItem?.tipo_prestito === 'solo_interno' || 
+        (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
+       ? newDal : prev.al
+ }));
+ }}
+ min={new Date().toISOString().split('T')[0]}
  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  </div>
@@ -664,59 +664,88 @@ min={new Date().toISOString().split('T')[0]}
  value={(selectedItem?.tipo_prestito === 'solo_interno' || 
         (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
        ? dateRange.dal : dateRange.al}
-onChange={(e) => {
-  const newAl = e.target.value;
-  if (newAl < dateRange.dal) {
-    setError('La data di fine non può essere prima della data di inizio');
-    return;
-  }
+ onChange={(e) => {
+   const newAl = e.target.value;
+   if (newAl < dateRange.dal) {
+     setError('La data di fine non può essere prima della data di inizio');
+     return;
+   }
   // Calcola max 3 giorni dalla data di inizio (non da oggi)
-  // Se il 3° giorno è domenica, il max diventa lunedì (4 giorni)
+  // +2 perché includiamo inizio e fine (es: 22->24 = 3 giorni: 22, 23, 24)
   if (dateRange.dal) {
     const startDate = new Date(dateRange.dal);
-    const maxDate = new Date(startDate);
-    maxDate.setDate(maxDate.getDate() + 3);
+    const selectedEndDate = new Date(newAl);
     
-    // Se il 3° giorno è domenica, il max diventa lunedì (4 giorni)
+    // Calcola la durata in giorni (inclusi inizio e fine)
+    const diffTime = selectedEndDate.getTime() - startDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 per includere il giorno di inizio
+    
+    // Calcola la data massima (3 giorni dalla data di inizio)
+    const maxDate = new Date(startDate);
+    maxDate.setDate(maxDate.getDate() + 2); // +2 perché includiamo inizio e fine (es: 22->24 = 3 giorni)
+    
+    // Se il 3° giorno (maxDate) è domenica, il max diventa lunedì (4 giorni totali)
     if (maxDate.getDay() === 0) { // Domenica
       maxDate.setDate(maxDate.getDate() + 1); // Slitta a lunedì
     }
     
     const maxDateStr = maxDate.toISOString().split('T')[0];
-    if (newAl > maxDateStr) {
-      setError('Il noleggio può durare massimo 3 giorni dalla data di inizio');
+    
+    // Validazione: controlla se la durata è valida
+    let isValidDuration = diffDays <= 3;
+    
+    // Gestione speciale per slittamento domenica -> lunedì
+    const selectedDayOfWeek = selectedEndDate.getDay();
+    if (selectedDayOfWeek === 1) { // Lunedì
+      const previousDay = new Date(selectedEndDate);
+      previousDay.setDate(previousDay.getDate() - 1);
+      const previousDayOfWeek = previousDay.getDay();
+      
+      if (previousDayOfWeek === 0) { // Se il giorno precedente era domenica
+        // Calcola la durata originale fino alla domenica (il 3° giorno)
+        const durataOriginale = Math.floor((previousDay.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        
+        // Se la durata originale era 3 giorni e la fine è lunedì, è valido (4 giorni totali)
+        if (durataOriginale === 3 && diffDays === 4) {
+          isValidDuration = true;
+        }
+      }
+    }
+    
+    if (!isValidDuration || newAl > maxDateStr) {
+      setError('Il noleggio può durare massimo 3 giorni dalla data di inizio (o 4 se include domenica)');
       return;
     }
     
     // Slitta automaticamente la domenica a lunedì
-    const selectedDate = new Date(newAl);
-    if (selectedDate.getDay() === 0) { // Domenica
-      const mondayDate = new Date(selectedDate);
+    if (selectedDayOfWeek === 0) { // Domenica
+      const mondayDate = new Date(selectedEndDate);
       mondayDate.setDate(mondayDate.getDate() + 1);
       setDateRange(prev => ({ ...prev, al: mondayDate.toISOString().split('T')[0] }));
       setError(null);
       return;
     }
   }
-  setError(null);
-  setDateRange(prev => ({ ...prev, al: newAl }));
-}}
-required
-disabled={selectedItem?.tipo_prestito === 'solo_interno' || 
-         (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
-min={dateRange.dal || new Date().toISOString().split('T')[0]}
+   setError(null);
+   setDateRange(prev => ({ ...prev, al: newAl }));
+ }}
+ required
+ disabled={selectedItem?.tipo_prestito === 'solo_interno' || 
+          (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
+ min={dateRange.dal || new Date().toISOString().split('T')[0]}
 max={(() => {
   // Calcola max 3 giorni dalla data di inizio (non da oggi)
+  // +2 perché includiamo inizio e fine (es: 22->24 = 3 giorni: 22, 23, 24)
   if (dateRange.dal) {
     const maxDate = new Date(dateRange.dal);
-    maxDate.setDate(maxDate.getDate() + 3);
+    maxDate.setDate(maxDate.getDate() + 2); // +2 per avere 3 giorni totali
     // Se il max date è domenica, slitta a lunedì
     const maxDateStr = maxDate.toISOString().split('T')[0];
     return skipSunday(maxDateStr);
   }
-  // Se non c'è data di inizio, usa oggi + 3 come fallback
+  // Se non c'è data di inizio, usa oggi + 2 come fallback
   const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + 3);
+  maxDate.setDate(maxDate.getDate() + 2);
   const maxDateStr = maxDate.toISOString().split('T')[0];
   return skipSunday(maxDateStr);
 })()}

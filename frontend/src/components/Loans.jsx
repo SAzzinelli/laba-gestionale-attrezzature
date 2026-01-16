@@ -102,6 +102,17 @@ console.log('ℹ️ Info penalità:', warningMessage);
 }
 }
 
+// Chiudi il modale se è aperto per questa richiesta
+if (showLoanModal && selectedLoan && selectedLoan.id === requestId) {
+setShowLoanModal(false);
+setSelectedLoan(null);
+}
+
+// Aggiorna immediatamente lo stato locale per feedback visivo immediato
+setRequests(prevRequests => prevRequests.map(req => 
+req.id === requestId ? { ...req, stato: 'approvata' } : req
+));
+
 // Send approval notification to user
 window.dispatchEvent(new CustomEvent('showNotification', {
 detail: {
@@ -114,6 +125,7 @@ icon: '/favicon.ico'
 }
 }));
 
+// Ricarica i dati per avere lo stato aggiornato completo
 await fetchData();
 } catch (err) {
 setError(err.message);

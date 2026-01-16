@@ -309,6 +309,9 @@ console.log('[Dashboard] Request states:', requestsData.map(r => ({ id: r.id, st
 
  const lowStockWithDates = calculateLowStockItems();
 
+ // Calcola le richieste in attesa
+ const pendingRequests = requestsData.filter(req => req.stato === 'in_attesa');
+
  setStats({
  inventory: inventoryData.length,
  requests: activeRequests.length,
@@ -318,7 +321,9 @@ console.log('[Dashboard] Request states:', requestsData.map(r => ({ id: r.id, st
  availableItems: availableItems,
  inRepairItems: inRepairItems,
  lowStockItems: lowStockWithDates.length,
- lowStockWithDates: lowStockWithDates
+ lowStockWithDates: lowStockWithDates,
+ pendingRequests: pendingRequests.length,
+ pendingRequestsData: pendingRequests
  });
 
  setAlerts(alertsData);
@@ -452,6 +457,45 @@ return (
  <div className="p-6">
  
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+ {/* Richieste in Attesa */}
+ {stats.pendingRequests > 0 && (
+ <div 
+ className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 cursor-pointer hover:bg-yellow-100 transition-colors"
+ onClick={() => onNavigate('prestiti')}
+ >
+ <div className="flex items-center mb-3">
+ <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
+ <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+ </svg>
+ </div>
+ <h3 className="text-lg font-bold text-yellow-800">
+ Richieste in Attesa ({stats.pendingRequests})
+ </h3>
+ </div>
+ <div className="space-y-2">
+ {stats.pendingRequestsData && stats.pendingRequestsData.slice(0, 3).map(request => (
+ <div key={request.id} className="bg-white rounded-lg p-3 border border-yellow-200">
+ <div className="font-semibold text-gray-900 text-sm">
+ {request.articolo_nome || request.oggetto_nome || 'Oggetto sconosciuto'}
+ </div>
+ <div className="text-yellow-600 font-medium text-xs mt-1">
+ {request.name || request.utente_nome || ''} {request.surname || request.utente_cognome || ''}
+ </div>
+ <div className="text-gray-500 text-xs mt-1">
+ Dal {new Date(request.dal).toLocaleDateString('it-IT')} al {new Date(request.al).toLocaleDateString('it-IT')}
+ </div>
+ </div>
+ ))}
+ {stats.pendingRequests > 3 && (
+ <div className="text-center text-yellow-600 text-sm font-medium">
+ +{stats.pendingRequests - 3} altre richieste...
+ </div>
+ )}
+ </div>
+ </div>
+ )}
+
  {/* Scorte Basse */}
  {alerts.scorte_basse.length > 0 && (
  <div 
@@ -931,8 +975,8 @@ return (
    setEditingItemFromAlert(null);
  }}
  onSuccess={() => {
-   fetchDashboardData();
-   setShowAddModal(false);
+ fetchDashboardData();
+ setShowAddModal(false);
    setEditingItemFromAlert(null);
  }}
  editingItem={editingItemFromAlert ? {
