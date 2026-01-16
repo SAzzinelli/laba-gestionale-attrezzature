@@ -242,6 +242,19 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       setDateRange(prev => {
         const newRange = { ...prev, [name]: value };
         
+        // Validazione per data fine: max 3 giorni dalla data di inizio
+        if (name === 'al' && newRange.dal) {
+          const maxDate = new Date(newRange.dal);
+          maxDate.setDate(maxDate.getDate() + 3);
+          const maxDateStr = maxDate.toISOString().split('T')[0];
+          if (value > maxDateStr) {
+            setError('Il noleggio può durare massimo 3 giorni dalla data di inizio');
+            return prev; // Non aggiornare se supera il limite
+          }
+          // Pulisci errori se la validazione passa
+          setError(null);
+        }
+        
         // Per uso interno, imposta automaticamente la data di fine = data di inizio
         if ((selectedObject?.tipo_prestito === 'solo_interno' || 
              (selectedObject?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) && 
@@ -566,11 +579,6 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     onChange={handleInputChange}
                     required
                     min={new Date().toISOString().split('T')[0]}
-                    max={(() => {
-                      const maxDate = new Date();
-                      maxDate.setDate(maxDate.getDate() + 3);
-                      return maxDate.toISOString().split('T')[0];
-                    })()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -594,6 +602,13 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                              (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
                     min={dateRange.dal || new Date().toISOString().split('T')[0]}
                     max={(() => {
+                      // Calcola max 3 giorni dalla data di inizio (non da oggi)
+                      if (dateRange.dal) {
+                        const maxDate = new Date(dateRange.dal);
+                        maxDate.setDate(maxDate.getDate() + 3);
+                        return maxDate.toISOString().split('T')[0];
+                      }
+                      // Se non c'è data di inizio, usa oggi + 3 come fallback
                       const maxDate = new Date();
                       maxDate.setDate(maxDate.getDate() + 3);
                       return maxDate.toISOString().split('T')[0];

@@ -5,6 +5,20 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const r = Router();
 
+// Funzione per slittare la domenica a lunedì
+// Se la data cade di domenica, la sposta a lunedì
+function skipSunday(dateStr) {
+  const date = new Date(dateStr);
+  const dayOfWeek = date.getDay(); // 0 = domenica, 1 = lunedì, ..., 6 = sabato
+  
+  if (dayOfWeek === 0) { // Domenica
+    // Slitta a lunedì
+    date.setDate(date.getDate() + 1);
+  }
+  
+  return date.toISOString().split('T')[0]; // Ritorna in formato YYYY-MM-DD
+}
+
 function isAdminUser(u) {
   if (!u) return false;
   if (u.id === -1) return true;
@@ -153,11 +167,14 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       }
     }
     
+    // Slitta la domenica a lunedì se la data di rientro cade di domenica
+    const dataRientroAdjusted = skipSunday(data_rientro);
+    
     const result = await query(`
       INSERT INTO prestiti (inventario_id, chi, data_uscita, data_rientro, note, unita)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
-    `, [inventario_id, chi, data_uscita, data_rientro, note, JSON.stringify(unitaNames)]);
+    `, [inventario_id, chi, data_uscita, dataRientroAdjusted, note, JSON.stringify(unitaNames)]);
     
     // Se sono state specificate unità, aggiornale da "riservato" a "in_prestito"
     if (unita_ids && unita_ids.length > 0) {
@@ -268,12 +285,15 @@ r.put('/:id/approva', requireAuth, requireRole('admin'), async (req, res) => {
         `L'utente ${userFullName} ha ${requestData.penalty_strikes} penalità per ritardi.`
     } : { hasStrikes: false, strikes: 0 };
     
+    // Slitta la domenica a lunedì se la data di fine cade di domenica
+    const dataRientroAdjusted = skipSunday(requestData.al);
+    
     // Create loan record
     const loanResult = await query(`
       INSERT INTO prestiti (inventario_id, chi, data_uscita, data_rientro, note, richiesta_id)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id
-    `, [requestData.inventario_id, userFullName, requestData.dal, requestData.al, requestData.note, id]);
+    `, [requestData.inventario_id, userFullName, requestData.dal, dataRientroAdjusted, requestData.note, id]);
     
     // Update inventory units status to 'prestato'
     if (requestData.unit_id) {

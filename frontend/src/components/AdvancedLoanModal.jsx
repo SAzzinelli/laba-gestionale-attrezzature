@@ -616,36 +616,24 @@ body: JSON.stringify({
  <input
  type="date"
  value={dateRange.dal}
- onChange={(e) => {
- const newDal = e.target.value;
- const today = new Date().toISOString().split('T')[0];
- const maxDate = new Date();
- maxDate.setDate(maxDate.getDate() + 3);
- const maxDateStr = maxDate.toISOString().split('T')[0];
- if (newDal < today) {
- setError('La data di inizio non può essere nel passato');
- return;
- }
- if (newDal > maxDateStr) {
- setError('La data di inizio non può essere più di 3 giorni nel futuro');
- return;
- }
- setError(null);
- setDateRange(prev => ({ 
-   ...prev, 
-   dal: newDal,
-   // Se è uso interno, imposta automaticamente la data di fine
-   al: (selectedItem?.tipo_prestito === 'solo_interno' || 
-        (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
-       ? newDal : prev.al
- }));
- }}
- min={new Date().toISOString().split('T')[0]}
- max={(() => {
-   const maxDate = new Date();
-   maxDate.setDate(maxDate.getDate() + 3);
-   return maxDate.toISOString().split('T')[0];
- })()}
+onChange={(e) => {
+const newDal = e.target.value;
+const today = new Date().toISOString().split('T')[0];
+if (newDal < today) {
+setError('La data di inizio non può essere nel passato');
+return;
+}
+setError(null);
+setDateRange(prev => ({ 
+  ...prev, 
+  dal: newDal,
+  // Se è uso interno, imposta automaticamente la data di fine
+  al: (selectedItem?.tipo_prestito === 'solo_interno' || 
+       (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
+      ? newDal : prev.al
+}));
+}}
+min={new Date().toISOString().split('T')[0]}
  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  </div>
@@ -662,31 +650,41 @@ body: JSON.stringify({
  value={(selectedItem?.tipo_prestito === 'solo_interno' || 
         (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
        ? dateRange.dal : dateRange.al}
- onChange={(e) => {
-   const newAl = e.target.value;
-   if (newAl < dateRange.dal) {
-     setError('La data di fine non può essere prima della data di inizio');
-     return;
-   }
-   const maxDate = new Date();
-   maxDate.setDate(maxDate.getDate() + 3);
-   const maxDateStr = maxDate.toISOString().split('T')[0];
-   if (newAl > maxDateStr) {
-     setError('La data di fine non può essere più di 3 giorni nel futuro');
-     return;
-   }
-   setError(null);
-   setDateRange(prev => ({ ...prev, al: newAl }));
- }}
- required
- disabled={selectedItem?.tipo_prestito === 'solo_interno' || 
-          (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
- min={dateRange.dal || new Date().toISOString().split('T')[0]}
- max={(() => {
-   const maxDate = new Date();
-   maxDate.setDate(maxDate.getDate() + 3);
-   return maxDate.toISOString().split('T')[0];
- })()}
+onChange={(e) => {
+  const newAl = e.target.value;
+  if (newAl < dateRange.dal) {
+    setError('La data di fine non può essere prima della data di inizio');
+    return;
+  }
+  // Calcola max 3 giorni dalla data di inizio (non da oggi)
+  if (dateRange.dal) {
+    const maxDate = new Date(dateRange.dal);
+    maxDate.setDate(maxDate.getDate() + 3);
+    const maxDateStr = maxDate.toISOString().split('T')[0];
+    if (newAl > maxDateStr) {
+      setError('Il noleggio può durare massimo 3 giorni dalla data di inizio');
+      return;
+    }
+  }
+  setError(null);
+  setDateRange(prev => ({ ...prev, al: newAl }));
+}}
+required
+disabled={selectedItem?.tipo_prestito === 'solo_interno' || 
+         (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
+min={dateRange.dal || new Date().toISOString().split('T')[0]}
+max={(() => {
+  // Calcola max 3 giorni dalla data di inizio (non da oggi)
+  if (dateRange.dal) {
+    const maxDate = new Date(dateRange.dal);
+    maxDate.setDate(maxDate.getDate() + 3);
+    return maxDate.toISOString().split('T')[0];
+  }
+  // Se non c'è data di inizio, usa oggi + 3 come fallback
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 3);
+  return maxDate.toISOString().split('T')[0];
+})()}
  className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 ${
    (selectedItem?.tipo_prestito === 'solo_interno' || 
     (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
