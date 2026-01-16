@@ -10,7 +10,6 @@ const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || 'LABA Firenze - Gestional
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
 const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || 'labafirenze.com';
 const MAILGUN_REGION = process.env.MAILGUN_REGION || 'eu'; // 'eu' o 'us'
-const MAILGUN_API_URL = `https://api.${MAILGUN_REGION}.mailgun.net/v3/${MAILGUN_DOMAIN}`;
 
 // SMTP (fallback)
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
@@ -82,6 +81,22 @@ async function sendViaMailgunAPI({ to, subject, html, text }) {
     throw new Error('MAILGUN_API_KEY non configurata');
   }
 
+  if (!MAILGUN_DOMAIN) {
+    throw new Error('MAILGUN_DOMAIN non configurata');
+  }
+
+  // Costruisci l'URL dell'API correttamente
+  const apiBaseUrl = `https://api.${MAILGUN_REGION === 'us' ? '' : MAILGUN_REGION + '.'}mailgun.net/v3/${MAILGUN_DOMAIN}`;
+  const apiUrl = `${apiBaseUrl}/messages`;
+
+  console.log('📧 Invio email via Mailgun API:', {
+    apiUrl,
+    domain: MAILGUN_DOMAIN,
+    region: MAILGUN_REGION,
+    from: EMAIL_FROM,
+    to
+  });
+
   const formData = new URLSearchParams();
   formData.append('from', `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`);
   formData.append('to', to);
@@ -89,7 +104,7 @@ async function sendViaMailgunAPI({ to, subject, html, text }) {
   formData.append('html', html);
   formData.append('text', text);
 
-  const response = await fetch(`${MAILGUN_API_URL}/messages`, {
+  const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
       'Authorization': `Basic ${Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64')}`,
@@ -98,12 +113,43 @@ async function sendViaMailgunAPI({ to, subject, html, text }) {
     body: formData.toString()
   });
 
+  const responseText = await response.text();
+  
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Mailgun API error: ${response.status} - ${errorText}`);
+    let errorMessage = `Mailgun API error: ${response.status} - ${responseText}`;
+    
+    // Messaggi di errore più chiari
+    if (response.status === 403) {
+      try {
+        const errorJson = JSON.parse(responseText);
+        if (errorJson.message && errorJson.message.includes('unverified')) {
+          errorMessage = `Dominio non verificato: ${errorJson.message}\n\n` +
+            'Per risolvere:\n' +
+            '1. Vai su Mailgun → Domain Settings → DNS records\n' +
+            '2. Verifica che tutti i record DNS siano stati aggiunti correttamente\n' +
+            '3. Attendi la propagazione DNS (può richiedere fino a 30 minuti)\n' +
+            '4. Clicca "Verify DNS Settings" su Mailgun';
+        }
+      } catch (e) {
+        // Se non è JSON, usa il messaggio originale
+      }
+    } else if (response.status === 404) {
+      errorMessage = `URL API non trovato: ${apiUrl}\n\n` +
+        'Verifica che:\n' +
+        `- MAILGUN_DOMAIN sia corretto (attuale: ${MAILGUN_DOMAIN})\n` +
+        `- MAILGUN_REGION sia corretto (attuale: ${MAILGUN_REGION}, deve essere 'eu' o 'us')`;
+    }
+    
+    throw new Error(errorMessage);
   }
 
-  const result = await response.json();
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    result = { message: responseText, id: 'unknown' };
+  }
+  
   return result;
 }
 
