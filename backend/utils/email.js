@@ -56,11 +56,11 @@ function getTransporter() {
       tls: {
         rejectUnauthorized: false // Necessario per alcuni server SMTP o ambienti di sviluppo
       },
-      connectionTimeout: 10000, // 10 secondi per stabilire connessione
-      greetingTimeout: 10000, // 10 secondi per greeting
-      socketTimeout: 10000, // 10 secondi per operazioni socket
-      debug: true, // Abilita debug per vedere cosa succede
-      logger: true // Log dettagliati
+      connectionTimeout: 20000, // 20 secondi per stabilire connessione (aumentato per Gmail)
+      greetingTimeout: 20000, // 20 secondi per greeting
+      socketTimeout: 20000, // 20 secondi per operazioni socket
+      debug: process.env.NODE_ENV === 'development', // Debug solo in sviluppo
+      logger: process.env.NODE_ENV === 'development' // Log solo in sviluppo
     });
   }
   return transporter;
@@ -284,13 +284,14 @@ export async function testEmailConnection() {
       host: SMTP_HOST,
       port: SMTP_PORT,
       secure: SMTP_SECURE,
-      user: SMTP_USER
+      user: SMTP_USER,
+      passwordLength: SMTP_PASSWORD ? SMTP_PASSWORD.replace(/\s+/g, '').length : 0
     });
     
-    // Timeout di 15 secondi per la verifica SMTP (aumentato per Gmail)
+    // Timeout di 20 secondi per la verifica SMTP (aumentato per Gmail)
     const verifyPromise = emailTransporter.verify();
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Connection timeout')), 15000)
+      setTimeout(() => reject(new Error('Connection timeout')), 20000)
     );
     
     await Promise.race([verifyPromise, timeoutPromise]);
@@ -302,24 +303,42 @@ export async function testEmailConnection() {
       code: error.code,
       command: error.command,
       response: error.response,
-      responseCode: error.responseCode
+      responseCode: error.responseCode,
+      syscall: error.syscall,
+      address: error.address
     });
     
     // Messaggi di errore più specifici
     let errorMessage = error.message || 'Errore sconosciuto durante verifica SMTP';
     
-    if (error.message.includes('timeout') || error.message === 'Connection timeout') {
-      errorMessage = 'Connection timeout - Impossibile connettersi al server SMTP. Verifica:\n' +
-        '1. La password per app di Gmail è corretta (senza spazi)\n' +
-        '2. L\'account Gmail ha "Verifica in 2 passaggi" abilitata\n' +
-        '3. La password per app non è scaduta\n' +
-        '4. Non ci sono restrizioni di rete/firewall';
+    if (error.message.includes('timeout') || error.message === 'Connection timeout' || error.code === 'ETIMEDOUT') {
+      errorMessage = 'Connection timeout - Impossibile connettersi al server SMTP.\n\n' +
+        'Possibili cause:\n' +
+        '1. Password per app Gmail errata o con spazi (verifica su Railway)\n' +
+        '2. Gmail blocca connessioni da Railway (IP non autorizzato)\n' +
+        '3. Firewall/rete blocca porta 587\n' +
+        '4. Account Gmail ha restrizioni di sicurezza\n\n' +
+        'Soluzioni:\n' +
+        '- Verifica che SMTP_PASSWORD su Railway sia senza spazi\n' +
+        '- Genera una nuova App Password su Gmail\n' +
+        '- Considera l\'uso di un servizio email dedicato (SendGrid, Mailgun)';
     } else if (error.code === 'EAUTH') {
       errorMessage = 'Autenticazione fallita - Verifica username e password SMTP';
-    } else if (error.code === 'ECONNREFUSED') {
-      errorMessage = 'Connessione rifiutata - Verifica host e porta SMTP';
+    } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      errorMessage = `Connessione rifiutata - Verifica host (${SMTP_HOST}) e porta (${SMTP_PORT}) SMTP`;
+    } else if (error.code === 'ETIMEDOUT') {
+      errorMessage = 'Timeout connessione - Il server SMTP non risponde';
     }
     
-    return { success: false, error: errorMessage };
+    return { 
+      success: false, 
+      error: errorMessage,
+      details: {
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        responseCode: error.responseCode
+      }
+    };
   }
 }
