@@ -399,16 +399,36 @@ const EmailTestSection = ({ token }) => {
   const testConnection = async () => {
     setTesting(true);
     setResult(null);
+    
+    // Timeout di 30 secondi
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/debug/test-email`, {
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
+        setResult({ success: false, error: errorData.error || `Errore ${response.status}`, data: errorData });
+        return;
+      }
+      
       const data = await response.json();
-      setResult({ success: response.ok, data });
+      setResult({ success: true, data });
     } catch (error) {
-      setResult({ success: false, error: error.message });
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        setResult({ success: false, error: 'Timeout: la richiesta ha impiegato troppo tempo (oltre 30 secondi)' });
+      } else {
+        setResult({ success: false, error: error.message || 'Errore di connessione' });
+      }
     } finally {
       setTesting(false);
     }
@@ -422,6 +442,11 @@ const EmailTestSection = ({ token }) => {
 
     setTesting(true);
     setResult(null);
+    
+    // Timeout di 60 secondi per l'invio email
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/debug/send-test-email`, {
         method: 'POST',
@@ -429,12 +454,27 @@ const EmailTestSection = ({ token }) => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ to: testEmail })
+        body: JSON.stringify({ to: testEmail }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
+        setResult({ success: false, error: errorData.error || `Errore ${response.status}`, data: errorData });
+        return;
+      }
+      
       const data = await response.json();
-      setResult({ success: response.ok, data });
+      setResult({ success: true, data });
     } catch (error) {
-      setResult({ success: false, error: error.message });
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        setResult({ success: false, error: 'Timeout: l\'invio email ha impiegato troppo tempo (oltre 60 secondi)' });
+      } else {
+        setResult({ success: false, error: error.message || 'Errore di connessione' });
+      }
     } finally {
       setTesting(false);
     }

@@ -267,11 +267,17 @@ export async function testEmailConnection() {
   }
 
   try {
-    await emailTransporter.verify();
+    // Timeout di 10 secondi per la verifica SMTP
+    const verifyPromise = emailTransporter.verify();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout: verifica SMTP ha impiegato più di 10 secondi')), 10000)
+    );
+    
+    await Promise.race([verifyPromise, timeoutPromise]);
     console.log('✅ Connessione SMTP verificata');
     return { success: true };
   } catch (error) {
     console.error('❌ Errore verifica SMTP:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error.message || 'Errore sconosciuto durante verifica SMTP' };
   }
 }
