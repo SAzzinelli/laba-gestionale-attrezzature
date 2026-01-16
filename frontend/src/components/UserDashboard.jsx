@@ -173,7 +173,7 @@ const UserDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard title="Articoli Disponibili" value={stats.availableItems} />
         <StatCard title="Le Mie Richieste" value={stats.myRequests} />
         <StatCard title="Le Mie Segnalazioni" value={stats.myReports} />
