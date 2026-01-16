@@ -192,23 +192,21 @@ SMTP_PASSWORD=xxxx xxxx xxxx xxxx  # App Password di 16 caratteri (senza spazi)
 EMAIL_FROM=service@labafirenze.com
 EMAIL_FROM_NAME=LABA Firenze - Gestionale Attrezzature
 
-# OPZIONE 2: Mailgun (Consigliato - 5000 email/mese gratis)
+# OPZIONE 2: Mailgun API REST (Consigliato - 5000 email/mese gratis)
 # 1. Crea account su https://www.mailgun.com (già fatto ✅)
 # 2. Verifica il dominio aggiungendo i record DNS richiesti
-# 3. Vai su Domain Settings → SMTP credentials
-# 4. Crea un utente SMTP (es. service@labafirenze.com) e genera una password
+# 3. Vai su Sending → Sending keys → API keys
+# 4. Copia la "Sending API key" (formato: xxxxx-xxxxx-xxxxx)
 # 5. Configura queste variabili su Railway:
-# SMTP_HOST=smtp.eu.mailgun.org  # Per regione EU (o smtp.mailgun.org per US)
-# SMTP_PORT=587  # O 2525 (alternativa), o 465 per SSL
-# SMTP_SECURE=false  # true solo per porta 465
-# SMTP_USER=service@labafirenze.com  # Email completa dell'utente SMTP
-# SMTP_PASSWORD=password-smtp-mailgun  # Password SMTP generata da Mailgun
+# MAILGUN_API_KEY=your-mailgun-api-key-here  # Sending API key da Mailgun
+# MAILGUN_DOMAIN=labafirenze.com  # Il tuo dominio verificato
+# MAILGUN_REGION=eu  # 'eu' per Europa, 'us' per USA
 # EMAIL_FROM=service@labafirenze.com
 # EMAIL_FROM_NAME=LABA Firenze - Gestionale Attrezzature
 # 
 # NOTE:
-# - Se porta 587 non funziona, prova 2525 (stessa configurazione)
-# - Se ancora non funziona, prova porta 465 con SMTP_SECURE=true
+# - L'API REST è più affidabile di SMTP e non ha problemi di timeout
+# - Se MAILGUN_API_KEY non è configurata, il sistema userà SMTP come fallback
 # - Assicurati che il dominio sia completamente verificato su Mailgun
 
 # OPZIONE 3: SendGrid (100 email/giorno gratis)

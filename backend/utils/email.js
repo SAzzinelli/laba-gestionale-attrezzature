@@ -1,15 +1,23 @@
 // backend/utils/email.js
-// Utility per l'invio di email tramite nodemailer
+// Utility per l'invio di email tramite Mailgun API REST o SMTP
 import nodemailer from 'nodemailer';
 
-// Configurazione SMTP da variabili d'ambiente
+// Configurazione da variabili d'ambiente
+const EMAIL_FROM = process.env.EMAIL_FROM || 'service@labafirenze.com';
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || 'LABA Firenze - Gestionale Attrezzature';
+
+// Mailgun API REST (preferito)
+const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
+const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || 'labafirenze.com';
+const MAILGUN_REGION = process.env.MAILGUN_REGION || 'eu'; // 'eu' o 'us'
+const MAILGUN_API_URL = `https://api.${MAILGUN_REGION}.mailgun.net/v3/${MAILGUN_DOMAIN}`;
+
+// SMTP (fallback)
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
 const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465;
 const SMTP_USER = process.env.SMTP_USER || 'service@labafirenze.com';
 const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'service@labafirenze.com';
-const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || 'LABA Firenze - Gestionale Attrezzature';
 
 // Crea transporter (lazy initialization)
 let transporter = null;
@@ -67,6 +75,39 @@ function getTransporter() {
 }
 
 /**
+ * Invia email tramite Mailgun API REST
+ */
+async function sendViaMailgunAPI({ to, subject, html, text }) {
+  if (!MAILGUN_API_KEY) {
+    throw new Error('MAILGUN_API_KEY non configurata');
+  }
+
+  const formData = new URLSearchParams();
+  formData.append('from', `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`);
+  formData.append('to', to);
+  formData.append('subject', subject);
+  formData.append('html', html);
+  formData.append('text', text);
+
+  const response = await fetch(`${MAILGUN_API_URL}/messages`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64')}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: formData.toString()
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Mailgun API error: ${response.status} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  return result;
+}
+
+/**
  * Invia email di notifica approvazione richiesta
  * @param {Object} options - Opzioni per l'email
  * @param {string} options.to - Email destinatario
@@ -80,14 +121,6 @@ function getTransporter() {
 export async function sendApprovalEmail({ to, studentName, itemName, startDate, endDate, notes }) {
   console.log('📧 Tentativo invio email di approvazione:', { to, studentName, itemName });
   
-  const emailTransporter = getTransporter();
-  
-  if (!emailTransporter) {
-    console.error('❌ Email non inviata: SMTP non configurato');
-    console.error('❌ Verifica le variabili d\'ambiente: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD');
-    return { success: false, error: 'SMTP non configurato' };
-  }
-
   if (!to) {
     console.error('❌ Email non inviata: destinatario mancante');
     return { success: false, error: 'Destinatario mancante' };
@@ -107,11 +140,8 @@ export async function sendApprovalEmail({ to, studentName, itemName, startDate, 
   const formattedStartDate = formatDate(startDate);
   const formattedEndDate = formatDate(endDate);
 
-  const mailOptions = {
-    from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
-    to: to,
-    subject: '✅ Richiesta di Noleggio Approvata - LABA Firenze',
-    html: `
+  const subject = '✅ Richiesta di Noleggio Approvata - LABA Firenze';
+  const html = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -222,8 +252,9 @@ export async function sendApprovalEmail({ to, studentName, itemName, startDate, 
         </div>
       </body>
       </html>
-    `,
-    text: `
+    `;
+
+  const text = `
 Richiesta di Noleggio Approvata - LABA Firenze
 
 Ciao ${studentName},
@@ -242,27 +273,50 @@ ${notes ? `- Note: ${notes}` : ''}
 
 LABA Firenze - Gestionale Attrezzature
 Per domande o assistenza, contatta la segreteria.
-    `.trim()
-  };
+  `.trim();
 
+  // Prova prima con Mailgun API REST, poi fallback a SMTP
   try {
-    console.log('📧 Invio email in corso...');
-    const info = await emailTransporter.sendMail(mailOptions);
-    console.log('✅ Email di approvazione inviata con successo!', {
-      to,
-      messageId: info.messageId,
-      response: info.response,
-      accepted: info.accepted,
-      rejected: info.rejected
-    });
-    return { success: true, messageId: info.messageId };
+    if (MAILGUN_API_KEY) {
+      console.log('📧 Invio email tramite Mailgun API REST...');
+      const result = await sendViaMailgunAPI({ to, subject, html, text });
+      console.log('✅ Email di approvazione inviata con successo via Mailgun API!', {
+        to,
+        messageId: result.id || result.message,
+        result
+      });
+      return { success: true, messageId: result.id || result.message };
+    } else {
+      // Fallback a SMTP
+      console.log('📧 Invio email tramite SMTP (fallback)...');
+      const emailTransporter = getTransporter();
+      
+      if (!emailTransporter) {
+        console.error('❌ Email non inviata: né Mailgun API né SMTP configurati');
+        return { success: false, error: 'Nessun metodo di invio email configurato' };
+      }
+
+      const mailOptions = {
+        from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
+        to: to,
+        subject: subject,
+        html: html,
+        text: text
+      };
+
+      const info = await emailTransporter.sendMail(mailOptions);
+      console.log('✅ Email di approvazione inviata con successo via SMTP!', {
+        to,
+        messageId: info.messageId,
+        response: info.response
+      });
+      return { success: true, messageId: info.messageId };
+    }
   } catch (error) {
     console.error('❌ Errore invio email di approvazione:', {
       message: error.message,
       code: error.code,
-      command: error.command,
       response: error.response,
-      responseCode: error.responseCode,
       stack: error.stack
     });
     return { success: false, error: error.message, details: error };
@@ -270,13 +324,49 @@ Per domande o assistenza, contatta la segreteria.
 }
 
 /**
- * Test connessione SMTP
+ * Test connessione email (Mailgun API o SMTP)
  */
 export async function testEmailConnection() {
+  // Prova prima con Mailgun API
+  if (MAILGUN_API_KEY) {
+    try {
+      console.log('🔍 Test connessione Mailgun API...', {
+        domain: MAILGUN_DOMAIN,
+        region: MAILGUN_REGION,
+        apiUrl: MAILGUN_API_URL
+      });
+      
+      // Test semplice: verifica che l'API risponda
+      const response = await fetch(`${MAILGUN_API_URL}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64')}`
+        },
+        signal: AbortSignal.timeout(10000) // 10 secondi timeout
+      });
+      
+      if (response.ok) {
+        console.log('✅ Connessione Mailgun API verificata con successo');
+        return { success: true, method: 'Mailgun API' };
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Mailgun API error: ${response.status} - ${errorText}`);
+      }
+    } catch (error) {
+      console.error('❌ Errore verifica Mailgun API:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Errore sconosciuto durante verifica Mailgun API',
+        method: 'Mailgun API'
+      };
+    }
+  }
+  
+  // Fallback a SMTP
   const emailTransporter = getTransporter();
   
   if (!emailTransporter) {
-    return { success: false, error: 'SMTP non configurato' };
+    return { success: false, error: 'Né Mailgun API né SMTP configurati' };
   }
 
   try {
@@ -288,7 +378,7 @@ export async function testEmailConnection() {
       passwordLength: SMTP_PASSWORD ? SMTP_PASSWORD.replace(/\s+/g, '').length : 0
     });
     
-    // Timeout di 20 secondi per la verifica SMTP (aumentato per Gmail)
+    // Timeout di 20 secondi per la verifica SMTP
     const verifyPromise = emailTransporter.verify();
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error('Connection timeout')), 20000)
@@ -296,7 +386,7 @@ export async function testEmailConnection() {
     
     await Promise.race([verifyPromise, timeoutPromise]);
     console.log('✅ Connessione SMTP verificata con successo');
-    return { success: true };
+    return { success: true, method: 'SMTP' };
   } catch (error) {
     console.error('❌ Errore verifica SMTP:', {
       message: error.message,
