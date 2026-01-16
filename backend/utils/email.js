@@ -44,9 +44,6 @@ function getTransporter() {
       fromName: EMAIL_FROM_NAME,
       passwordLength: cleanPassword.length
     });
-
-    // Rimuovi spazi dalla password
-    const cleanPassword = SMTP_PASSWORD.replace(/\s+/g, '');
     
     transporter = nodemailer.createTransport({
       host: SMTP_HOST,
