@@ -15,6 +15,7 @@ const Loans = ({ selectedRequestFromNotification, onRequestHandled, initialTab, 
  const [showRejectModal, setShowRejectModal] = useState(false);
  const [rejectRequestId, setRejectRequestId] = useState(null);
  const [rejectReason, setRejectReason] = useState('');
+ const [approvingRequestId, setApprovingRequestId] = useState(null);
  const { token } = useAuth();
 
  const fetchData = async () => {
@@ -83,6 +84,10 @@ const Loans = ({ selectedRequestFromNotification, onRequestHandled, initialTab, 
 
 const handleApprove = async (requestId) => {
 try {
+// Disabilita il bottone durante l'approvazione per evitare doppi click
+setApprovingRequestId(requestId);
+setError(null);
+
 const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti/${requestId}/approva`, {
 method: 'PUT',
 headers: {
@@ -100,6 +105,7 @@ setError(`❌ UTENTE BLOCCATO: ${responseData.message}\n\nMotivo: ${responseData
 } else {
 throw new Error(responseData.error || 'Errore nell\'approvazione');
 }
+setApprovingRequestId(null);
 return;
 }
 
@@ -119,10 +125,8 @@ setShowLoanModal(false);
 setSelectedLoan(null);
 }
 
-// Aggiorna immediatamente lo stato locale per feedback visivo immediato
-setRequests(prevRequests => prevRequests.map(req => 
-req.id === requestId ? { ...req, stato: 'approvata' } : req
-));
+// Rimuovi immediatamente la richiesta dalla lista "pending" per feedback visivo immediato
+setRequests(prevRequests => prevRequests.filter(req => req.id !== requestId));
 
 // Send approval notification to user
 window.dispatchEvent(new CustomEvent('showNotification', {
@@ -136,10 +140,29 @@ icon: '/favicon.ico'
 }
 }));
 
-// Ricarica i dati per avere lo stato aggiornato completo
-await fetchData();
+// Ricarica i dati per avere lo stato aggiornato completo (incluso il nuovo prestito)
+const [updatedRequestsData, updatedLoansData] = await Promise.all([
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste?all=1`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }).then(res => res.json()),
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/api/prestiti?all=1`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }).then(res => res.json())
+]);
+
+setRequests(updatedRequestsData);
+setLoans(updatedLoansData);
+
+// Se siamo nel tab "pending" e non ci sono più richieste, passa al tab "active" per mostrare il nuovo prestito
+const remainingPending = updatedRequestsData.filter(r => r.stato === 'in_attesa');
+if (activeTab === 'pending' && remainingPending.length === 0) {
+  setActiveTab('active');
+}
+
+setApprovingRequestId(null);
 } catch (err) {
 setError(err.message);
+setApprovingRequestId(null);
 }
 };
 
@@ -623,12 +646,22 @@ const getStatusBadge = (status) => {
                             e.stopPropagation();
                             handleApprove(item.id);
                           }}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors"
+                          disabled={approvingRequestId === item.id || approvingRequestId !== null}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Approva
+                          {approvingRequestId === item.id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                              Approvazione...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Approva
+                            </>
+                          )}
                         </button>
                         <button
                           onClick={(e) => {
@@ -774,12 +807,22 @@ const getStatusBadge = (status) => {
                 <>
                   <button
                     onClick={() => handleApprove(item.id)}
-                    className="w-full btn-success text-center py-2"
+                    disabled={approvingRequestId === item.id || approvingRequestId !== null}
+                    className="w-full btn-success text-center py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Approva Richiesta
+                    {approvingRequestId === item.id ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></div>
+                        Approvazione...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Approva Richiesta
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={() => openRejectModal(item.id)}
