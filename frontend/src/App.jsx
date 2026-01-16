@@ -288,6 +288,14 @@ function AppInner() {
    return () => window.removeEventListener('popstate', handlePopState);
  }, []);
 
+ // Reindirizza utenti non admin che cercano di accedere a sezioni admin
+ useEffect(() => {
+   if (!isAdmin && (tab === 'sistema' || tab === 'utenti' || tab === 'penalita')) {
+     console.warn('Accesso negato a sezione admin, reindirizzamento a dashboard');
+     handleTabChange('dashboard');
+   }
+ }, [isAdmin, tab]);
+
 
  return (
  <div className="min-h-screen bg-gray-50 flex">
