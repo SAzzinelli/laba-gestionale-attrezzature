@@ -312,16 +312,28 @@ export async function testEmailConnection() {
     let errorMessage = error.message || 'Errore sconosciuto durante verifica SMTP';
     
     if (error.message.includes('timeout') || error.message === 'Connection timeout' || error.code === 'ETIMEDOUT') {
+      const isMailgun = SMTP_HOST && SMTP_HOST.includes('mailgun');
       errorMessage = 'Connection timeout - Impossibile connettersi al server SMTP.\n\n' +
         'Possibili cause:\n' +
-        '1. Password per app Gmail errata o con spazi (verifica su Railway)\n' +
-        '2. Gmail blocca connessioni da Railway (IP non autorizzato)\n' +
-        '3. Firewall/rete blocca porta 587\n' +
-        '4. Account Gmail ha restrizioni di sicurezza\n\n' +
-        'Soluzioni:\n' +
-        '- Verifica che SMTP_PASSWORD su Railway sia senza spazi\n' +
-        '- Genera una nuova App Password su Gmail\n' +
-        '- Considera l\'uso di un servizio email dedicato (SendGrid, Mailgun)';
+        (isMailgun ? 
+          '1. Credenziali Mailgun errate (verifica SMTP_USER e SMTP_PASSWORD su Railway)\n' +
+          '2. Dominio Mailgun non verificato completamente\n' +
+          '3. Firewall/rete blocca porta 587\n' +
+          '4. Problemi di rete tra Railway e Mailgun EU\n\n' +
+          'Soluzioni:\n' +
+          '- Verifica che SMTP_HOST sia smtp.eu.mailgun.org (per regione EU)\n' +
+          '- Verifica che SMTP_USER sia l\'email completa (es. service@labafirenze.com)\n' +
+          '- Controlla su Mailgun che il dominio sia verificato\n' +
+          '- Prova a resettare la password SMTP su Mailgun'
+          :
+          '1. Password SMTP errata o con spazi (verifica su Railway)\n' +
+          '2. Server SMTP blocca connessioni da Railway (IP non autorizzato)\n' +
+          '3. Firewall/rete blocca porta 587\n' +
+          '4. Account email ha restrizioni di sicurezza\n\n' +
+          'Soluzioni:\n' +
+          '- Verifica che SMTP_PASSWORD su Railway sia corretta\n' +
+          '- Verifica che SMTP_HOST e SMTP_PORT siano corretti\n' +
+          '- Controlla le impostazioni del provider email');
     } else if (error.code === 'EAUTH') {
       errorMessage = 'Autenticazione fallita - Verifica username e password SMTP';
     } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
