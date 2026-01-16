@@ -26,6 +26,7 @@ const Dashboard = ({ onNavigate }) => {
  const [showAddModal, setShowAddModal] = useState(false);
  const [selectedRequest, setSelectedRequest] = useState(null);
  const [selectedAlert, setSelectedAlert] = useState(null);
+ const [editingItemFromAlert, setEditingItemFromAlert] = useState(null);
   const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   const [selectedPasswordRequest, setSelectedPasswordRequest] = useState(null);
   const { token, isAdmin, roleLabel } = useAuth();
@@ -838,7 +839,7 @@ return (
  {/* Alert Details Modal */}
  {selectedAlert && (
  <div className="modal-overlay" onClick={() => setSelectedAlert(null)}>
- <div className="modal-content max-w-3xl" onClick={(e) => e.stopPropagation()}>
+ <div className="modal-content max-w-5xl" onClick={(e) => e.stopPropagation()}>
  <div className="modal-header">
     <h2 className="text-xl font-bold text-primary">
     {selectedAlert.type === 'scorte' ? 'Scorte Basse' :
@@ -870,10 +871,10 @@ return (
  </h3>
  <p className="text-sm text-secondary">
  {selectedAlert.type === 'scorte' 
- ? `${item.reason} - Disponibili: ${item.unita_disponibili || 0}/${item.quantita_totale}${item.loanedPercentage ? ` (${Math.round(item.loanedPercentage)}% in prestito)` : ''}`
+ ? `${item.reason || 'Scorta bassa'} - Disponibili: ${item.unita_disponibili || 0}/${item.quantita_totale || 0}${item.loanedPercentage ? ` (${Math.round(item.loanedPercentage)}% in prestito)` : ''}`
  : selectedAlert.type === 'ritardi'
- ? `${item.oggetto_nome} - ${Math.floor(item.giorni_ritardo)} giorni di ritardo`
- : item.oggetto_nome
+ ? `${item.oggetto_nome || 'Oggetto'} - ${Math.floor(item.giorni_ritardo || 0)} giorni di ritardo`
+ : item.oggetto_nome || 'Oggetto'
  }
  </p>
  {selectedAlert.type === 'scorte' && item.firstReturnDate && (
@@ -885,10 +886,10 @@ return (
  {selectedAlert.type === 'scorte' && (
  <button
  onClick={() => {
+ setEditingItemFromAlert(item);
  setSelectedAlert(null);
- onNavigate && onNavigate('inventario');
  }}
- className="btn-primary btn-small"
+ className="btn-danger btn-small"
  >
  Gestisci
  </button>
@@ -924,12 +925,28 @@ return (
 
  {/* Add Inventory Modal */}
  <StepInventoryModal
- isOpen={showAddModal}
- onClose={() => setShowAddModal(false)}
- onSuccess={() => {
- fetchDashboardData();
- setShowAddModal(false);
+ isOpen={showAddModal || !!editingItemFromAlert}
+ onClose={() => {
+   setShowAddModal(false);
+   setEditingItemFromAlert(null);
  }}
+ onSuccess={() => {
+   fetchDashboardData();
+   setShowAddModal(false);
+   setEditingItemFromAlert(null);
+ }}
+ editingItem={editingItemFromAlert ? {
+   ...editingItemFromAlert,
+   // Assicurati che tutti i campi necessari siano presenti
+   nome: editingItemFromAlert.nome || '',
+   quantita_totale: editingItemFromAlert.quantita_totale || 1,
+   posizione: editingItemFromAlert.posizione || editingItemFromAlert.scaffale || '',
+   categoria_id: editingItemFromAlert.categoria_id || '',
+   note: editingItemFromAlert.note || '',
+   immagine_url: editingItemFromAlert.immagine_url || '',
+   tipo_prestito: editingItemFromAlert.tipo_prestito || 'solo_esterno',
+   corsi_assegnati: editingItemFromAlert.corsi_assegnati || []
+ } : null}
  />
 
  {/* Quick Request Modal */}
