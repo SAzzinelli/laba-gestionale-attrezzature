@@ -178,7 +178,7 @@ NODE_ENV=development
 CORS_ORIGIN=http://localhost:5173
 
 # Email (SMTP) - Per notifiche di approvazione richieste
-# OPZIONE 1: Gmail (con App Password)
+push# OPZIONE 1: Gmail (con App Password)
 # 1. Abilita "Verifica in 2 passaggi" su Google Account
 # 2. Vai su: https://myaccount.google.com/apppasswords
 # 3. Genera una "App Password" (16 caratteri)
@@ -192,15 +192,31 @@ SMTP_PASSWORD=xxxx xxxx xxxx xxxx  # App Password di 16 caratteri (senza spazi)
 EMAIL_FROM=service@labafirenze.com
 EMAIL_FROM_NAME=LABA Firenze - Gestionale Attrezzature
 
-# OPZIONE 2: Servizio Email Dedicato (Consigliato per produzione)
-# SendGrid (100 email/giorno gratis): https://sendgrid.com
-# Mailgun (5000 email/mese gratis): https://www.mailgun.com
-# AWS SES (molto economico): https://aws.amazon.com/ses/
-# Esempio SendGrid:
+# OPZIONE 2: Mailgun (Consigliato - 5000 email/mese gratis)
+# 1. Crea account su https://www.mailgun.com (già fatto ✅)
+# 2. Vai su Sending → Domain Settings
+# 3. Se usi il sandbox (per test): copia "Default SMTP login" e "Default password"
+# 4. Se verifichi un dominio: vai su "SMTP credentials" e genera una password
+# 5. Configura queste variabili su Railway:
+# SMTP_HOST=smtp.mailgun.org
+# SMTP_PORT=587
+# SMTP_SECURE=false
+# SMTP_USER=postmaster@sandboxXXXXX.mailgun.org  # O postmaster@tuodominio.com se verificato
+# SMTP_PASSWORD=password-smtp-mailgun  # Password SMTP da Mailgun
+# EMAIL_FROM=service@labafirenze.com
+# EMAIL_FROM_NAME=LABA Firenze - Gestionale Attrezzature
+
+# OPZIONE 3: SendGrid (100 email/giorno gratis)
+# 1. Crea account su https://sendgrid.com
+# 2. Vai su Settings → API Keys → Create API Key
+# 3. Usa queste variabili:
 # SMTP_HOST=smtp.sendgrid.net
 # SMTP_PORT=587
 # SMTP_USER=apikey
 # SMTP_PASSWORD=your-sendgrid-api-key
+
+# OPZIONE 4: AWS SES (molto economico)
+# https://aws.amazon.com/ses/
 ```
 
 ### **Variabili d'Ambiente Frontend**
