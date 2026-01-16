@@ -372,7 +372,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                       </h4>
                       <div className="flex items-center justify-between">
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full whitespace-nowrap">
-                          {item.unita_disponibili} disponibili
+                          {item.unita_disponibili} {item.unita_disponibili === 1 ? 'disponibile' : 'disponibili'}
                         </span>
                       </div>
                     </div>
