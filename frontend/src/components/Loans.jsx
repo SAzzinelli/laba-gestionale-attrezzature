@@ -609,7 +609,7 @@ const getStatusBadge = (status) => {
               <option value="">Tutti gli utenti</option>
               {uniqueUsers.map(user => (
                 <option key={user.id} value={user.id}>
-                  {user.name} {user.email ? `(${user.email})` : ''}
+                  {user.name}
                 </option>
               ))}
             </select>
@@ -648,7 +648,7 @@ const getStatusBadge = (status) => {
             <option value="">Tutti gli utenti</option>
             {uniqueUsers.map(user => (
               <option key={user.id} value={user.id}>
-                {user.name} {user.email ? `(${user.email})` : ''}
+                {user.name}
               </option>
             ))}
           </select>
