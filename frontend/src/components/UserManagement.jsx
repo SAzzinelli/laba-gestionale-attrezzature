@@ -22,6 +22,23 @@ const { token, user: currentUser } = useAuth();
 
 const normalizeRole = (value) => (value || '').toString().trim().toLowerCase();
 
+// Function to abbreviate course names
+const abbreviateCourse = (courseName) => {
+  if (!courseName) return '-';
+  const courseAbbreviations = {
+    'Cinema e Audiovisivi': 'CIN',
+    'Fotografia': 'FOT', 
+    'Graphic Design & Multimedia': 'GD',
+    'Fashion Design': 'FD',
+    'Pittura': 'PIT',
+    'Interior Design': 'INT',
+    'Design': 'DES',
+    'Regia e Videomaking': 'REG'
+  };
+  
+  return courseAbbreviations[courseName] || courseName;
+};
+
 const mapFetchedUser = (user) => {
   if (!user) return user;
   const normalizedRole = normalizeRole(user.ruolo);
@@ -590,9 +607,9 @@ return (
                 Corso
               </th>
               {activeTab !== 'users' && (
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Ruolo
-                </th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Ruolo
+              </th>
               )}
               <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Azioni
@@ -639,23 +656,32 @@ return (
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
                   {user.email}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 ">
-                  {user.corso_accademico || '-'}
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  {user.corso_accademico ? (
+                    <span 
+                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                      title={user.corso_accademico}
+                    >
+                      {abbreviateCourse(user.corso_accademico)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500">-</span>
+                  )}
                 </td>
                 {activeTab !== 'users' && (
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {normalizeRole(user.ruolo) === 'admin' ? (
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                        Amministratore
-                      </span>
-                    ) : normalizeRole(user.ruolo) === 'supervisor' ? (
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                        Supervisore
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-500">-</span>
-                    )}
-                  </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {normalizeRole(user.ruolo) === 'admin' ? (
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                      Amministratore
+                    </span>
+                  ) : normalizeRole(user.ruolo) === 'supervisor' ? (
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                      Supervisore
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-500">-</span>
+                  )}
+                </td>
                 )}
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                   <div className="flex flex-col sm:flex-row gap-2 justify-center items-center">
@@ -761,9 +787,18 @@ return (
               <span className="text-sm font-medium text-gray-600">Matricola:</span>
               <span className="text-sm text-gray-900">{user.matricola}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-gray-600">Corso:</span>
-              <span className="text-sm text-gray-900">{user.corso_accademico || '-'}</span>
+              {user.corso_accademico ? (
+                <span 
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                  title={user.corso_accademico}
+                >
+                  {abbreviateCourse(user.corso_accademico)}
+                </span>
+              ) : (
+                <span className="text-sm text-gray-500">-</span>
+              )}
             </div>
             {user.phone && (
               <div className="flex justify-between">
