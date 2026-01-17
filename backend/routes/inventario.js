@@ -129,7 +129,7 @@ r.get('/unita-disponibili', requireAuth, async (req, res) => {
       result = await query(`
         SELECT
           iu.id, iu.codice_univoco, iu.stato,
-          i.id as inventario_id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url,
+          i.id as inventario_id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url, i.tipo_prestito,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome
         FROM inventario_unita iu
         JOIN inventario i ON i.id = iu.inventario_id
@@ -149,7 +149,7 @@ r.get('/unita-disponibili', requireAuth, async (req, res) => {
       result = await query(`
         SELECT
           iu.id, iu.codice_univoco, iu.stato,
-          i.id as inventario_id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url,
+          i.id as inventario_id, i.nome, i.categoria_madre, i.categoria_id, i.posizione, i.note, i.immagine_url, i.tipo_prestito,
           CONCAT(COALESCE(i.categoria_madre, ''), ' - ', COALESCE(cs.nome, '')) as categoria_nome
         FROM inventario_unita iu
         JOIN inventario i ON i.id = iu.inventario_id

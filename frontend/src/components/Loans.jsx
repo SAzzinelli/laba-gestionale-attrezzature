@@ -12,6 +12,7 @@ const Loans = ({ selectedRequestFromNotification, onRequestHandled, initialTab, 
  const [selectedLoan, setSelectedLoan] = useState(null);
  const [activeTab, setActiveTab] = useState(initialTab || 'active');
  const [searchTerm, setSearchTerm] = useState('');
+ const [selectedUserId, setSelectedUserId] = useState('');
  const [showRejectModal, setShowRejectModal] = useState(false);
  const [rejectRequestId, setRejectRequestId] = useState(null);
  const [rejectReason, setRejectReason] = useState('');
@@ -235,6 +236,62 @@ setApprovingRequestId(null);
  }
  };
 
+ // Get unique users from current data
+ const getUniqueUsers = () => {
+   let allData = [];
+   
+   switch (activeTab) {
+     case 'pending':
+       allData = requests.filter(r => r.stato === 'in_attesa');
+       break;
+     case 'processed':
+       allData = loans.filter(l => l.stato === 'restituito');
+       break;
+     case 'active':
+       allData = loans.filter(l => l.stato === 'attivo');
+       break;
+     default:
+       allData = [];
+   }
+
+   // Apply search filter first
+   if (searchTerm) {
+     allData = allData.filter(item => {
+       const unitaStr = Array.isArray(item.unita) ? item.unita.join(' ') : (item.unita || '');
+       const searchLower = searchTerm.toLowerCase();
+       const fullName = `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim().toLowerCase();
+       const chiField = (item.chi || '').toLowerCase();
+       
+       return (item.articolo_nome || item.oggetto_nome || '').toLowerCase().includes(searchLower) ||
+              unitaStr.toLowerCase().includes(searchLower) ||
+              (item.utente_nome || '').toLowerCase().includes(searchLower) ||
+              (item.utente_cognome || '').toLowerCase().includes(searchLower) ||
+              fullName.includes(searchLower) ||
+              chiField.includes(searchLower) ||
+              (item.utente_email || '').toLowerCase().includes(searchLower) ||
+              (item.note || '').toLowerCase().includes(searchLower);
+     });
+   }
+
+   // Extract unique users
+   const userMap = new Map();
+   allData.forEach(item => {
+     const userId = item.utente_id || item.user_id;
+     const userName = `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.utente_email || 'Utente sconosciuto';
+     const userEmail = item.utente_email || '';
+     
+     if (userId && !userMap.has(userId)) {
+       userMap.set(userId, {
+         id: userId,
+         name: userName,
+         email: userEmail
+       });
+     }
+   });
+
+   return Array.from(userMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+ };
+
  // Filter data based on active tab
  const getFilteredData = () => {
  let data = [];
@@ -251,6 +308,14 @@ setApprovingRequestId(null);
  break;
  default:
  data = [];
+ }
+
+ // Apply user filter
+ if (selectedUserId) {
+   data = data.filter(item => {
+     const userId = item.utente_id || item.user_id;
+     return userId && userId.toString() === selectedUserId.toString();
+   });
  }
 
  // Apply search filter
@@ -277,7 +342,39 @@ setApprovingRequestId(null);
  return data;
  };
 
+ // Group data by user when user filter is active
+ const getGroupedData = () => {
+   const data = getFilteredData();
+   
+   if (!selectedUserId) {
+     return null; // No grouping needed
+   }
+
+   // Group by user (should be single user when filter is active, but we group anyway)
+   const grouped = {};
+   data.forEach(item => {
+     const userId = item.utente_id || item.user_id;
+     const userKey = userId?.toString() || 'unknown';
+     
+     if (!grouped[userKey]) {
+       grouped[userKey] = {
+         user: {
+           id: userId,
+           name: `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.utente_email || 'Utente sconosciuto',
+           email: item.utente_email || ''
+         },
+         items: []
+       };
+     }
+     grouped[userKey].items.push(item);
+   });
+
+   return Object.values(grouped);
+ };
+
 const filteredData = getFilteredData();
+const groupedData = getGroupedData();
+const uniqueUsers = getUniqueUsers();
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Non specificata';
@@ -426,7 +523,10 @@ const getStatusBadge = (status) => {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <nav className="flex space-x-8">
         <button
-          onClick={() => setActiveTab('active')}
+          onClick={() => {
+            setActiveTab('active');
+            setSelectedUserId(''); // Reset user filter when changing tab
+          }}
           className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
             activeTab === 'active'
               ? 'border-blue-500 text-blue-600'
@@ -443,7 +543,10 @@ const getStatusBadge = (status) => {
         </button>
         
         <button
-          onClick={() => setActiveTab('pending')}
+          onClick={() => {
+            setActiveTab('pending');
+            setSelectedUserId(''); // Reset user filter when changing tab
+          }}
           className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
             activeTab === 'pending'
               ? 'border-blue-500 text-blue-600'
@@ -460,7 +563,10 @@ const getStatusBadge = (status) => {
         </button>
         
         <button
-          onClick={() => setActiveTab('processed')}
+          onClick={() => {
+            setActiveTab('processed');
+            setSelectedUserId(''); // Reset user filter when changing tab
+          }}
           className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
             activeTab === 'processed'
               ? 'border-blue-500 text-blue-600'
@@ -477,8 +583,28 @@ const getStatusBadge = (status) => {
         </button>
         </nav>
         
-        {/* Search - Desktop only */}
-        <div className="hidden lg:block mt-4 lg:mt-0">
+        {/* Search and User Filter - Desktop only */}
+        <div className="hidden lg:flex items-center gap-3 mt-4 lg:mt-0">
+          {/* User Filter */}
+          <div className="relative">
+            <select
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+              className="px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm appearance-none cursor-pointer min-w-[200px]"
+            >
+              <option value="">Tutti gli utenti</option>
+              {uniqueUsers.map(user => (
+                <option key={user.id} value={user.id}>
+                  {user.name} {user.email ? `(${user.email})` : ''}
+                </option>
+              ))}
+            </select>
+            <svg className="absolute right-2 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          
+          {/* Search */}
           <div className="relative">
             <input
               type="text"
@@ -495,8 +621,26 @@ const getStatusBadge = (status) => {
       </div>
     </div>
 
-    {/* Search - Mobile only */}
-    <div className="lg:hidden">
+    {/* Search and User Filter - Mobile only */}
+    <div className="lg:hidden space-y-4">
+      <div className="card">
+        <div className="form-group">
+          <label className="form-label">Filtra per utente</label>
+          <select
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+            className="input-field"
+          >
+            <option value="">Tutti gli utenti</option>
+            {uniqueUsers.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.name} {user.email ? `(${user.email})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
       <div className="card">
         <div className="form-group">
           <label className="form-label">Cerca prestiti</label>
@@ -527,14 +671,234 @@ const getStatusBadge = (status) => {
               </svg>
             </div>
             <p className="text-secondary">
-              {searchTerm 
+              {searchTerm || selectedUserId
                 ? 'Nessun elemento trovato con i filtri selezionati' 
                 : `Nessuna ${activeTab === 'pending' ? 'richiesta in attesa' : activeTab === 'processed' ? 'prestito completato' : 'prestito attivo'}`
               }
             </p>
           </div>
         </div>
+      ) : groupedData ? (
+        // Grouped view when user filter is active
+        groupedData.map(group => (
+          <div key={group.user.id} className="space-y-4">
+            {/* User Header */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    {group.user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">{group.user.name}</h3>
+                    <p className="text-sm text-gray-600">{group.user.email}</p>
+                    <p className="text-sm text-blue-600 font-medium mt-1">
+                      {group.items.length} {group.items.length === 1 ? 'prestito' : 'prestiti'} {activeTab === 'pending' ? 'in attesa' : activeTab === 'processed' ? 'completati' : 'attivi'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedUserId('')}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Rimuovi filtro utente"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* User's Loans */}
+            {group.items.map(item => (
+          <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
+            {/* Card Header */}
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                            {item.articolo_nome || item.oggetto_nome}
+                            {item.unita && item.unita.length > 0 && (
+                              <span className="text-gray-500"> - {Array.isArray(item.unita) ? item.unita.join(', ') : item.unita}</span>
+                            )}
+                          </h3>
+                          {item.inventario_id && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              ID: {item.inventario_id}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Status Badge */}
+                    <div className="flex items-center gap-2 ml-4">
+                      {item.penalty_strikes > 0 && (
+                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                          item.is_blocked ? 'bg-red-100 text-red-800' :
+                          item.penalty_strikes >= 2 ? 'bg-orange-100 text-orange-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {item.is_blocked ? 'BLOCCATO' : `${item.penalty_strikes} Strike`}
+                        </div>
+                      )}
+                      {getStatusBadge(item.stato)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card Body */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* User Info */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
+                    <p className="text-sm text-gray-500">{item.utente_email}</p>
+                  </div>
+                </div>
+
+                {/* Date Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Dal</p>
+                    <p className="text-sm font-semibold text-gray-900">{formatDate(item.dal || item.data_uscita)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Al</p>
+                    <p className="text-sm font-semibold text-gray-900">{formatDate(item.al || item.data_rientro)}</p>
+                  </div>
+                </div>
+
+                {/* Return Info */}
+                <div>
+                  {item.stato === 'restituito' && item.data_rientro && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Restituito</p>
+                      <p className="text-sm font-semibold text-green-600">{formatDate(item.data_rientro)}</p>
+                    </div>
+                  )}
+                  {item.stato === 'attivo' && (item.al || item.data_rientro) && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Restituirà il</p>
+                      <p className="text-sm font-semibold text-orange-600">{formatDate(item.al || item.data_rientro)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Card Footer - Actions */}
+            {(activeTab === 'pending' || (activeTab === 'active' && item.stato === 'attivo')) && (
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setSelectedLoan(item)}
+                    className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                  >
+                    Visualizza Dettagli
+                  </button>
+                  
+                  <div className="flex items-center gap-2">
+                    {activeTab === 'pending' && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleApprove(item.id);
+                          }}
+                          disabled={approvingRequestId === item.id || approvingRequestId !== null}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {approvingRequestId === item.id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                              Approvazione...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Approva
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openRejectModal(item.id);
+                          }}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Rifiuta
+                        </button>
+                      </>
+                    )}
+                    
+                    {activeTab === 'active' && item.stato === 'attivo' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (canTerminateLoan(item)) {
+                            handleReturn(item.id);
+                          }
+                        }}
+                        disabled={!canTerminateLoan(item)}
+                        className={`inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors ${
+                          canTerminateLoan(item) 
+                            ? 'text-white bg-green-600 hover:bg-green-700' 
+                            : 'text-gray-400 bg-gray-200 cursor-not-allowed'
+                        }`}
+                        title={getTerminateButtonTooltip(item)}
+                      >
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                        Termina prestito
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* For completed loans, just show details button */}
+            {activeTab === 'processed' && (
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setSelectedLoan(item)}
+                    className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                  >
+                    Visualizza Dettagli
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+            ))}
+          </div>
+        ))
       ) : (
+        // Normal view when no user filter
         filteredData.map(item => (
           <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
             {/* Card Header */}
@@ -733,13 +1097,168 @@ const getStatusBadge = (status) => {
             </svg>
           </div>
           <p className="text-secondary">
-            {searchTerm 
+            {searchTerm || selectedUserId
               ? 'Nessun elemento trovato con i filtri selezionati' 
               : `Nessuna ${activeTab === 'pending' ? 'richiesta in attesa' : activeTab === 'processed' ? 'prestito completato' : 'prestito attivo'}`
             }
           </p>
         </div>
+      ) : groupedData ? (
+        // Grouped view when user filter is active
+        groupedData.map(group => (
+          <div key={group.user.id} className="space-y-4">
+            {/* User Header */}
+            <div className="card bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    {group.user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">{group.user.name}</h3>
+                    <p className="text-sm text-gray-600">{group.user.email}</p>
+                    <p className="text-sm text-blue-600 font-medium mt-1">
+                      {group.items.length} {group.items.length === 1 ? 'prestito' : 'prestiti'} {activeTab === 'pending' ? 'in attesa' : activeTab === 'processed' ? 'completati' : 'attivi'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedUserId('')}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Rimuovi filtro utente"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* User's Loans */}
+            {group.items.map(item => (
+          <div key={item.id} className="card">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                  {(item.utente_nome || '').charAt(0)}{(item.utente_cognome || '').charAt(0)}
+                </div>
+                <div className="ml-3">
+                  <div className="text-lg font-semibold text-primary">
+                    {item.utente_nome || ''} {item.utente_cognome || ''}
+                  </div>
+                  <div className="text-sm text-tertiary">
+                    {item.utente_email}
+                  </div>
+                </div>
+              </div>
+              {getStatusBadge(item.stato)}
+            </div>
+
+            {/* Object Info */}
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-primary mb-2">
+                {item.articolo_nome || item.oggetto_nome}
+                {item.unita_seriale && (
+                  <span className="text-gray-500"> - {item.unita_seriale}</span>
+                )}
+              </h3>
+              {item.oggetto_id && (
+                <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full">
+                  ID: {item.oggetto_id}
+                </span>
+              )}
+            </div>
+
+            {/* Dates */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex flex-col">
+                  <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Inizio</span>
+                  <span className="text-primary font-semibold text-base">{formatDate(item.dal || item.data_uscita)}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Data Fine</span>
+                  <span className="text-primary font-semibold text-base">{formatDate(item.al || item.data_rientro)}</span>
+                </div>
+                {item.stato === 'restituito' && item.data_rientro && (
+                  <div className="col-span-2 flex flex-col">
+                    <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituito</span>
+                    <span className="text-green-600 font-semibold text-base">{formatDate(item.data_rientro)}</span>
+                  </div>
+                )}
+                {item.stato === 'attivo' && (item.al || item.data_rientro) && (
+                  <div className="col-span-2 flex flex-col">
+                    <span className="text-tertiary text-xs uppercase tracking-wide mb-1">Restituirà il</span>
+                    <span className="text-orange-600 font-semibold text-base">{formatDate(item.al || item.data_rientro)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-2">
+              {activeTab === 'pending' && (
+                <>
+                  <button
+                    onClick={() => handleApprove(item.id)}
+                    disabled={approvingRequestId === item.id || approvingRequestId !== null}
+                    className="w-full btn-success text-center py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {approvingRequestId === item.id ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></div>
+                        Approvazione...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Approva Richiesta
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => openRejectModal(item.id)}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white rounded-lg py-2 transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Rifiuta Richiesta
+                  </button>
+                </>
+              )}
+              
+              {activeTab === 'active' && item.stato === 'attivo' && (
+                <button
+                  onClick={() => handleReturn(item.id)}
+                  className="w-full btn-success text-center py-2"
+                >
+                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                  </svg>
+                  Termina Prestito
+                </button>
+              )}
+
+              <button
+                onClick={() => setSelectedLoan(item)}
+                className="w-full btn-secondary text-center py-2"
+              >
+                <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Visualizza Dettagli
+              </button>
+            </div>
+          </div>
+            ))}
+          </div>
+        ))
       ) : (
+        // Normal view when no user filter
         filteredData.map(item => (
           <div key={item.id} className="card">
             {/* Header */}

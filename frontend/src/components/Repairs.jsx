@@ -632,10 +632,10 @@ const handleCancelRepair = async (repairId) => {
           {step === 3 && selectedObject && selectedUnit && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Dettagli Riparazione</h3>
-                <p className="text-sm text-gray-600">
-                  Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
-                </p>
+                  <h3 className="text-lg font-medium text-gray-900">Dettagli Riparazione</h3>
+                  <p className="text-sm text-gray-600">
+                    Oggetto: <strong>{selectedObject.nome}</strong> - ID: <strong>{selectedUnit.codice_univoco}</strong>
+                  </p>
               </div>
 
               {/* Descrizione */}
@@ -721,19 +721,19 @@ const handleCancelRepair = async (repairId) => {
                   Indietro
                 </button>
                 <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Annulla
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    {editingRepair ? 'Aggiorna' : 'Crea Riparazione'}
-                  </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {editingRepair ? 'Aggiorna' : 'Crea Riparazione'}
+                </button>
                 </div>
               </div>
             </form>
