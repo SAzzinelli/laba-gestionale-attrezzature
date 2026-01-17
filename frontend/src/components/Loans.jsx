@@ -273,23 +273,27 @@ setApprovingRequestId(null);
      });
    }
 
-   // Extract unique users
-   const userMap = new Map();
-   allData.forEach(item => {
-     const userId = item.utente_id || item.user_id;
-     const userName = `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.utente_email || 'Utente sconosciuto';
-     const userEmail = item.utente_email || '';
-     
-     if (userId && !userMap.has(userId)) {
-       userMap.set(userId, {
-         id: userId,
-         name: userName,
-         email: userEmail
-       });
-     }
-   });
+  // Extract unique users
+  const userMap = new Map();
+  allData.forEach(item => {
+    // Try different possible user ID fields
+    const userId = item.utente_id || item.user_id;
+    const userName = `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.utente_email || item.chi || 'Utente sconosciuto';
+    const userEmail = item.utente_email || '';
+    
+    // Use user ID if available, otherwise use email as unique identifier
+    const uniqueKey = userId ? userId.toString() : (userEmail || userName);
+    
+    if (uniqueKey && !userMap.has(uniqueKey)) {
+      userMap.set(uniqueKey, {
+        id: userId || uniqueKey, // Use ID if available, otherwise use the unique key
+        name: userName,
+        email: userEmail
+      });
+    }
+  });
 
-   return Array.from(userMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  return Array.from(userMap.values()).sort((a, b) => a.name.localeCompare(b.name));
  };
 
  // Filter data based on active tab
@@ -314,7 +318,15 @@ setApprovingRequestId(null);
  if (selectedUserId) {
    data = data.filter(item => {
      const userId = item.utente_id || item.user_id;
-     return userId && userId.toString() === selectedUserId.toString();
+     const userEmail = item.utente_email || '';
+     const userName = `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim();
+     
+     // Match by ID if available, otherwise by email or name
+     if (userId) {
+       return userId.toString() === selectedUserId.toString();
+     } else {
+       return userEmail === selectedUserId || userName === selectedUserId;
+     }
    });
  }
 
@@ -354,14 +366,16 @@ setApprovingRequestId(null);
    const grouped = {};
    data.forEach(item => {
      const userId = item.utente_id || item.user_id;
-     const userKey = userId?.toString() || 'unknown';
+     const userEmail = item.utente_email || '';
+     const userName = `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim();
+     const userKey = userId?.toString() || userEmail || userName || 'unknown';
      
      if (!grouped[userKey]) {
        grouped[userKey] = {
          user: {
-           id: userId,
-           name: `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.utente_email || 'Utente sconosciuto',
-           email: item.utente_email || ''
+           id: userId || userKey,
+           name: userName || userEmail || 'Utente sconosciuto',
+           email: userEmail || ''
          },
          items: []
        };

@@ -38,7 +38,7 @@ r.get('/', requireAuth, async (req, res) => {
       result = await query(`
         SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
                u.name AS utente_nome, u.surname AS utente_cognome, u.email AS utente_email,
-               u.penalty_strikes, u.is_blocked, u.blocked_reason,
+               COALESCE(r.utente_id, u.id) AS utente_id, u.penalty_strikes, u.is_blocked, u.blocked_reason,
                r.dal, r.al, r.note AS richiesta_note
         FROM prestiti p
         LEFT JOIN inventario i ON i.id = p.inventario_id
