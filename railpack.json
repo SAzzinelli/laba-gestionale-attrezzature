@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "steps": {
+    "build": {
+      "base": {
+        "image": "node:20"
+      },
+      "commands": [
+        "cd backend && npm install",
+        "cd ../frontend && npm install",
+        "cd ../frontend && npm run build"
+      ]
+    }
+  },
+  "deploy": {
+    "base": {
+      "image": "ghcr.io/railwayapp/railpack-runtime:latest"
+    },
+    "inputs": [
+      {
+        "step": "build",
+        "include": ["backend/**", "frontend/dist/**"]
+      }
+    ],
+    "startCommand": "cd backend && node server.js"
+  }
+}
