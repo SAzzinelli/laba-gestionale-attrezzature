@@ -5,15 +5,13 @@
       "commands": [
         "cd backend",
         "npm install"
-      ],
-      "caches": ["node-modules-backend"]
+      ]
     },
     "install-frontend": {
       "commands": [
         "cd frontend",
         "npm install"
-      ],
-      "caches": ["node-modules-frontend"]
+      ]
     },
     "build-frontend": {
       "inputs": [{ "step": "install-frontend" }],
