@@ -1,14 +1,20 @@
 {
   "$schema": "https://schema.railpack.com",
   "steps": {
-    "build": {
-      "base": {
-        "image": "node:20"
-      },
+    "install-backend": {
       "commands": [
-        "cd backend && npm install",
-        "cd ../frontend && npm install",
-        "cd ../frontend && npm run build"
+        "cd /app/backend && npm install"
+      ]
+    },
+    "install-frontend": {
+      "commands": [
+        "cd /app/frontend && npm install"
+      ]
+    },
+    "build-frontend": {
+      "inputs": [{ "step": "install-frontend" }],
+      "commands": [
+        "cd /app/frontend && npm run build"
       ]
     }
   },
@@ -18,10 +24,14 @@
     },
     "inputs": [
       {
-        "step": "build",
-        "include": ["backend/**", "frontend/dist/**"]
+        "step": "install-backend",
+        "include": ["backend/**"]
+      },
+      {
+        "step": "build-frontend",
+        "include": ["frontend/dist/**"]
       }
     ],
-    "startCommand": "cd backend && node server.js"
+    "startCommand": "cd /app/backend && node server.js"
   }
 }
