@@ -12,3 +12,5 @@ zip/
 *.db
 *.db-shm
 *.db-wal
+nixpacks.toml*
+railway.json.backup
