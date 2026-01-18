@@ -4,28 +4,28 @@
     "install-backend": {
       "inputs": [
         { "image": "node:20" },
-        { "local": true }
+        { "local": true, "include": ["."] }
       ],
       "commands": [
-        "cd backend && npm install"
+        "cd /app/backend && npm install"
       ]
     },
     "install-frontend": {
       "inputs": [
         { "image": "node:20" },
-        { "local": true }
+        { "local": true, "include": ["."] }
       ],
       "commands": [
-        "cd frontend && npm install"
+        "cd /app/frontend && npm install"
       ]
     },
     "build-frontend": {
       "inputs": [
         { "step": "install-frontend" },
-        { "local": true }
+        { "local": true, "include": ["frontend/**"] }
       ],
       "commands": [
-        "cd frontend && npm run build"
+        "cd /app/frontend && npm run build"
       ]
     }
   },
@@ -43,6 +43,6 @@
         "include": ["frontend/dist/**"]
       }
     ],
-    "startCommand": "cd backend && node server.js"
+    "startCommand": "cd /app/backend && node server.js"
   }
 }
