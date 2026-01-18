@@ -9,22 +9,22 @@
     "dev": "vite --port 3000"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.8",
-    "@reduxjs/toolkit": "^2.2.5",
-    "axios": "^1.7.2",
+    "@headlessui/react": "^2.2.9",
+    "@reduxjs/toolkit": "^2.11.2",
+    "axios": "^1.13.2",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "qrcode": "^1.5.4",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "react-redux": "^9.1.2",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
-    "autoprefixer": "^10.4.19",
+    "autoprefixer": "^10.4.23",
     "postcss": "^8.4.39",
-    "tailwindcss": "^3.4.9",
-    "vite": "^7.2.6"
+    "tailwindcss": "^3.4.19",
+    "vite": "^7.3.1"
   }
 }
