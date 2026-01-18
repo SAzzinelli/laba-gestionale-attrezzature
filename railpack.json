@@ -31,7 +31,7 @@
   },
   "deploy": {
     "base": {
-      "image": "ghcr.io/railwayapp/railpack-runtime:latest"
+      "image": "node:20"
     },
     "inputs": [
       {
