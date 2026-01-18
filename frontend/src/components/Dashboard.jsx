@@ -978,7 +978,6 @@ return (
    </div>
  </div>
  </div>
- </div>
  {(selectedLoan.utente_email || selectedLoan.email) && (
  <div>
  <label className="form-label">Email</label>
