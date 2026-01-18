@@ -2,20 +2,20 @@
   "$schema": "https://schema.railpack.com",
   "steps": {
     "install-backend": {
-      "inputs": [{ "local": true, "include": ["backend/**"] }],
+      "inputs": [{ "local": true }],
       "commands": [
         "cd backend && npm install"
       ]
     },
     "install-frontend": {
-      "inputs": [{ "local": true, "include": ["frontend/**"] }],
+      "inputs": [{ "local": true }],
       "commands": [
         "cd frontend && npm install"
       ]
     },
     "build-frontend": {
       "inputs": [
-        { "local": true, "include": ["frontend/**"] },
+        { "local": true },
         { "step": "install-frontend" }
       ],
       "commands": [
