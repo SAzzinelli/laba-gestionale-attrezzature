@@ -431,6 +431,75 @@ return (
     </div>
   </div>
 
+  {/* Richieste da Approvare - Separata come card dedicata */}
+  {stats.pendingRequests > 0 && (
+    <div className="bg-white rounded-xl shadow-lg border border-yellow-200 overflow-hidden mb-8">
+      <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Richieste da Approvare</h2>
+              <p className="text-yellow-100 text-sm">Richieste in attesa di approvazione</p>
+            </div>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
+            <span className="text-white font-bold text-lg">{stats.pendingRequests}</span>
+            <span className="text-yellow-100 ml-1">richieste</span>
+          </div>
+        </div>
+      </div>
+      <div className="p-6">
+        <div className="space-y-3">
+          {stats.pendingRequestsData && stats.pendingRequestsData.slice(0, 5).map(request => (
+            <div 
+              key={request.id} 
+              className="bg-yellow-50 rounded-lg p-4 border border-yellow-200 hover:bg-yellow-100 transition-colors cursor-pointer"
+              onClick={() => {
+                if (onNavigate) {
+                  onNavigate('prestiti', { initialTab: 'pending' });
+                }
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-gray-900 text-base mb-1">
+                    {request.articolo_nome || request.oggetto_nome || 'Oggetto sconosciuto'}
+                  </div>
+                  <div className="text-yellow-700 font-medium text-sm">
+                    {request.name || request.utente_nome || ''} {request.surname || request.utente_cognome || ''}
+                  </div>
+                  <div className="text-gray-600 text-xs mt-1">
+                    Dal {new Date(request.dal).toLocaleDateString('it-IT')} al {new Date(request.al).toLocaleDateString('it-IT')}
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <span className="bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full">IN ATTESA</span>
+                </div>
+              </div>
+            </div>
+          ))}
+          {stats.pendingRequests > 5 && (
+            <div 
+              className="text-center text-yellow-600 text-sm font-medium cursor-pointer hover:text-yellow-700"
+              onClick={() => {
+                if (onNavigate) {
+                  onNavigate('prestiti', { initialTab: 'pending' });
+                }
+              }}
+            >
+              +{stats.pendingRequests - 5} altre richieste...
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )}
+
   {/* Alerts Section - Redesigned */}
  {alerts.totale_avvisi > 0 && (
  <div className="bg-white rounded-xl shadow-lg border border-red-200 overflow-hidden">
@@ -457,50 +526,6 @@ return (
  <div className="p-6">
  
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
- {/* Richieste in Attesa */}
- {stats.pendingRequests > 0 && (
- <div 
- className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 cursor-pointer hover:bg-yellow-100 transition-colors"
- onClick={() => {
-   // Passa un parametro per indicare di aprire il tab "pending"
-   if (onNavigate) {
-     onNavigate('prestiti', { initialTab: 'pending' });
-   }
- }}
- >
- <div className="flex items-center mb-3">
- <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
- <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
- </svg>
- </div>
- <h3 className="text-lg font-bold text-yellow-800">
- Richieste in Attesa ({stats.pendingRequests})
- </h3>
- </div>
- <div className="space-y-2">
- {stats.pendingRequestsData && stats.pendingRequestsData.slice(0, 3).map(request => (
- <div key={request.id} className="bg-white rounded-lg p-3 border border-yellow-200">
- <div className="font-semibold text-gray-900 text-sm">
- {request.articolo_nome || request.oggetto_nome || 'Oggetto sconosciuto'}
- </div>
- <div className="text-yellow-600 font-medium text-xs mt-1">
- {request.name || request.utente_nome || ''} {request.surname || request.utente_cognome || ''}
- </div>
- <div className="text-gray-500 text-xs mt-1">
- Dal {new Date(request.dal).toLocaleDateString('it-IT')} al {new Date(request.al).toLocaleDateString('it-IT')}
- </div>
- </div>
- ))}
- {stats.pendingRequests > 3 && (
- <div className="text-center text-yellow-600 text-sm font-medium">
- +{stats.pendingRequests - 3} altre richieste...
- </div>
- )}
- </div>
- </div>
- )}
-
  {/* Scorte Basse */}
  {alerts.scorte_basse.length > 0 && (
  <div 
@@ -625,37 +650,37 @@ return (
  </div>
  )}
 
-    {/* Scadenze Domani */}
+    {/* Scadenze Domani - Cambiato da rosso a viola */}
     {alerts.scadenze_domani.length > 0 && (
     <div 
-    className="bg-red-50 border border-red-200 rounded-lg p-4 cursor-pointer hover:bg-red-100 transition-colors"
+    className="bg-purple-50 border border-purple-200 rounded-lg p-4 cursor-pointer hover:bg-purple-100 transition-colors"
     onClick={() => setSelectedAlert({ type: 'domani', data: alerts.scadenze_domani })}
     >
     <div className="flex items-center mb-3">
-    <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center mr-3">
+    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
     </div>
-    <h3 className="text-lg font-bold text-red-800">
+    <h3 className="text-lg font-bold text-purple-800">
     In scadenza domani: ({alerts.scadenze_domani.length})
     </h3>
     </div>
     <div className="space-y-2">
     {alerts.scadenze_domani.slice(0, 3).map(prestito => (
-    <div key={prestito.id} className="bg-white rounded-lg p-3 border border-red-200">
+    <div key={prestito.id} className="bg-white rounded-lg p-3 border border-purple-200">
     <div className="font-semibold text-gray-900 text-sm">
     {prestito.utente_nome_reale && prestito.utente_cognome ? 
                   `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
                   prestito.utente_nome}
     </div>
-    <div className="text-red-600 font-medium text-xs mt-1">
+    <div className="text-purple-600 font-medium text-xs mt-1">
     {prestito.oggetto_nome}
     </div>
     </div>
     ))}
     {alerts.scadenze_domani.length > 3 && (
-    <div className="text-center text-red-600 text-sm font-medium">
+    <div className="text-center text-purple-600 text-sm font-medium">
     +{alerts.scadenze_domani.length - 3} altri prestiti...
     </div>
     )}
