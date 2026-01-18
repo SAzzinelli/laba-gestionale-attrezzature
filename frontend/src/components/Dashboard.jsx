@@ -582,10 +582,6 @@ return (
  }`}>
  {item.motivo}
  </div>
- <div className="text-gray-500 text-xs mt-1">
- Disponibili: {item.unita_disponibili || 0}/{item.quantita_totale}
- {item.percentuale_disponibile !== null && ` (${item.percentuale_disponibile}% disponibili)`}
- </div>
  </div>
  ))}
  {alerts.scorte_basse.length > 3 && (
