@@ -2,18 +2,27 @@
   "$schema": "https://schema.railpack.com",
   "steps": {
     "install-backend": {
+      "base": {
+        "image": "node:20"
+      },
       "commands": [
         "cd backend",
         "npm install"
       ]
     },
     "install-frontend": {
+      "base": {
+        "image": "node:20"
+      },
       "commands": [
         "cd frontend",
         "npm install"
       ]
     },
     "build-frontend": {
+      "base": {
+        "image": "node:20"
+      },
       "inputs": [{ "step": "install-frontend" }],
       "commands": [
         "cd frontend",
