@@ -1,0 +1,65 @@
+2026-01-18T22:50:55.561166732Z [inf]  [snapshot] received sha256:0878ca22bcec1a5d057929e3dfcdb1c0519e48f997491e7f02f34bf43981abaa md5:2904ce35bcadd8203f9bb3461161c98a
+2026-01-18T22:50:55.561289827Z [inf]  receiving snapshot
+2026-01-18T22:50:55.575927168Z [dbg]  found 'railway.json' at 'railway.json'
+2026-01-18T22:50:55.576103673Z [inf]  analyzing snapshot
+2026-01-18T22:50:55.594673886Z [inf]  uploading snapshot
+2026-01-18T22:51:01.853047449Z [inf]  fetched snapshot sha256:0878ca22bcec1a5d057929e3dfcdb1c0519e48f997491e7f02f34bf43981abaa (326 kB bytes)
+2026-01-18T22:51:01.853655511Z [inf]  fetching snapshot
+2026-01-18T22:51:02.558475818Z [inf]  unpacking archive
+2026-01-18T22:51:03.228010364Z [inf]  using build driver railpack-v0.16.0
+2026-01-18T22:51:03.889750044Z [inf]                     
+2026-01-18T22:51:03.889761971Z [inf]  [38;2;125;86;243m╭─────────────────╮[0m
+2026-01-18T22:51:03.889762923Z [inf]  [38;2;125;86;243m│[0m Railpack 0.16.0 [38;2;125;86;243m│[0m
+2026-01-18T22:51:03.889763324Z [inf]  [38;2;125;86;243m╰─────────────────╯[0m
+2026-01-18T22:51:03.889763544Z [inf]  
+2026-01-18T22:51:03.889764525Z [inf]    [33m⚠ Script start.sh not found[0m
+2026-01-18T22:51:03.889765697Z [inf]              
+2026-01-18T22:51:03.889765957Z [inf]    [1mSteps[0m     
+2026-01-18T22:51:03.889766208Z [inf]    [38;5;238m──────────[0m
+2026-01-18T22:51:03.889766589Z [inf]    [95m▸ build[0m
+2026-01-18T22:51:03.889767740Z [inf]      [38;5;245m$[0m [1mcd backend && npm install && cd ../frontend && npm install && npm run build[0m
+2026-01-18T22:51:03.889768241Z [inf]              
+2026-01-18T22:51:03.889768842Z [inf]    [1mDeploy[0m    
+2026-01-18T22:51:03.889769152Z [inf]    [38;5;238m──────────[0m
+2026-01-18T22:51:03.889770184Z [inf]      [38;5;245m$[0m [1mcd backend && node server.js[0m
+2026-01-18T22:51:03.889770454Z [inf]  
+2026-01-18T22:51:04.570355790Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.16.0
+2026-01-18T22:51:04.873958513Z [inf]  resolve image config for docker-image://ghcr.io/railwayapp/railpack-frontend:v0.16.0
+2026-01-18T22:51:04.874085304Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.16.0@sha256:a4936435346c482ab90f6b2a8e73d3f0e0490408553f889fbebcd6fae08103f2
+2026-01-18T22:51:04.874193506Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.16.0@sha256:a4936435346c482ab90f6b2a8e73d3f0e0490408553f889fbebcd6fae08103f2
+2026-01-18T22:51:04.886526360Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.16.0@sha256:a4936435346c482ab90f6b2a8e73d3f0e0490408553f889fbebcd6fae08103f2
+2026-01-18T22:51:04.887056626Z [inf]  docker-image://ghcr.io/railwayapp/railpack-frontend:v0.16.0@sha256:a4936435346c482ab90f6b2a8e73d3f0e0490408553f889fbebcd6fae08103f2
+2026-01-18T22:51:05.056514449Z [inf]  load build definition from ./railpack-plan.json
+2026-01-18T22:51:05.056531936Z [inf]  load build definition from ./railpack-plan.json
+2026-01-18T22:51:05.056690323Z [inf]  load build definition from ./railpack-plan.json
+2026-01-18T22:51:05.141938248Z [inf]  load build definition from ./railpack-plan.json
+2026-01-18T22:51:05.211810274Z [inf]  [railpack] merge ghcr.io/railwayapp/railpack-runtime:latest, $build
+2026-01-18T22:51:05.211826228Z [inf]  copy /app
+2026-01-18T22:51:05.211827270Z [inf]  cd backend && npm install && cd ../frontend && npm install && npm run build
+2026-01-18T22:51:05.211828031Z [inf]  [railpack] secrets hash
+2026-01-18T22:51:05.211828822Z [inf]  copy .
+2026-01-18T22:51:05.211829283Z [inf]  loading .
+2026-01-18T22:51:05.211831516Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2026-01-18T22:51:05.211831977Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
+2026-01-18T22:51:05.212070765Z [inf]  loading .
+2026-01-18T22:51:05.212074751Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
+2026-01-18T22:51:05.212075662Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2026-01-18T22:51:05.212199308Z [inf]  [railpack] secrets hash
+2026-01-18T22:51:05.500537318Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
+2026-01-18T22:51:05.501099171Z [inf]  docker-image://ghcr.io/railwayapp/railpack-runtime:latest
+2026-01-18T22:51:05.525973042Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2026-01-18T22:51:05.526435776Z [inf]  loading .
+2026-01-18T22:51:05.526442466Z [inf]  [railpack] secrets hash
+2026-01-18T22:51:05.526881585Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2026-01-18T22:51:05.545444717Z [inf]  docker-image://ghcr.io/railwayapp/railpack-builder:latest
+2026-01-18T22:51:05.666526928Z [inf]  [railpack] secrets hash
+2026-01-18T22:51:05.703107643Z [inf]  loading .
+2026-01-18T22:51:05.759757891Z [inf]  copy .
+2026-01-18T22:51:05.949982292Z [inf]  copy .
+2026-01-18T22:51:05.974395622Z [inf]  cd backend && npm install && cd ../frontend && npm install && npm run build
+2026-01-18T22:51:06.319927876Z [inf]  sh: 1: npm: not found
+
+2026-01-18T22:51:06.407176694Z [err]  cd backend && npm install && cd ../frontend && npm install && npm run build
+2026-01-18T22:51:06.436933882Z [err]  Build Failed: build daemon returned an error < failed to solve: process "sh -c cd backend && npm install && cd ../frontend && npm install && npm run build" did not complete successfully: exit code: 127 >
+2026-01-18T22:51:49.166876651Z [inf]  scheduling build on Metal builder "builder-emxvke"
+2026-01-18T22:51:55.771335964Z [inf]  scheduling build on Metal builder "builder-emxvke"
