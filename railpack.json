@@ -36,11 +36,11 @@
     "inputs": [
       {
         "step": "install-backend",
-        "include": ["backend/**"]
+        "include": ["."]
       },
       {
         "step": "build-frontend",
-        "include": ["frontend/dist/**"]
+        "include": ["frontend/dist"]
       }
     ],
     "startCommand": "cd /app/backend && node server.js"
