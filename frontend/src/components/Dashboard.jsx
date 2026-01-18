@@ -27,6 +27,7 @@ const Dashboard = ({ onNavigate }) => {
  const [selectedRequest, setSelectedRequest] = useState(null);
  const [selectedAlert, setSelectedAlert] = useState(null);
  const [editingItemFromAlert, setEditingItemFromAlert] = useState(null);
+ const [selectedLoan, setSelectedLoan] = useState(null);
   const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   const [selectedPasswordRequest, setSelectedPasswordRequest] = useState(null);
   const { token, isAdmin, roleLabel } = useAuth();
@@ -54,6 +55,38 @@ const Dashboard = ({ onNavigate }) => {
     } catch (error) {
       return 'Data non valida';
     }
+  };
+
+  // Helper function to get status badge
+  const getStatusBadge = (stato) => {
+    const statusLower = (stato || '').toString().toLowerCase().trim();
+    let bgColor = 'bg-gray-100';
+    let textColor = 'text-gray-800';
+    let label = stato || 'Sconosciuto';
+
+    if (statusLower === 'attivo' || statusLower === 'approvata') {
+      bgColor = 'bg-green-100';
+      textColor = 'text-green-800';
+      label = statusLower === 'attivo' ? 'Attivo' : 'Approvata';
+    } else if (statusLower === 'in_attesa' || statusLower === 'pending') {
+      bgColor = 'bg-yellow-100';
+      textColor = 'text-yellow-800';
+      label = 'In Attesa';
+    } else if (statusLower === 'rifiutata' || statusLower === 'rejected') {
+      bgColor = 'bg-red-100';
+      textColor = 'text-red-800';
+      label = 'Rifiutata';
+    } else if (statusLower === 'completata' || statusLower === 'completato') {
+      bgColor = 'bg-blue-100';
+      textColor = 'text-blue-800';
+      label = 'Completata';
+    }
+
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-medium ${bgColor} ${textColor}`}>
+        {label}
+      </span>
+    );
   };
 
   // Handle password reset
@@ -490,7 +523,14 @@ return (
  </div>
  <div className="space-y-2">
  {stats.pendingRequestsData && stats.pendingRequestsData.slice(0, 3).map(request => (
- <div key={request.id} className="bg-white rounded-lg p-3 border border-yellow-200">
+ <div 
+ key={request.id} 
+ className="bg-white rounded-lg p-3 border border-yellow-200 hover:bg-yellow-50 cursor-pointer transition-colors"
+ onClick={(e) => {
+   e.stopPropagation();
+   setSelectedLoan(request);
+ }}
+ >
  <div className="font-semibold text-gray-900 text-sm">
  {request.articolo_nome || request.oggetto_nome || 'Oggetto sconosciuto'}
  </div>
@@ -529,7 +569,15 @@ return (
     </div>
     <div className="space-y-2">
     {alerts.scadenze_domani.slice(0, 3).map(prestito => (
-    <div key={prestito.id} className="bg-white rounded-lg p-3 border border-purple-200">
+    <div 
+    key={prestito.id} 
+    className="bg-white rounded-lg p-3 border border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors"
+    onClick={(e) => {
+      e.stopPropagation();
+      setSelectedLoan(prestito);
+      setSelectedAlert(null);
+    }}
+    >
     <div className="font-semibold text-gray-900 text-sm">
     {prestito.utente_nome_reale && prestito.utente_cognome ? 
                   `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
@@ -840,7 +888,14 @@ return (
  <div className="modal-body">
  <div className={`grid ${selectedAlert.type === 'scorte' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3' : 'grid-cols-1'} gap-4 lg:gap-6`}>
  {selectedAlert.data.map((item, index) => (
- <div key={index} className="card">
+ <div 
+ key={index} 
+ className={`card ${selectedAlert.type === 'domani' ? 'cursor-pointer hover:bg-purple-50 transition-colors' : ''}`}
+ onClick={selectedAlert.type === 'domani' ? () => {
+   setSelectedLoan(item);
+   setSelectedAlert(null);
+ } : undefined}
+ >
  <div className="flex items-center justify-between">
  <div>
  <h3 className="font-medium text-primary">
@@ -862,12 +917,18 @@ return (
  Primo ritorno: {item.firstReturnDate.toLocaleDateString('it-IT')}
  </p>
  )}
+ {selectedAlert.type === 'domani' && (
+ <p className="text-xs text-purple-600 mt-1">
+ Scade: {item.data_rientro ? formatDate(item.data_rientro) : 'Data non specificata'}
+ </p>
+ )}
  </div>
  {selectedAlert.type === 'scorte' && (
  <button
- onClick={() => {
- setEditingItemFromAlert(item);
- setSelectedAlert(null);
+ onClick={(e) => {
+   e.stopPropagation();
+   setEditingItemFromAlert(item);
+   setSelectedAlert(null);
  }}
  className="btn-danger btn-small"
  >
@@ -876,13 +937,26 @@ return (
  )}
  {selectedAlert.type === 'ritardi' && (
  <button
- onClick={() => {
- setSelectedAlert(null);
- onNavigate && onNavigate('prestiti');
+ onClick={(e) => {
+   e.stopPropagation();
+   setSelectedAlert(null);
+   onNavigate && onNavigate('prestiti');
  }}
  className="btn-danger btn-small"
  >
  Gestisci Ritardo
+ </button>
+ )}
+ {selectedAlert.type === 'domani' && (
+ <button
+ onClick={(e) => {
+   e.stopPropagation();
+   setSelectedLoan(item);
+   setSelectedAlert(null);
+ }}
+ className="btn-primary btn-small"
+ >
+ Visualizza
  </button>
  )}
  </div>
@@ -894,6 +968,119 @@ return (
  <div className="modal-footer">
  <button
  onClick={() => setSelectedAlert(null)}
+ className="btn-secondary"
+ >
+ Chiudi
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
+
+ {/* Loan/Request Details Modal */}
+ {selectedLoan && (
+ <div className="modal-overlay" onClick={() => setSelectedLoan(null)}>
+ <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{maxWidth: '48rem', width: '95vw'}}>
+ <div className="modal-header">
+ <h2 className="text-xl font-bold text-primary">
+   Dettagli {selectedLoan.articolo_nome || selectedLoan.oggetto_nome || 'Prestito'}
+   {selectedLoan.unita && selectedLoan.unita.length > 0 && ` - ${Array.isArray(selectedLoan.unita) ? selectedLoan.unita.join(', ') : selectedLoan.unita}`}
+ </h2>
+ <button
+ onClick={() => setSelectedLoan(null)}
+ className="text-muted hover:text-primary"
+ >
+ <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+ </svg>
+ </button>
+ </div>
+ <div className="modal-body">
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div>
+ <label className="form-label">Oggetto</label>
+ <div className="flex items-center gap-2">
+   <p className="text-primary font-medium">{selectedLoan.articolo_nome || selectedLoan.oggetto_nome || 'N/A'}</p>
+   {selectedLoan.oggetto_id && (
+     <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full">
+       ID: {selectedLoan.oggetto_id}
+     </span>
+   )}
+   {selectedLoan.inventario_id && (
+     <span className="text-xs text-tertiary bg-gray-100 px-2 py-1 rounded-full">
+       ID: {selectedLoan.inventario_id}
+     </span>
+   )}
+ </div>
+ </div>
+ <div>
+ <label className="form-label">Stato</label>
+ {getStatusBadge(selectedLoan.stato)}
+ </div>
+ <div>
+ <label className="form-label">Richiedente</label>
+ <div className="flex items-center gap-2">
+   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+     </svg>
+   </div>
+   <div>
+     <p className="text-primary font-medium">
+       {selectedLoan.name || selectedLoan.utente_nome_reale || selectedLoan.utente_nome || ''} {selectedLoan.surname || selectedLoan.utente_cognome || ''}
+     </p>
+   </div>
+ </div>
+ </div>
+ </div>
+ {(selectedLoan.utente_email || selectedLoan.email) && (
+ <div>
+ <label className="form-label">Email</label>
+ <p className="text-secondary">{selectedLoan.utente_email || selectedLoan.email}</p>
+ </div>
+ )}
+ <div>
+   <label className="form-label">Dal</label>
+   <p className="text-primary">{formatDate(selectedLoan.dal || selectedLoan.data_uscita)}</p>
+ </div>
+ <div>
+   <label className="form-label">Al</label>
+   <p className="text-primary">{formatDate(selectedLoan.al || selectedLoan.data_rientro)}</p>
+ </div>
+ {selectedLoan.data_rientro && (
+   <div className="md:col-span-2">
+     <label className="form-label">Data Restituzione</label>
+     <p className="text-primary">{formatDate(selectedLoan.data_rientro)}</p>
+   </div>
+ )}
+ {selectedLoan.note && (
+ <div className="md:col-span-2">
+   <label className="form-label">Note</label>
+   <p className="text-secondary">{selectedLoan.note}</p>
+ </div>
+ )}
+ {selectedLoan.motivo_rifiuto && (
+ <div className="md:col-span-2">
+   <label className="form-label">Motivo Rifiuto</label>
+   <p className="text-red-600">{selectedLoan.motivo_rifiuto}</p>
+ </div>
+ )}
+ </div>
+ </div>
+ <div className="modal-footer">
+ <button
+ onClick={() => {
+   setSelectedLoan(null);
+   if (onNavigate) {
+     onNavigate('prestiti');
+   }
+ }}
+ className="btn-primary"
+ >
+ Vai a Prestiti
+ </button>
+ <button
+ onClick={() => setSelectedLoan(null)}
  className="btn-secondary"
  >
  Chiudi
