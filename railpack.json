@@ -3,18 +3,18 @@
   "steps": {
     "install-backend": {
       "commands": [
-        "cd /app/backend && npm install"
+        "cd backend && npm install"
       ]
     },
     "install-frontend": {
       "commands": [
-        "cd /app/frontend && npm install"
+        "cd frontend && npm install"
       ]
     },
     "build-frontend": {
       "inputs": [{ "step": "install-frontend" }],
       "commands": [
-        "cd /app/frontend && npm run build"
+        "cd frontend && npm run build"
       ]
     }
   },
@@ -32,6 +32,6 @@
         "include": ["frontend/dist/**"]
       }
     ],
-    "startCommand": "cd /app/backend && node server.js"
+    "startCommand": "cd backend && node server.js"
   }
 }
