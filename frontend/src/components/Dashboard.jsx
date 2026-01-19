@@ -611,6 +611,7 @@ return (
  </div>
  </div>
  </div>
+ )}
 
   {/* In Scadenza Section - Oggi e Domani */}
  {hasScadenze && (
