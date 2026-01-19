@@ -611,6 +611,7 @@ return (
  </div>
  </div>
  </div>
+ </div>
  )}
 
   {/* In Scadenza Section - Oggi e Domani */}
@@ -746,6 +747,7 @@ return (
  +{alerts.scadenze_domani.length - 3} altri prestiti...
  </div>
  )}
+ </div>
  </div>
  </div>
  </div>
