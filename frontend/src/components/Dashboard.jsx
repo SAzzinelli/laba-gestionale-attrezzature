@@ -1066,7 +1066,7 @@ return (
  {/* Loan/Request Details Modal */}
  {selectedLoan && (
  <div className="modal-overlay" onClick={() => setSelectedLoan(null)}>
- <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{maxWidth: '48rem', width: '95vw'}}>
+ <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '48rem', width: '95vw' }}>
  <div className="modal-header">
  <h2 className="text-xl font-bold text-primary">
    Dettagli {selectedLoan.articolo_nome || selectedLoan.oggetto_nome || 'Prestito'}
