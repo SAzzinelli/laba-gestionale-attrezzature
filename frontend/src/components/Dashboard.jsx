@@ -657,8 +657,8 @@ return (
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  {/* Oggi - Arancione */}
  <div 
- className="bg-orange-50 border border-orange-200 rounded-lg p-4 cursor-pointer hover:bg-orange-100 transition-colors"
- onClick={() => setSelectedAlert({ type: 'oggi', data: alerts.scadenze_oggi || [] })}
+ className={`bg-orange-50 border border-orange-200 rounded-lg p-4 transition-colors ${hasScadenzeOggi ? 'cursor-pointer hover:bg-orange-100' : 'opacity-60 cursor-not-allowed'}`}
+ onClick={hasScadenzeOggi ? () => setSelectedAlert({ type: 'oggi', data: alerts.scadenze_oggi || [] }) : undefined}
  >
  <div className="flex items-center mb-3">
  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
@@ -703,18 +703,18 @@ return (
  </div>
  </div>
 
- {/* Domani - Arancione */}
+ {/* Domani - Viola */}
  <div 
- className="bg-orange-50 border border-orange-200 rounded-lg p-4 cursor-pointer hover:bg-orange-100 transition-colors"
- onClick={() => setSelectedAlert({ type: 'domani', data: alerts.scadenze_domani || [] })}
+ className={`bg-purple-50 border border-purple-200 rounded-lg p-4 transition-colors ${hasScadenzeDomani ? 'cursor-pointer hover:bg-purple-100' : 'opacity-60 cursor-not-allowed'}`}
+ onClick={hasScadenzeDomani ? () => setSelectedAlert({ type: 'domani', data: alerts.scadenze_domani || [] }) : undefined}
  >
  <div className="flex items-center mb-3">
- <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+ <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
  </svg>
  </div>
- <h3 className="text-lg font-bold text-orange-800">
+ <h3 className="text-lg font-bold text-purple-800">
  Domani ({(alerts.scadenze_domani?.length || 0)})
  </h3>
  </div>
@@ -722,7 +722,7 @@ return (
  {hasScadenzeDomani && alerts.scadenze_domani.length > 0 ? alerts.scadenze_domani.slice(0, 3).map(prestito => (
  <div 
  key={prestito.id} 
- className="bg-white rounded-lg p-3 border border-orange-200 hover:bg-orange-50 cursor-pointer transition-colors"
+ className="bg-white rounded-lg p-3 border border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors"
  onClick={(e) => {
    e.stopPropagation();
    setSelectedLoan(prestito);
@@ -734,7 +734,7 @@ return (
                  `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
                  prestito.utente_nome}
  </div>
- <div className="text-orange-600 font-medium text-xs mt-1">
+ <div className="text-purple-600 font-medium text-xs mt-1">
  {prestito.oggetto_nome}
  </div>
  </div>
@@ -744,7 +744,7 @@ return (
    </div>
  )}
  {hasScadenzeDomani && alerts.scadenze_domani.length > 3 && (
- <div className="text-center text-orange-600 text-sm font-medium">
+ <div className="text-center text-purple-600 text-sm font-medium">
  +{alerts.scadenze_domani.length - 3} altri prestiti...
  </div>
  )}
@@ -925,11 +925,15 @@ return (
  <div className="modal-overlay" onClick={() => setSelectedAlert(null)}>
  <div className="modal-content max-w-[95vw] lg:max-w-7xl xl:max-w-[90vw] mx-4 lg:mx-8" onClick={(e) => e.stopPropagation()}>
  <div className="modal-header">
-    <h2 className="text-xl font-bold text-primary">
+    <h2 className={`text-xl font-bold ${
+      selectedAlert.type === 'oggi' ? 'text-orange-600' :
+      selectedAlert.type === 'domani' ? 'text-purple-600' :
+      'text-primary'
+    }`}>
     {selectedAlert.type === 'scorte' ? 'Scorte Basse' :
     selectedAlert.type === 'ritardi' ? 'Prestiti in Ritardo' :
     selectedAlert.type === 'oggi' ? 'Scadenze Oggi' :
-    'In scadenza domani:'}
+    'Scadenze Domani'}
     </h2>
  <button
  onClick={() => setSelectedAlert(null)}
@@ -942,25 +946,41 @@ return (
  </div>
  
  <div className="modal-body">
- <div className={`grid ${selectedAlert.type === 'scorte' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3' : 'grid-cols-1'} gap-4 lg:gap-6`}>
+ <div className={`grid ${
+   selectedAlert.type === 'scorte' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3' : 
+   (selectedAlert.type === 'oggi' || selectedAlert.type === 'domani') ? 'grid-cols-1 md:grid-cols-2' : 
+   'grid-cols-1'
+ } gap-4 lg:gap-6`}>
  {selectedAlert.data.map((item, index) => (
  <div 
  key={index} 
- className={`card ${selectedAlert.type === 'domani' ? 'cursor-pointer hover:bg-purple-50 transition-colors' : ''}`}
- onClick={selectedAlert.type === 'domani' ? () => {
+ className={`card ${
+   selectedAlert.type === 'oggi' ? 'border-orange-200 hover:bg-orange-50 cursor-pointer transition-colors' :
+   selectedAlert.type === 'domani' ? 'border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors' :
+   ''
+ }`}
+ onClick={(selectedAlert.type === 'oggi' || selectedAlert.type === 'domani') ? () => {
    setSelectedLoan(item);
    setSelectedAlert(null);
  } : undefined}
  >
  <div className="flex items-center justify-between">
  <div>
- <h3 className="font-medium text-primary">
+ <h3 className={`font-medium ${
+   selectedAlert.type === 'oggi' ? 'text-orange-800' :
+   selectedAlert.type === 'domani' ? 'text-purple-800' :
+   'text-primary'
+ }`}>
  {selectedAlert.type === 'scorte' ? item.nome : 
  item.utente_nome_reale && item.utente_cognome ? 
                    `${item.utente_nome_reale} ${item.utente_cognome}` : 
                    item.utente_nome}
  </h3>
- <p className="text-sm text-secondary">
+ <p className={`text-sm ${
+   selectedAlert.type === 'oggi' ? 'text-orange-700' :
+   selectedAlert.type === 'domani' ? 'text-purple-700' :
+   'text-secondary'
+ }`}>
  {selectedAlert.type === 'scorte' 
  ? `${item.reason || 'Scorta bassa'} - Disponibili: ${item.unita_disponibili || 0}/${item.quantita_totale || 0}${item.loanedPercentage ? ` (${Math.round(item.loanedPercentage)}% in prestito)` : ''}`
  : selectedAlert.type === 'ritardi'
@@ -973,9 +993,19 @@ return (
  Primo ritorno: {item.firstReturnDate.toLocaleDateString('it-IT')}
  </p>
  )}
- {selectedAlert.type === 'domani' && (
- <p className="text-xs text-purple-600 mt-1">
- Scade: {item.data_rientro ? formatDate(item.data_rientro) : 'Data non specificata'}
+ {(selectedAlert.type === 'oggi' || selectedAlert.type === 'domani') && (
+ <p className={`text-xs mt-1 ${selectedAlert.type === 'oggi' ? 'text-orange-600' : 'text-purple-600'}`}>
+ Scade: {item.data_rientro || item.al ? formatDate(item.data_rientro || item.al) : 'Data non specificata'}
+ </p>
+ )}
+ {selectedAlert.type === 'oggi' && item.dal && (
+ <p className="text-xs text-gray-500 mt-1">
+ Dal: {formatDate(item.dal)}
+ </p>
+ )}
+ {selectedAlert.type === 'domani' && item.dal && (
+ <p className="text-xs text-gray-500 mt-1">
+ Dal: {formatDate(item.dal)}
  </p>
  )}
  </div>
@@ -1003,14 +1033,14 @@ return (
  Gestisci Ritardo
  </button>
  )}
- {selectedAlert.type === 'domani' && (
+ {(selectedAlert.type === 'oggi' || selectedAlert.type === 'domani') && (
  <button
  onClick={(e) => {
    e.stopPropagation();
    setSelectedLoan(item);
    setSelectedAlert(null);
  }}
- className="btn-primary btn-small"
+ className={`btn-small ${selectedAlert.type === 'oggi' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
  >
  Visualizza
  </button>
