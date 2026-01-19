@@ -28,6 +28,8 @@ const Dashboard = ({ onNavigate }) => {
  const [selectedAlert, setSelectedAlert] = useState(null);
  const [editingItemFromAlert, setEditingItemFromAlert] = useState(null);
  const [selectedLoan, setSelectedLoan] = useState(null);
+ const [avvisiCollapsed, setAvvisiCollapsed] = useState(false);
+ const [scadenzeCollapsed, setScadenzeCollapsed] = useState(false);
   const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   const [selectedPasswordRequest, setSelectedPasswordRequest] = useState(null);
   const { token, isAdmin, roleLabel } = useAuth();
@@ -473,7 +475,10 @@ return (
    
    return (hasPendingRequests || hasScorteBasse) && (
  <div className="bg-white rounded-xl shadow-lg border border-red-200 overflow-hidden mb-8">
- <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4">
+ <div 
+ className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 cursor-pointer hover:from-red-600 hover:to-red-700 transition-colors"
+ onClick={() => setAvvisiCollapsed(!avvisiCollapsed)}
+ >
  <div className="flex items-center justify-between">
  <div className="flex items-center">
  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
@@ -486,13 +491,24 @@ return (
  <p className="text-red-100 text-sm">Attenzione richiesta per questi elementi</p>
  </div>
  </div>
+ <div className="flex items-center gap-3">
  <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
  <span className="text-white font-bold text-lg">{totaleAvvisi}</span>
  <span className="text-red-100 ml-1">avvisi</span>
  </div>
+ <svg 
+ className={`w-6 h-6 text-white transition-transform duration-300 ${avvisiCollapsed ? 'rotate-180' : ''}`}
+ fill="none" 
+ stroke="currentColor" 
+ viewBox="0 0 24 24"
+ >
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+ </svg>
+ </div>
  </div>
  </div>
  
+ <div className={`overflow-hidden transition-all duration-300 ease-in-out ${avvisiCollapsed ? 'max-h-0 opacity-0' : 'max-h-[2000px] opacity-100'}`}>
  <div className="p-6">
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -599,11 +615,13 @@ return (
  {(() => {
    const hasScadenzeOggi = alerts.scadenze_oggi && alerts.scadenze_oggi.length > 0;
    const hasScadenzeDomani = alerts.scadenze_domani && alerts.scadenze_domani.length > 0;
-   const totalScadenze = [hasScadenzeOggi, hasScadenzeDomani].filter(Boolean).length;
    
-   return (hasScadenzeOggi || hasScadenzeDomani) && (
+   return (hasScadenzeOggi || hasScadenzeDomani || true) && (
  <div className="bg-white rounded-xl shadow-lg border border-orange-200 overflow-hidden mb-8">
- <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
+ <div 
+ className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 cursor-pointer hover:from-orange-600 hover:to-orange-700 transition-colors"
+ onClick={() => setScadenzeCollapsed(!scadenzeCollapsed)}
+ >
  <div className="flex items-center justify-between">
  <div className="flex items-center">
  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
@@ -616,117 +634,122 @@ return (
  <p className="text-orange-100 text-sm">Prestiti in scadenza oggi e domani</p>
  </div>
  </div>
+ <div className="flex items-center gap-3">
  <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
  <span className="text-white font-bold text-lg">{(alerts.scadenze_oggi?.length || 0) + (alerts.scadenze_domani?.length || 0)}</span>
  <span className="text-orange-100 ml-1">prestiti</span>
  </div>
+ <svg 
+ className={`w-6 h-6 text-white transition-transform duration-300 ${scadenzeCollapsed ? 'rotate-180' : ''}`}
+ fill="none" 
+ stroke="currentColor" 
+ viewBox="0 0 24 24"
+ >
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+ </svg>
+ </div>
  </div>
  </div>
  
+ <div className={`overflow-hidden transition-all duration-300 ease-in-out ${scadenzeCollapsed ? 'max-h-0 opacity-0' : 'max-h-[2000px] opacity-100'}`}>
  <div className="p-6">
  
- <div className={`grid gap-6 ${
-   totalScadenze === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'
- }`}>
- {/* In scadenza oggi - Giallo */}
- {(hasScadenzeOggi || true) && (
-    <div 
-    className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 cursor-pointer hover:bg-yellow-100 transition-colors"
-    onClick={() => setSelectedAlert({ type: 'oggi', data: alerts.scadenze_oggi || [] })}
-    >
-    <div className="flex items-center mb-3">
-    <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
-    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-    </div>
-    <h3 className="text-lg font-bold text-yellow-800">
-    In scadenza oggi ({(alerts.scadenze_oggi?.length || 0)})
-    </h3>
-    </div>
-    <div className="space-y-2">
-    {hasScadenzeOggi && alerts.scadenze_oggi.length > 0 ? alerts.scadenze_oggi.slice(0, 3).map(prestito => (
-    <div 
-    key={prestito.id} 
-    className="bg-white rounded-lg p-3 border border-yellow-200 hover:bg-yellow-50 cursor-pointer transition-colors"
-    onClick={(e) => {
-      e.stopPropagation();
-      setSelectedLoan(prestito);
-      setSelectedAlert(null);
-    }}
-    >
-    <div className="font-semibold text-gray-900 text-sm">
-    {prestito.utente_nome_reale && prestito.utente_cognome ? 
-                  `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
-                  prestito.utente_nome}
-    </div>
-    <div className="text-yellow-600 font-medium text-xs mt-1">
-    {prestito.oggetto_nome}
-    </div>
-    </div>
-    )) : (
-      <div className="text-center text-gray-500 text-sm py-4">
-        Nessun prestito in scadenza oggi
-      </div>
-    )}
-    {hasScadenzeOggi && alerts.scadenze_oggi.length > 3 && (
-    <div className="text-center text-yellow-600 text-sm font-medium">
-    +{alerts.scadenze_oggi.length - 3} altri prestiti...
-    </div>
-    )}
-    </div>
-    </div>
-    )}
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+ {/* Oggi - Arancione */}
+ <div 
+ className="bg-orange-50 border border-orange-200 rounded-lg p-4 cursor-pointer hover:bg-orange-100 transition-colors"
+ onClick={() => setSelectedAlert({ type: 'oggi', data: alerts.scadenze_oggi || [] })}
+ >
+ <div className="flex items-center mb-3">
+ <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+ <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+ </svg>
+ </div>
+ <h3 className="text-lg font-bold text-orange-800">
+ Oggi ({(alerts.scadenze_oggi?.length || 0)})
+ </h3>
+ </div>
+ <div className="space-y-2">
+ {hasScadenzeOggi && alerts.scadenze_oggi.length > 0 ? alerts.scadenze_oggi.slice(0, 3).map(prestito => (
+ <div 
+ key={prestito.id} 
+ className="bg-white rounded-lg p-3 border border-orange-200 hover:bg-orange-50 cursor-pointer transition-colors"
+ onClick={(e) => {
+   e.stopPropagation();
+   setSelectedLoan(prestito);
+   setSelectedAlert(null);
+ }}
+ >
+ <div className="font-semibold text-gray-900 text-sm">
+ {prestito.utente_nome_reale && prestito.utente_cognome ? 
+                 `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
+                 prestito.utente_nome}
+ </div>
+ <div className="text-orange-600 font-medium text-xs mt-1">
+ {prestito.oggetto_nome}
+ </div>
+ </div>
+ )) : (
+   <div className="text-center text-gray-500 text-sm py-4">
+     Nessun prestito in scadenza oggi
+   </div>
+ )}
+ {hasScadenzeOggi && alerts.scadenze_oggi.length > 3 && (
+ <div className="text-center text-orange-600 text-sm font-medium">
+ +{alerts.scadenze_oggi.length - 3} altri prestiti...
+ </div>
+ )}
+ </div>
+ </div>
 
- {/* In scadenza domani - Viola */}
- {(hasScadenzeDomani || true) && (
-    <div 
-    className="bg-purple-50 border border-purple-200 rounded-lg p-4 cursor-pointer hover:bg-purple-100 transition-colors"
-    onClick={() => setSelectedAlert({ type: 'domani', data: alerts.scadenze_domani || [] })}
-    >
-    <div className="flex items-center mb-3">
-    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
-    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-    </div>
-    <h3 className="text-lg font-bold text-purple-800">
-    In scadenza domani ({(alerts.scadenze_domani?.length || 0)})
-    </h3>
-    </div>
-    <div className="space-y-2">
-    {hasScadenzeDomani && alerts.scadenze_domani.length > 0 ? alerts.scadenze_domani.slice(0, 3).map(prestito => (
-    <div 
-    key={prestito.id} 
-    className="bg-white rounded-lg p-3 border border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors"
-    onClick={(e) => {
-      e.stopPropagation();
-      setSelectedLoan(prestito);
-      setSelectedAlert(null);
-    }}
-    >
-    <div className="font-semibold text-gray-900 text-sm">
-    {prestito.utente_nome_reale && prestito.utente_cognome ? 
-                  `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
-                  prestito.utente_nome}
-    </div>
-    <div className="text-purple-600 font-medium text-xs mt-1">
-    {prestito.oggetto_nome}
-    </div>
-    </div>
-    )) : (
-      <div className="text-center text-gray-500 text-sm py-4">
-        Nessun prestito in scadenza domani
-      </div>
-    )}
-    {hasScadenzeDomani && alerts.scadenze_domani.length > 3 && (
-    <div className="text-center text-purple-600 text-sm font-medium">
-    +{alerts.scadenze_domani.length - 3} altri prestiti...
-    </div>
-    )}
-    </div>
-    </div>
-    )}
+ {/* Domani - Arancione */}
+ <div 
+ className="bg-orange-50 border border-orange-200 rounded-lg p-4 cursor-pointer hover:bg-orange-100 transition-colors"
+ onClick={() => setSelectedAlert({ type: 'domani', data: alerts.scadenze_domani || [] })}
+ >
+ <div className="flex items-center mb-3">
+ <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+ <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+ </svg>
+ </div>
+ <h3 className="text-lg font-bold text-orange-800">
+ Domani ({(alerts.scadenze_domani?.length || 0)})
+ </h3>
+ </div>
+ <div className="space-y-2">
+ {hasScadenzeDomani && alerts.scadenze_domani.length > 0 ? alerts.scadenze_domani.slice(0, 3).map(prestito => (
+ <div 
+ key={prestito.id} 
+ className="bg-white rounded-lg p-3 border border-orange-200 hover:bg-orange-50 cursor-pointer transition-colors"
+ onClick={(e) => {
+   e.stopPropagation();
+   setSelectedLoan(prestito);
+   setSelectedAlert(null);
+ }}
+ >
+ <div className="font-semibold text-gray-900 text-sm">
+ {prestito.utente_nome_reale && prestito.utente_cognome ? 
+                 `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
+                 prestito.utente_nome}
+ </div>
+ <div className="text-orange-600 font-medium text-xs mt-1">
+ {prestito.oggetto_nome}
+ </div>
+ </div>
+ )) : (
+   <div className="text-center text-gray-500 text-sm py-4">
+     Nessun prestito in scadenza domani
+   </div>
+ )}
+ {hasScadenzeDomani && alerts.scadenze_domani.length > 3 && (
+ <div className="text-center text-orange-600 text-sm font-medium">
+ +{alerts.scadenze_domani.length - 3} altri prestiti...
+ </div>
+ )}
+ </div>
+ </div>
  </div>
  </div>
  </div>
