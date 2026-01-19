@@ -390,6 +390,15 @@ setRecentReports(reportsData.slice(0, 5));
  return <DashboardSkeleton />;
  }
 
+// Calcola valori per sezioni Avvisi e Scadenze prima del return
+const hasPendingRequests = stats.pendingRequests > 0;
+const hasScorteBasse = alerts.scorte_basse && alerts.scorte_basse.length > 0;
+const totaleAvvisi = (hasPendingRequests ? stats.pendingRequests : 0) + (hasScorteBasse ? alerts.scorte_basse.length : 0);
+const hasScadenzeOggi = alerts.scadenze_oggi && alerts.scadenze_oggi.length > 0;
+const hasScadenzeDomani = alerts.scadenze_domani && alerts.scadenze_domani.length > 0;
+const hasAvvisi = hasPendingRequests || hasScorteBasse;
+const hasScadenze = hasScadenzeOggi || hasScadenzeDomani || true;
+
 return (
 <div className="min-h-screen bg-gray-50 space-y-6">
   {/* Header */}
@@ -467,13 +476,7 @@ return (
   </div>
 
   {/* Avvisi Section - Richieste da Approvare e Scorte Basse */}
- {(() => {
-   const hasPendingRequests = stats.pendingRequests > 0;
-   const hasScorteBasse = alerts.scorte_basse && alerts.scorte_basse.length > 0;
-   // Totale avvisi: solo Richieste da approvare + Scorte basse (scadenze sono in sezione separata)
-   const totaleAvvisi = (hasPendingRequests ? stats.pendingRequests : 0) + (hasScorteBasse ? alerts.scorte_basse.length : 0);
-   
-   return (hasPendingRequests || hasScorteBasse) && (
+ {hasAvvisi && (
  <div className="bg-white rounded-xl shadow-lg border border-red-200 overflow-hidden mb-8">
  <div 
  className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 cursor-pointer hover:from-red-600 hover:to-red-700 transition-colors"
@@ -608,15 +611,9 @@ return (
  </div>
  </div>
  </div>
-   );
- })()}
 
   {/* In Scadenza Section - Oggi e Domani */}
- {(() => {
-   const hasScadenzeOggi = alerts.scadenze_oggi && alerts.scadenze_oggi.length > 0;
-   const hasScadenzeDomani = alerts.scadenze_domani && alerts.scadenze_domani.length > 0;
-   
-   return (hasScadenzeOggi || hasScadenzeDomani || true) && (
+ {hasScadenze && (
  <div className="bg-white rounded-xl shadow-lg border border-orange-200 overflow-hidden mb-8">
  <div 
  className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 cursor-pointer hover:from-orange-600 hover:to-orange-700 transition-colors"
@@ -753,8 +750,7 @@ return (
  </div>
  </div>
  </div>
-   );
- })()}
+ )}
 
     {/* Password Reset Requests Section - Moved to bottom */}
     {isAdmin && passwordResetRequests.length > 0 && (
