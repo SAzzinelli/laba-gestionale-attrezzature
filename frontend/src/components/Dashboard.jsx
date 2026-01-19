@@ -1070,9 +1070,9 @@ return (
  <div className="modal-header">
  <h2 className="text-xl font-bold text-primary">
    Dettagli {selectedLoan.articolo_nome || selectedLoan.oggetto_nome || 'Prestito'}
-   {selectedLoan.unita && selectedLoan.unita.length > 0 && (
-     <span> - {Array.isArray(selectedLoan.unita) ? selectedLoan.unita.join(', ') : selectedLoan.unita}</span>
-   )}
+   {selectedLoan.unita && selectedLoan.unita.length > 0 ? (
+     <span> - {Array.isArray(selectedLoan.unita) ? selectedLoan.unita.join(', ') : String(selectedLoan.unita)}</span>
+   ) : null}
  </h2>
  <button
  onClick={() => setSelectedLoan(null)}
