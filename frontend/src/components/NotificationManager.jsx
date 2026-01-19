@@ -157,12 +157,6 @@ const NotificationManager = () => {
  }
  },
  {
- type: 'warning',
- title: 'Scorte Basse',
- body: 'Alcuni elementi in inventario hanno scorte basse',
- requireInteraction: false
- },
- {
  type: 'error',
  title: 'Prestito Scaduto',
  body: 'Un prestito è scaduto e deve essere restituito',

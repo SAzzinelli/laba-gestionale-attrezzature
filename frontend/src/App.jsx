@@ -134,22 +134,9 @@ function AppInner() {
          });
        }
 
-       // Low stock alerts
-       if (alertsData.scorte_basse) {
-         alertsData.scorte_basse.forEach(item => {
-           realNotifications.push({
-             id: notificationId++,
-             title: 'Scorte Basse',
-             message: `${item.nome}: solo ${item.unita_disponibili} disponibili`,
-             time: 'Ora',
-             isRead: false,
-             type: 'warning',
-             data: { type: 'inventory', id: item.id, itemData: item }
-           });
-         });
-       }
+      // Low stock alerts - REMOVED: non servono notifiche per scorte basse
 
-       setNotifications(realNotifications);
+      setNotifications(realNotifications);
      }
    } catch (error) {
      console.error('Errore nel caricamento notifiche:', error);
