@@ -16,6 +16,16 @@ const pool = new Pool({
   }
 });
 
+// Imposta il timezone a Europe/Rome (Firenze, Italia) per tutte le connessioni
+pool.on('connect', async (client) => {
+  try {
+    await client.query(`SET timezone = 'Europe/Rome'`);
+    console.log('✅ Timezone impostato a Europe/Rome (Firenze, Italia)');
+  } catch (error) {
+    console.warn('⚠️ Errore nell\'impostazione del timezone:', error.message);
+  }
+});
+
 // Test connessione
 pool.on('connect', () => {
   console.log('✅ Connesso a PostgreSQL/Supabase');
@@ -30,9 +40,13 @@ export async function initDatabase() {
   console.log('🔄 Inizializzazione database PostgreSQL...');
   
   try {
-    // Test connessione
+    // Test connessione e imposta timezone
     const client = await pool.connect();
+    // Imposta timezone Europe/Rome (Firenze, Italia) per il database
+    await client.query(`SET timezone = 'Europe/Rome'`);
+    const timezoneCheck = await client.query(`SHOW timezone`);
     console.log('✅ Connessione PostgreSQL verificata');
+    console.log(`✅ Timezone database impostato a: ${timezoneCheck.rows[0]?.timezone || 'Europe/Rome'}`);
     
     // Crea schema unificato completo
     await client.query(`
@@ -365,14 +379,20 @@ export async function initDatabase() {
   }
 }
 
-// Wrapper per query con gestione errori
+// Wrapper per query con gestione errori e timezone automatico Europe/Rome
 export async function query(text, params = []) {
   const client = await pool.connect();
+  
   try {
+    // Imposta timezone Europe/Rome (Firenze, Italia) per questa sessione
+    // Questo garantisce che CURRENT_DATE, CURRENT_TIMESTAMP, NOW() usino l'ora italiana
+    await client.query(`SET timezone = 'Europe/Rome'`);
+    
     const result = await client.query(text, params);
     return result.rows;
   } catch (error) {
-    console.error('❌ Errore query PostgreSQL:', error);
+    console.error('❌ Errore query PostgreSQL:', error.message);
+    console.error('Query:', text);
     throw error;
   } finally {
     client.release();
@@ -383,6 +403,8 @@ export async function query(text, params = []) {
 export async function transaction(callback) {
   const client = await pool.connect();
   try {
+    // Imposta timezone Europe/Rome (Firenze, Italia) per la transazione
+    await client.query(`SET timezone = 'Europe/Rome'`);
     await client.query('BEGIN');
     const result = await callback(client);
     await client.query('COMMIT');
