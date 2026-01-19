@@ -37,13 +37,19 @@ r.get('/', requireAuth, async (req, res) => {
       if (!isAdminUser(req.user)) return res.status(403).json({ error: 'Solo admin o supervisori' });
       result = await query(`
         SELECT p.*, i.nome AS articolo_nome, i.note AS articolo_descrizione,
-               u.name AS utente_nome, u.surname AS utente_cognome, u.email AS utente_email,
-               COALESCE(r.utente_id, u.id) AS utente_id, u.penalty_strikes, u.is_blocked, u.blocked_reason,
+               COALESCE(ru.name, u.name) AS utente_nome, 
+               COALESCE(ru.surname, u.surname) AS utente_cognome, 
+               COALESCE(ru.email, u.email) AS utente_email,
+               COALESCE(r.utente_id, u.id) AS utente_id, 
+               COALESCE(ru.penalty_strikes, u.penalty_strikes) AS penalty_strikes, 
+               COALESCE(ru.is_blocked, u.is_blocked) AS is_blocked, 
+               COALESCE(ru.blocked_reason, u.blocked_reason) AS blocked_reason,
                r.dal, r.al, r.note AS richiesta_note
         FROM prestiti p
         LEFT JOIN inventario i ON i.id = p.inventario_id
-        LEFT JOIN users u ON (p.chi = (u.name || ' ' || u.surname) OR p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
         LEFT JOIN richieste r ON r.id = p.richiesta_id
+        LEFT JOIN users ru ON ru.id = r.utente_id
+        LEFT JOIN users u ON (p.chi = (u.name || ' ' || u.surname) OR p.chi LIKE '%' || u.email || '%' OR p.chi = u.email)
         ORDER BY p.id DESC
       `);
     } else {

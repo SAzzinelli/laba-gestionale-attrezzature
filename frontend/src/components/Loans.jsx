@@ -781,8 +781,10 @@ const getStatusBadge = (status) => {
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
-                    <p className="text-sm text-gray-500">{item.utente_email}</p>
+                    <p className="font-medium text-gray-900">
+                      {`${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.chi || 'Utente sconosciuto'}
+                    </p>
+                    <p className="text-sm text-gray-500">{item.utente_email || (item.chi && !item.utente_email ? item.chi : '')}</p>
                   </div>
                 </div>
 
@@ -970,8 +972,10 @@ const getStatusBadge = (status) => {
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{item.utente_nome || ''} {item.utente_cognome || ''}</p>
-                    <p className="text-sm text-gray-500">{item.utente_email}</p>
+                    <p className="font-medium text-gray-900">
+                      {`${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.chi || 'Utente sconosciuto'}
+                    </p>
+                    <p className="text-sm text-gray-500">{item.utente_email || (item.chi && !item.utente_email ? item.chi : '')}</p>
                   </div>
                 </div>
 
@@ -1155,14 +1159,17 @@ const getStatusBadge = (status) => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                  {(item.utente_nome || '').charAt(0)}{(item.utente_cognome || '').charAt(0)}
+                  {(() => {
+                    const nomeCompleto = `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.chi || '?';
+                    return nomeCompleto.charAt(0).toUpperCase() + (nomeCompleto.split(' ')[1]?.charAt(0) || '').toUpperCase();
+                  })()}
                 </div>
                 <div className="ml-3">
                   <div className="text-lg font-semibold text-primary">
-                    {item.utente_nome || ''} {item.utente_cognome || ''}
+                    {`${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.chi || 'Utente sconosciuto'}
                   </div>
                   <div className="text-sm text-tertiary">
-                    {item.utente_email}
+                    {item.utente_email || (item.chi && !item.utente_email ? item.chi : '')}
                   </div>
                 </div>
               </div>
@@ -1279,14 +1286,17 @@ const getStatusBadge = (status) => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                  {(item.utente_nome || '').charAt(0)}{(item.utente_cognome || '').charAt(0)}
+                  {(() => {
+                    const nomeCompleto = `${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.chi || '?';
+                    return nomeCompleto.charAt(0).toUpperCase() + (nomeCompleto.split(' ')[1]?.charAt(0) || '').toUpperCase();
+                  })()}
                 </div>
                 <div className="ml-3">
                   <div className="text-lg font-semibold text-primary">
-                    {item.utente_nome || ''} {item.utente_cognome || ''}
+                    {`${item.utente_nome || ''} ${item.utente_cognome || ''}`.trim() || item.chi || 'Utente sconosciuto'}
                   </div>
                   <div className="text-sm text-tertiary">
-                    {item.utente_email}
+                    {item.utente_email || (item.chi && !item.utente_email ? item.chi : '')}
                   </div>
                 </div>
               </div>
@@ -1449,9 +1459,11 @@ const getStatusBadge = (status) => {
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
  </svg>
  </div>
- <div>
- <p className="text-primary font-medium">{selectedLoan.utente_nome || ''} {selectedLoan.utente_cognome || ''}</p>
- </div>
+                  <div>
+                    <p className="text-primary font-medium">
+                      {`${selectedLoan.utente_nome || ''} ${selectedLoan.utente_cognome || ''}`.trim() || selectedLoan.chi || 'Utente sconosciuto'}
+                    </p>
+                  </div>
  </div>
  </div>
  <div>
