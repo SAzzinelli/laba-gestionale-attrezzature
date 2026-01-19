@@ -72,6 +72,53 @@ r.get('/test-email', requireAuth, requireRole('admin'), async (req, res) => {
   }
 });
 
+// GET /api/debug/timezone - Verifica timezone e ora corrente del database
+r.get('/timezone', requireAuth, async (req, res) => {
+  try {
+    // Verifica timezone del database
+    const timezoneInfo = await query(`
+      SELECT 
+        current_setting('timezone') as database_timezone,
+        CURRENT_TIMESTAMP as database_now,
+        CURRENT_DATE as database_today,
+        NOW() as database_now_with_tz,
+        (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') as utc_now,
+        (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Rome') as rome_now,
+        extract(timezone from NOW()) / 3600 as timezone_offset_hours
+    `);
+    
+    // Ora corrente del server Node.js
+    const serverNow = new Date();
+    const serverTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+    res.json({
+      database: {
+        timezone: timezoneInfo[0]?.database_timezone || 'unknown',
+        current_timestamp: timezoneInfo[0]?.database_now || null,
+        current_date: timezoneInfo[0]?.database_today || null,
+        now_with_tz: timezoneInfo[0]?.database_now_with_tz || null,
+        utc_now: timezoneInfo[0]?.utc_now || null,
+        rome_now: timezoneInfo[0]?.rome_now || null,
+        timezone_offset_hours: timezoneInfo[0]?.timezone_offset_hours || 0
+      },
+      server: {
+        timezone: serverTimezone,
+        current_time: serverNow.toISOString(),
+        current_time_local: serverNow.toLocaleString('it-IT', { timeZone: 'Europe/Rome' })
+      },
+      formatted: {
+        database_now_formatted: timezoneInfo[0]?.database_now 
+          ? new Date(timezoneInfo[0].database_now).toLocaleString('it-IT', { timeZone: 'Europe/Rome' })
+          : null,
+        server_now_formatted: serverNow.toLocaleString('it-IT', { timeZone: 'Europe/Rome' })
+      }
+    });
+  } catch (error) {
+    console.error('Errore GET timezone:', error);
+    res.status(500).json({ error: 'Errore interno del server', details: error.message });
+  }
+});
+
 // POST /api/debug/send-test-email - Invia email di test (admin only)
 r.post('/send-test-email', requireAuth, requireRole('admin'), async (req, res) => {
   try {
