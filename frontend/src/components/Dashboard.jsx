@@ -467,12 +467,14 @@ return (
   {/* Alerts Section - Redesigned */}
  {(() => {
    const hasPendingRequests = stats.pendingRequests > 0;
-   const hasScadenzeDomani = alerts.scadenze_domani.length > 0;
-   const hasScorteBasse = alerts.scorte_basse.length > 0;
-   const totalSections = [hasPendingRequests, hasScadenzeDomani, hasScorteBasse].filter(Boolean).length;
+   const hasScadenzeDomani = alerts.scadenze_domani && alerts.scadenze_domani.length > 0;
+   const hasScorteBasse = alerts.scorte_basse && alerts.scorte_basse.length > 0;
+   // Mostra sempre le 3 colonne: Richieste da Approvare, In scadenza domani, Scorte Basse
+   // Anche se vuote
+   const totalSections = 3; // Sempre 3 colonne
    const totaleAvvisiConRichieste = alerts.totale_avvisi + (hasPendingRequests ? stats.pendingRequests : 0);
    
-   return (hasPendingRequests || hasScadenzeDomani || hasScorteBasse) && (
+   return (hasPendingRequests || hasScadenzeDomani || hasScorteBasse || true) && (
  <div className="bg-white rounded-xl shadow-lg border border-red-200 overflow-hidden">
  <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4">
  <div className="flex items-center justify-between">
@@ -551,8 +553,8 @@ return (
  </div>
  )}
 
- {/* In scadenza domani - Viola */}
- {hasScadenzeDomani && (
+ {/* In scadenza domani - Viola - Sempre visibile */}
+ {(
     <div 
     className="bg-purple-50 border border-purple-200 rounded-lg p-4 cursor-pointer hover:bg-purple-100 transition-colors"
     onClick={() => setSelectedAlert({ type: 'domani', data: alerts.scadenze_domani })}
@@ -568,7 +570,7 @@ return (
     </h3>
     </div>
     <div className="space-y-2">
-    {alerts.scadenze_domani.slice(0, 3).map(prestito => (
+    {hasScadenzeDomani && alerts.scadenze_domani.length > 0 ? alerts.scadenze_domani.slice(0, 3).map(prestito => (
     <div 
     key={prestito.id} 
     className="bg-white rounded-lg p-3 border border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors"
@@ -587,8 +589,12 @@ return (
     {prestito.oggetto_nome}
     </div>
     </div>
-    ))}
-    {alerts.scadenze_domani.length > 3 && (
+    )) : (
+      <div className="text-center text-gray-500 text-sm py-4">
+        Nessun prestito in scadenza domani
+      </div>
+    )}
+    {hasScadenzeDomani && alerts.scadenze_domani.length > 3 && (
     <div className="text-center text-purple-600 text-sm font-medium">
     +{alerts.scadenze_domani.length - 3} altri prestiti...
     </div>
