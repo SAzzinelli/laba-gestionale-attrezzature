@@ -10,6 +10,7 @@ const MyLoans = () => {
   const [error, setError] = useState(null);
   const [showNewRequestModal, setShowNewRequestModal] = useState(false);
   const [activeTab, setActiveTab] = useState('active');
+  const [cancellingRequestId, setCancellingRequestId] = useState(null);
   const { token, user } = useAuth();
 
   // Fetch user's loans and requests
@@ -70,6 +71,36 @@ const MyLoans = () => {
       return new Date(dateString).toLocaleDateString('it-IT');
     } catch (error) {
       return 'Data non valida';
+    }
+  };
+
+  const handleCancelRequest = async (requestId) => {
+    if (!confirm('Sei sicuro di voler annullare questa richiesta?')) {
+      return;
+    }
+
+    try {
+      setCancellingRequestId(requestId);
+      setError(null);
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/richieste/${requestId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || errorData.error || 'Errore nell\'annullamento della richiesta');
+      }
+
+      // Ricarica i dati
+      await fetchData();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCancellingRequestId(null);
     }
   };
 
@@ -389,6 +420,27 @@ const MyLoans = () => {
                           <p className="mt-2 text-sm text-gray-600">{request.note}</p>
                         )}
                       </div>
+                      <div className="ml-4">
+                        <button
+                          onClick={() => handleCancelRequest(request.id)}
+                          disabled={cancellingRequestId === request.id}
+                          className="inline-flex items-center px-3 py-1.5 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {cancellingRequestId === request.id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-700 mr-2"></div>
+                              Annullamento...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              Annulla
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -450,6 +502,18 @@ const MyLoans = () => {
           </>
         )}
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-red-800">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* New Request Modal */}
       {showNewRequestModal && (

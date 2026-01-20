@@ -323,15 +323,25 @@ r.delete('/:id', requireAuth, async (req, res) => {
     const { id } = req.params;
     
     // Check if user owns the request or is admin e ottieni i dettagli
-    const checkResult = await query('SELECT utente_id, unit_id FROM richieste WHERE id = $1', [id]);
+    const checkResult = await query('SELECT utente_id, unit_id, stato FROM richieste WHERE id = $1', [id]);
     if (checkResult.length === 0) {
       return res.status(404).json({ error: 'Richiesta non trovata' });
     }
     
     const request = checkResult[0];
     
+    // Verifica che l'utente sia il proprietario (gli admin possono sempre eliminare)
     if (request.utente_id !== req.user.id && !isAdminUser(req.user)) {
       return res.status(403).json({ error: 'Non autorizzato' });
+    }
+    
+    // Gli utenti normali possono annullare solo richieste in attesa
+    // Gli admin possono eliminare qualsiasi richiesta
+    if (!isAdminUser(req.user) && request.stato !== 'in_attesa') {
+      return res.status(400).json({ 
+        error: 'Non puoi annullare questa richiesta',
+        message: 'Puoi annullare solo le richieste ancora in attesa di approvazione'
+      });
     }
     
     // Se c'è un'unità riservata, liberala prima di cancellare la richiesta
