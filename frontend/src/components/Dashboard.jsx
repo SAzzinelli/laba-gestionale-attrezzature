@@ -118,6 +118,33 @@ const Dashboard = ({ onNavigate }) => {
     }
   };
 
+  // Handle cancel password reset request
+  const handleCancelPasswordReset = async (email) => {
+    if (!confirm(`Sei sicuro di voler annullare la richiesta di reset password per ${email}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/password-reset-requests/${encodeURIComponent(email)}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        alert('Richiesta di reset password annullata con successo!');
+        fetchDashboardData(); // Refresh data
+      } else {
+        const error = await response.json();
+        alert(`Errore: ${error.error || 'Errore durante l\'annullamento della richiesta'}`);
+      }
+    } catch (error) {
+      console.error('Errore annullamento richiesta reset password:', error);
+      alert('Errore durante l\'annullamento della richiesta');
+    }
+  };
+
  // Fetch dashboard data
  const fetchDashboardData = useCallback(async () => {
  try {
@@ -616,9 +643,9 @@ return (
 
   {/* In Scadenza Section - Oggi e Domani */}
  {hasScadenze && (
- <div className="bg-white rounded-xl shadow-lg border border-orange-200 overflow-hidden mb-8">
+ <div className="bg-white rounded-xl shadow-lg border border-purple-200 overflow-hidden mb-8">
  <div 
- className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 cursor-pointer hover:from-orange-600 hover:to-orange-700 transition-colors"
+ className="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4 cursor-pointer hover:from-purple-600 hover:to-purple-700 transition-colors"
  onClick={() => setScadenzeCollapsed(!scadenzeCollapsed)}
  >
  <div className="flex items-center justify-between">
@@ -630,13 +657,13 @@ return (
  </div>
  <div>
  <h2 className="text-2xl font-bold text-white">In Scadenza</h2>
- <p className="text-orange-100 text-sm">Prestiti in scadenza oggi e domani</p>
+ <p className="text-purple-100 text-sm">Prestiti in scadenza oggi e domani</p>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
  <span className="text-white font-bold text-lg">{(alerts.scadenze_oggi?.length || 0) + (alerts.scadenze_domani?.length || 0)}</span>
- <span className="text-orange-100 ml-1">prestiti</span>
+ <span className="text-purple-100 ml-1">prestiti</span>
  </div>
  <svg 
  className={`w-6 h-6 text-white transition-transform duration-300 ${scadenzeCollapsed ? 'rotate-180' : ''}`}
@@ -654,18 +681,18 @@ return (
  <div className="p-6">
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- {/* Oggi - Arancione */}
+ {/* Oggi - Viola */}
  <div 
- className={`bg-orange-50 border border-orange-200 rounded-lg p-4 transition-colors ${hasScadenzeOggi ? 'cursor-pointer hover:bg-orange-100' : 'opacity-60 cursor-not-allowed'}`}
+ className={`bg-purple-50 border border-purple-200 rounded-lg p-4 transition-colors ${hasScadenzeOggi ? 'cursor-pointer hover:bg-purple-100' : 'opacity-60 cursor-not-allowed'}`}
  onClick={hasScadenzeOggi ? () => setSelectedAlert({ type: 'oggi', data: alerts.scadenze_oggi || [] }) : undefined}
  >
  <div className="flex items-center mb-3">
- <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+ <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
  </svg>
  </div>
- <h3 className="text-lg font-bold text-orange-800">
+ <h3 className="text-lg font-bold text-purple-800">
  Oggi ({(alerts.scadenze_oggi?.length || 0)})
  </h3>
  </div>
@@ -673,7 +700,7 @@ return (
  {hasScadenzeOggi && alerts.scadenze_oggi.length > 0 ? alerts.scadenze_oggi.slice(0, 3).map(prestito => (
  <div 
  key={prestito.id} 
- className="bg-white rounded-lg p-3 border border-orange-200 hover:bg-orange-50 cursor-pointer transition-colors"
+ className="bg-white rounded-lg p-3 border border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors"
  onClick={(e) => {
    e.stopPropagation();
    setSelectedLoan(prestito);
@@ -685,7 +712,7 @@ return (
                  `${prestito.utente_nome_reale} ${prestito.utente_cognome}` : 
                  prestito.utente_nome}
  </div>
- <div className="text-orange-600 font-medium text-xs mt-1">
+ <div className="text-purple-600 font-medium text-xs mt-1">
  {prestito.oggetto_nome}
  </div>
  </div>
@@ -695,7 +722,7 @@ return (
    </div>
  )}
  {hasScadenzeOggi && alerts.scadenze_oggi.length > 3 && (
- <div className="text-center text-orange-600 text-sm font-medium">
+ <div className="text-center text-purple-600 text-sm font-medium">
  +{alerts.scadenze_oggi.length - 3} altri prestiti...
  </div>
  )}
@@ -792,15 +819,26 @@ return (
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  setSelectedPasswordRequest(request);
-                  setShowPasswordResetModal(true);
-                }}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
-              >
-                Gestisci
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleCancelPasswordReset(request.user_email || request.email)}
+                  className="px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
+                  title="Annulla richiesta"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedPasswordRequest(request);
+                    setShowPasswordResetModal(true);
+                  }}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
+                >
+                  Gestisci
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -925,7 +963,7 @@ return (
  <div className="modal-content max-w-[95vw] lg:max-w-7xl xl:max-w-[90vw] mx-4 lg:mx-8" onClick={(e) => e.stopPropagation()}>
  <div className="modal-header">
     <h2 className={`text-xl font-bold ${
-      selectedAlert.type === 'oggi' ? 'text-orange-600' :
+      selectedAlert.type === 'oggi' ? 'text-purple-600' :
       selectedAlert.type === 'domani' ? 'text-purple-600' :
       'text-primary'
     }`}>
@@ -953,8 +991,8 @@ return (
  {selectedAlert.data.map((item, index) => (
  <div 
  key={index} 
- className={`card ${
-   selectedAlert.type === 'oggi' ? 'border-orange-200 hover:bg-orange-50 cursor-pointer transition-colors' :
+  className={`card ${
+   selectedAlert.type === 'oggi' ? 'border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors' :
    selectedAlert.type === 'domani' ? 'border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors' :
    ''
  }`}
@@ -965,8 +1003,8 @@ return (
  >
  <div className="flex items-center justify-between">
  <div>
- <h3 className={`font-medium ${
-   selectedAlert.type === 'oggi' ? 'text-orange-800' :
+  <h3 className={`font-medium ${
+   selectedAlert.type === 'oggi' ? 'text-purple-800' :
    selectedAlert.type === 'domani' ? 'text-purple-800' :
    'text-primary'
  }`}>
@@ -976,7 +1014,7 @@ return (
                    item.utente_nome}
  </h3>
  <p className={`text-sm ${
-   selectedAlert.type === 'oggi' ? 'text-orange-700' :
+   selectedAlert.type === 'oggi' ? 'text-purple-700' :
    selectedAlert.type === 'domani' ? 'text-purple-700' :
    'text-secondary'
  }`}>
@@ -993,7 +1031,7 @@ return (
  </p>
  )}
  {(selectedAlert.type === 'oggi' || selectedAlert.type === 'domani') && (
- <p className={`text-xs mt-1 ${selectedAlert.type === 'oggi' ? 'text-orange-600' : 'text-purple-600'}`}>
+ <p className={`text-xs mt-1 ${selectedAlert.type === 'oggi' ? 'text-purple-600' : 'text-purple-600'}`}>
  Scade: {item.data_rientro || item.al ? formatDate(item.data_rientro || item.al) : 'Data non specificata'}
  </p>
  )}
@@ -1039,7 +1077,7 @@ return (
    setSelectedLoan(item);
    setSelectedAlert(null);
  }}
- className={`btn-small ${selectedAlert.type === 'oggi' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+ className={`btn-small ${selectedAlert.type === 'oggi' ? 'bg-purple-500 hover:bg-purple-600 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
  >
  Visualizza
  </button>
@@ -1275,7 +1313,8 @@ return (
                 onClick={() => {
                   const newPassword = document.getElementById('newPassword').value;
                   if (newPassword) {
-                    handlePasswordReset(selectedPasswordRequest.email, newPassword);
+                    const email = selectedPasswordRequest.user_email || selectedPasswordRequest.email;
+                    handlePasswordReset(email, newPassword);
                   } else {
                     alert('Inserisci una nuova password');
                   }

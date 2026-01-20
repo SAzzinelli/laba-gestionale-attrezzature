@@ -237,13 +237,13 @@ const adminUsers = useMemo(() => normalizedUsers.filter(user => normalizeRole(us
  try {
  setError(null);
  
-   const response = await fetch(`${API_BASE_URL}/api/auth/users/${resetUser.id}/reset-password`, {
- method: 'PUT',
+   const response = await fetch(`${API_BASE_URL}/api/auth/admin-reset-password`, {
+ method: 'POST',
  headers: {
  'Content-Type': 'application/json',
  'Authorization': `Bearer ${token}`
  },
- body: JSON.stringify({ newPassword: resetData.newPassword })
+ body: JSON.stringify({ email: resetUser.email, newPassword: resetData.newPassword })
  });
 
  if (!response.ok) {

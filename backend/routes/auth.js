@@ -263,6 +263,36 @@ r.post('/admin-reset-password', requireAuth, requireRole('admin'), async (req, r
   }
 });
 
+// DELETE /api/auth/password-reset-requests/:email (admin only) - Annulla richiesta
+r.delete('/password-reset-requests/:email', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    // Verifica che la richiesta esista
+    const request = await query(
+      'SELECT * FROM password_reset_requests WHERE email = $1 AND status = $2',
+      [email, 'pending']
+    );
+    
+    if (request.length === 0) {
+      return res.status(404).json({ error: 'Richiesta non trovata o già gestita' });
+    }
+    
+    // Marca la richiesta come annullata
+    await query(
+      'UPDATE password_reset_requests SET status = $1 WHERE email = $2 AND status = $3',
+      ['cancelled', email, 'pending']
+    );
+    
+    console.log(`✅ Richiesta reset password annullata per ${email}`);
+    
+    res.json({ message: 'Richiesta di reset password annullata' });
+  } catch (error) {
+    console.error('Errore annullamento richiesta reset password:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
 // GET /api/auth/users - Reindirizza a /api/users (admin only)
 r.get('/users', requireAuth, requireRole('admin'), async (req, res) => {
   try {
