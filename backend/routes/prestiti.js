@@ -134,14 +134,15 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       return res.status(400).json({ error: 'campi mancanti' });
     }
     
-    // Validazione date
+    // Validazione date: il noleggio può iniziare al più presto dal giorno successivo
     const dataUscita = new Date(data_uscita);
     const dataRientro = new Date(data_rientro);
-    const oggi = new Date();
-    oggi.setHours(0, 0, 0, 0);
+    const domani = new Date();
+    domani.setDate(domani.getDate() + 1);
+    domani.setHours(0, 0, 0, 0);
     
-    if (dataUscita < oggi) {
-      return res.status(400).json({ error: 'La data di uscita non può essere nel passato' });
+    if (dataUscita < domani) {
+      return res.status(400).json({ error: 'Il noleggio può iniziare al più presto dal giorno successivo' });
     }
     
     if (dataRientro < dataUscita) {

@@ -5,6 +5,12 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  const [step, setStep] = useState(1); // 1: Seleziona oggetto, 2: Seleziona utente, 3: Seleziona unità, 4: Tipo utilizzo, 5: Date
  const [inventory, setInventory] = useState([]);
  
+ // Primo giorno utile = domani (non si può noleggiare per oggi)
+ const getMinStartDate = () => {
+   const d = new Date();
+   d.setDate(d.getDate() + 1);
+   return d.toISOString().split('T')[0];
+ };
  // Funzione per slittare la domenica a lunedì
  const skipSunday = (dateStr) => {
    if (!dateStr) return dateStr;
@@ -23,9 +29,10 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  const [selectedUser, setSelectedUser] = useState(null);
  const [selectedUnits, setSelectedUnits] = useState([]);
  const [availableUnits, setAvailableUnits] = useState([]);
- const [dateRange, setDateRange] = useState({ 
- dal: new Date().toISOString().split('T')[0], 
- al: '' 
+ const [dateRange, setDateRange] = useState(() => {
+   const d = new Date();
+   d.setDate(d.getDate() + 1);
+   return { dal: d.toISOString().split('T')[0], al: '' };
  });
  const [manualUser, setManualUser] = useState({
  name: '',
@@ -214,7 +221,7 @@ body: JSON.stringify({
  setSelectedUnits([]);
  setAvailableUnits([]);
  setDateRange({ 
- dal: new Date().toISOString().split('T')[0], 
+ dal: getMinStartDate(), 
  al: '' 
  });
  setManualUser({
@@ -632,9 +639,9 @@ body: JSON.stringify({
  value={dateRange.dal}
  onChange={(e) => {
  const newDal = e.target.value;
- const today = new Date().toISOString().split('T')[0];
- if (newDal < today) {
- setError('La data di inizio non può essere nel passato');
+ const minStart = getMinStartDate();
+ if (newDal < minStart) {
+ setError('Il noleggio può iniziare al più presto dal giorno successivo');
  return;
  }
  setError(null);
@@ -647,7 +654,7 @@ body: JSON.stringify({
        ? newDal : prev.al
  }));
  }}
- min={new Date().toISOString().split('T')[0]}
+ min={getMinStartDate()}
  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
  />
  </div>
@@ -732,7 +739,7 @@ body: JSON.stringify({
  required
  disabled={selectedItem?.tipo_prestito === 'solo_interno' || 
           (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
- min={dateRange.dal || new Date().toISOString().split('T')[0]}
+ min={dateRange.dal || getMinStartDate()}
 max={(() => {
   // Calcola max 3 giorni dalla data di inizio (non da oggi)
   // +2 perché includiamo inizio e fine (es: 22->24 = 3 giorni: 22, 23, 24)

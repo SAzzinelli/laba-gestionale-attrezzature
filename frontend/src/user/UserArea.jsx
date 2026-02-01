@@ -8,6 +8,7 @@ import SystemStatus from '../components/SystemStatus.jsx';
 import Footer from '../components/Footer';
 import MobileMenu from '../components/MobileMenu';
 import NotificationsPanel from '../components/NotificationsPanel';
+import InstructionsModal from '../components/InstructionsModal';
 
 // UserBadge Component (simplified to avoid overlap)
 function UserBadge() {
@@ -48,6 +49,7 @@ const UserArea = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const { user, logout } = useAuth();
 
 
@@ -87,8 +89,26 @@ const UserArea = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
         </svg>
       )
+    },
+    {
+      id: 'show-instructions',
+      label: 'Come si usa?',
+      icon: (
+        <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
     }
   ];
+
+  const handleNavClick = (id) => {
+    if (id === 'show-instructions') {
+      setShowInstructions(true);
+      setMobileMenuOpen(false);
+    } else {
+      setActiveView(id);
+    }
+  };
 
   // Navigation to system status removed - only admin can access
 
@@ -159,8 +179,8 @@ const UserArea = () => {
             {sidebarItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveView(item.id)}
-                className={`nav-button ${activeView === item.id ? 'active' : ''}`}
+                onClick={() => handleNavClick(item.id)}
+                className={`nav-button ${item.id !== 'show-instructions' && activeView === item.id ? 'active' : ''}`}
               >
                 {item.icon}
                 <span>{item.label}</span>
@@ -187,9 +207,16 @@ const UserArea = () => {
           onClose={() => setMobileMenuOpen(false)}
           sidebarItems={sidebarItems}
           activeView={activeView}
-          onNavigate={setActiveView}
+          onNavigate={handleNavClick}
           user={user}
           logout={logout}
+        />
+
+        {/* Instructions Modal */}
+        <InstructionsModal
+          isOpen={showInstructions}
+          onClose={() => setShowInstructions(false)}
+          title="Come si usa?"
         />
 
         {/* Notifications Panel */}

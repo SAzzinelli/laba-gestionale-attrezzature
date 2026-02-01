@@ -9,8 +9,14 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
   const [selectedObject, setSelectedObject] = useState(null);
   const [availableUnits, setAvailableUnits] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState(null);
+  // Primo giorno utile = domani (non si può noleggiare per oggi)
+  const getMinStartDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  };
   const [dateRange, setDateRange] = useState({
-    dal: new Date().toISOString().split('T')[0],
+    dal: (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })(),
     al: ''
   });
   const [note, setNote] = useState('');
@@ -39,7 +45,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       // Reset common state
       setSelectedUnit(null);
       setDateRange({
-        dal: new Date().toISOString().split('T')[0],
+        dal: getMinStartDate(),
         al: ''
       });
       setNote('');
@@ -144,11 +150,12 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       dataFine = new Date(dateRange.al); // Data normale per esterno
     }
     
-    const oggi = new Date();
-    oggi.setHours(0, 0, 0, 0);
+    const domani = new Date();
+    domani.setDate(domani.getDate() + 1);
+    domani.setHours(0, 0, 0, 0);
 
-    if (dataInizio < oggi) {
-      setError('La data di inizio non può essere nel passato');
+    if (dataInizio < domani) {
+      setError('Il noleggio può iniziare al più presto dal giorno successivo');
       setLoading(false);
       return;
     }
@@ -697,7 +704,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     value={dateRange.dal}
                     onChange={handleInputChange}
                     required
-                    min={new Date().toISOString().split('T')[0]}
+                    min={getMinStartDate()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -719,7 +726,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     required
                     disabled={selectedObject.tipo_prestito === 'solo_interno' || 
                              (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
-                    min={dateRange.dal || new Date().toISOString().split('T')[0]}
+                    min={dateRange.dal || getMinStartDate()}
                     max={(() => {
                       // Calcola max 3 giorni dalla data di inizio (non da oggi)
                       // +2 perché includiamo inizio e fine (es: 22->24 = 3 giorni: 22, 23, 24)
@@ -730,9 +737,9 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                         const maxDateStr = maxDate.toISOString().split('T')[0];
                         return skipSunday(maxDateStr);
                       }
-                      // Se non c'è data di inizio, usa oggi + 2 come fallback
+                      // Se non c'è data di inizio, usa domani + 2 come fallback
                       const maxDate = new Date();
-                      maxDate.setDate(maxDate.getDate() + 2);
+                      maxDate.setDate(maxDate.getDate() + 3); // domani + 2 giorni
                       const maxDateStr = maxDate.toISOString().split('T')[0];
                       return skipSunday(maxDateStr);
                     })()}
