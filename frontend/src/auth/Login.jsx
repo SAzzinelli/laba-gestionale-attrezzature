@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Disclosure } from '@headlessui/react';
 import { useAuth } from './AuthContext';
 import ForgotPassword from './ForgotPassword';
+import InstructionsModal from '../components/InstructionsModal';
 
 const Login = ({ branding = "LABA Gestione" }) => {
  const [isLogin, setIsLogin] = useState(true);
@@ -17,6 +17,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState(null);
  const [showForgotPassword, setShowForgotPassword] = useState(false);
+ const [showInstructions, setShowInstructions] = useState(false);
  const { login, register } = useAuth();
 
  const handleSubmit = async (e) => {
@@ -61,11 +62,11 @@ const Login = ({ branding = "LABA Gestione" }) => {
    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/30 via-transparent to-transparent" />
    <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23033357\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
 
- <div className="relative max-w-md w-full space-y-5">
+ <div className="relative max-w-md w-full space-y-6">
  {/* Header */}
- <div className="text-center">
-   <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/90 shadow-lg shadow-blue-900/5 border border-white/60 mb-4">
-     <img src="/logoSito.svg" alt="LABA Logo" className="h-12 w-auto" />
+ <div className="text-center pt-6 pb-2">
+   <div className="inline-flex items-center justify-center w-28 h-28 rounded-2xl bg-white/95 shadow-xl shadow-blue-900/5 border border-white/80 p-5 mb-8">
+     <img src="/logoSito.svg" alt="LABA Logo" className="h-14 w-auto" />
    </div>
  <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
    {isLogin ? 'Accedi' : 'Registrati'}
@@ -272,49 +273,27 @@ const Login = ({ branding = "LABA Gestione" }) => {
  </form>
  </div>
 
- {/* Istruzioni - accordion */}
- <Disclosure as="div" className="rounded-2xl overflow-hidden shadow-lg shadow-blue-900/5 border border-gray-100/80">
-   {({ open }) => (
-     <>
-       <Disclosure.Button className="flex w-full items-center justify-between bg-white/95 backdrop-blur-sm px-5 py-4 text-left hover:bg-gray-50/80 transition-colors">
-         <span className="flex items-center gap-3">
-           <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-             <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-             </svg>
-           </div>
-           <div>
-             <h3 className="font-semibold text-gray-900">Istruzioni</h3>
-             <p className="text-xs text-gray-500">Cos'è, come noleggiare, strike e penalità</p>
-           </div>
-         </span>
-         <svg className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-         </svg>
-       </Disclosure.Button>
-       <Disclosure.Panel className="bg-gray-50/50 border-t border-gray-100 px-5 py-4">
-         <ul className="text-sm text-gray-700 space-y-3">
-           <li className="flex gap-2">
-             <span className="text-blue-500 font-bold">•</span>
-             <span><strong>Cos'è:</strong> Sistema per prenotare attrezzature LABA (fotocamere, luci, ecc.)</span>
-           </li>
-           <li className="flex gap-2">
-             <span className="text-blue-500 font-bold">•</span>
-             <span><strong>Account:</strong> Non è quello dell'app LABA Firenze. Crea un nuovo account con &quot;Registrati&quot;</span>
-           </li>
-           <li className="flex gap-2">
-             <span className="text-blue-500 font-bold">•</span>
-             <span><strong>Come noleggiare:</strong> Articoli Disponibili → scegli unità → date (dal giorno dopo) → invia richiesta</span>
-           </li>
-           <li className="flex gap-2">
-             <span className="text-blue-500 font-bold">•</span>
-             <span><strong>Strike:</strong> Ritardi = 1 strike/giorno. 3 strike = blocco account</span>
-           </li>
-         </ul>
-       </Disclosure.Panel>
-     </>
-   )}
- </Disclosure>
+ {/* Istruzioni - pulsante che apre modale */}
+ <button
+   type="button"
+   onClick={() => setShowInstructions(true)}
+   className="flex w-full items-center gap-3 rounded-2xl bg-white/95 backdrop-blur-sm px-5 py-4 text-left border border-gray-100/80 shadow-lg shadow-blue-900/5 hover:bg-gray-50/80 transition-colors"
+ >
+   <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+     <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+     </svg>
+   </div>
+   <div>
+     <h3 className="font-semibold text-gray-900">Istruzioni</h3>
+     <p className="text-xs text-gray-500">Cos'è, come noleggiare, strike e penalità</p>
+   </div>
+   <svg className="w-5 h-5 text-gray-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+   </svg>
+ </button>
+
+ <InstructionsModal isOpen={showInstructions} onClose={() => setShowInstructions(false)} />
 
  {/* Footer */}
  <div className="text-center pt-2">
