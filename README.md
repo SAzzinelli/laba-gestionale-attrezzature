@@ -220,6 +220,9 @@ EMAIL_FROM_NAME=LABA Firenze - Gestionale Attrezzature
 
 # OPZIONE 4: AWS SES (molto economico)
 # https://aws.amazon.com/ses/
+
+# Reset password self-service (link nell'email)
+FRONTEND_URL=https://attrezzatura.laba.biz  # URL del frontend in produzione
 ```
 
 ### **Variabili d'Ambiente Frontend**

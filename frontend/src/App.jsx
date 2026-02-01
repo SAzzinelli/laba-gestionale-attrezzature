@@ -6,6 +6,7 @@ import NotificationManager from "./components/NotificationManager.jsx";
 // import { ThemeProvider, useTheme } from "./contexts/ThemeContext.jsx";
 import { useRealtimeNotifications } from "./hooks/useRealtimeNotifications.js";
 import Login from "./auth/Login";
+import ResetPassword from "./auth/ResetPassword";
 
 import Dashboard from "./components/Dashboard.jsx";
 import UserDashboard from "./components/UserDashboard.jsx";
@@ -645,9 +646,27 @@ function UserBadge() {
 }
 
 function Gate() {
- const { isAuthenticated } = useAuth();
- if (!isAuthenticated) return <Login branding="LABA – Service" />;
- return <AppInner />;
+  const { isAuthenticated } = useAuth();
+  const params = new URLSearchParams(window.location.search);
+  const resetToken = params.get('resetToken');
+
+  const handleResetSuccess = () => {
+    window.history.replaceState({}, '', window.location.pathname);
+    window.location.reload();
+  };
+
+  const handleResetBack = () => {
+    window.history.replaceState({}, '', window.location.pathname);
+    window.location.reload();
+  };
+
+  if (!isAuthenticated) {
+    if (resetToken) {
+      return <ResetPassword token={resetToken} onSuccess={handleResetSuccess} onBack={handleResetBack} />;
+    }
+    return <Login branding="LABA – Service" />;
+  }
+  return <AppInner />;
 }
 
 export default function App() {

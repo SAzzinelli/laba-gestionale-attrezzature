@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { query } from '../utils/postgres.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { normalizeUser, normalizeRole } from '../utils/roles.js';
+import { sendPasswordResetEmail } from '../utils/email.js';
 
 const r = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
@@ -130,7 +131,7 @@ r.get('/me', requireAuth, (req, res) => {
   res.json(req.user);
 });
 
-// POST /api/auth/forgot-password
+// POST /api/auth/forgot-password - Self-service: invia email con link per reset
 r.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body || {};
@@ -138,26 +139,31 @@ r.post('/forgot-password', async (req, res) => {
       return res.status(400).json({ error: 'Email richiesta' });
     }
 
-    // Check if user exists
     const result = await query('SELECT id FROM users WHERE email = $1', [email]);
     if (result.length === 0) {
-      return res.status(404).json({ error: 'Utente non trovato' });
+      // Non rivelare se l'email esiste (sicurezza)
+      return res.json({ message: 'Se l\'email è registrata, riceverai un link per il reset della password' });
     }
 
-    // Generate reset token
     const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: '1h' });
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
-    // Store reset request
     await query(`
       INSERT INTO password_reset_requests (email, token, expires_at)
       VALUES ($1, $2, $3)
     `, [email, token, expiresAt]);
 
-    // In a real app, you would send an email here
-    console.log(`Password reset token for ${email}: ${token}`);
+    const frontendUrl = (process.env.FRONTEND_URL || process.env.APP_URL || 'https://attrezzatura.laba.biz').replace(/\/$/, '');
+    const resetLink = `${frontendUrl}/?resetToken=${encodeURIComponent(token)}`;
 
-    res.json({ message: 'Token di reset inviato via email' });
+    const emailResult = await sendPasswordResetEmail({ to: email, resetLink });
+
+    if (!emailResult.success) {
+      console.error('Errore invio email reset:', emailResult.error);
+      return res.status(500).json({ error: 'Impossibile inviare l\'email. Riprova più tardi o contatta l\'assistenza.' });
+    }
+
+    res.json({ message: 'Se l\'email è registrata, riceverai un link per il reset della password' });
   } catch (error) {
     console.error('Errore forgot password:', error);
     res.status(500).json({ error: 'Errore interno del server' });

@@ -17,11 +17,9 @@ const ForgotPassword = ({ onBack }) => {
  setLoading(true);
  setError(null);
 
- const response = await fetch('/api/auth/forgot-password', {
+ const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/auth/forgot-password`, {
  method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- },
+ headers: { 'Content-Type': 'application/json' },
  body: JSON.stringify({ email })
  });
 
@@ -29,7 +27,7 @@ const ForgotPassword = ({ onBack }) => {
  setSuccess(true);
  } else {
  const errorData = await response.json();
- setError(errorData.error || 'Errore nell\'invio della richiesta');
+ setError(errorData.error || 'Errore nell\'invio. Riprova più tardi.');
  }
  } catch (err) {
  setError('Errore di connessione. Riprova più tardi.');
@@ -40,7 +38,7 @@ const ForgotPassword = ({ onBack }) => {
 
  if (success) {
  return (
- <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+ <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
  <div className="max-w-md w-full">
  <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -49,11 +47,11 @@ const ForgotPassword = ({ onBack }) => {
  </svg>
  </div>
  <h2 className="text-2xl font-bold text-gray-900 mb-4">
- Richiesta Inviata!
+ Email inviata!
  </h2>
  <p className="text-gray-600 mb-6">
- La tua richiesta di reset password è stata inviata all'amministratore. 
- Riceverai una notifica quando la password sarà stata resettata.
+ Se l'email è registrata, riceverai un link per reimpostare la password. 
+ Controlla la casella di posta (anche spam) e clicca sul link ricevuto.
  </p>
  <button
  onClick={onBack}
@@ -68,9 +66,9 @@ const ForgotPassword = ({ onBack }) => {
  }
 
  return (
- <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+ <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
  <div className="max-w-md w-full">
- <div className="bg-white rounded-2xl shadow-xl p-8">
+ <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
  <div className="text-center mb-8">
  <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
 <svg className="w-8 h-8 text-orange-600 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,10 +76,10 @@ const ForgotPassword = ({ onBack }) => {
 </svg>
  </div>
  <h2 className="text-2xl font-bold text-gray-900 mb-2">
- Reset Password
+ Password dimenticata?
  </h2>
  <p className="text-gray-600 ">
- Inserisci la tua email per richiedere il reset della password
+ Inserisci la tua email: ti invieremo un link per reimpostare la password in autonomia
  </p>
  </div>
 
@@ -125,7 +123,7 @@ const ForgotPassword = ({ onBack }) => {
  Invio in corso...
  </div>
  ) : (
- 'Richiedi Reset Password'
+ 'Invia link per reset password'
  )}
  </button>
  </form>

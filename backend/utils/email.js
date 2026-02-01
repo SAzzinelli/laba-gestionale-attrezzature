@@ -1334,6 +1334,61 @@ Per domande o assistenza, contatta la segreteria.
 }
 
 /**
+ * Invia email con link per reset password self-service
+ * @param {Object} options
+ * @param {string} options.to - Email destinatario
+ * @param {string} options.resetLink - URL completo con token (es. https://attrezzatura.laba.biz/?resetToken=xxx)
+ * @returns {Promise<Object>}
+ */
+export async function sendPasswordResetEmail({ to, resetLink }) {
+  const subject = 'Reset password - Service Attrezzatura LABA';
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"></head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 500px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 20px;">Reset Password</h1>
+      </div>
+      <div style="background: #fff; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+        <p>Ciao,</p>
+        <p>Hai richiesto il reset della password per il Service Attrezzatura LABA.</p>
+        <p>Clicca il pulsante qui sotto per impostare una nuova password:</p>
+        <p style="text-align: center; margin: 28px 0;">
+          <a href="${resetLink}" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">Imposta nuova password</a>
+        </p>
+        <p style="font-size: 13px; color: #666;">Il link scade tra 1 ora. Se non hai richiesto tu il reset, ignora questa email.</p>
+        <p style="font-size: 13px; color: #666;">LABA Firenze - Gestionale Attrezzature</p>
+      </div>
+    </body>
+    </html>
+  `;
+  const text = `Reset password - Service Attrezzatura LABA\n\nClicca per impostare una nuova password:\n${resetLink}\n\nIl link scade tra 1 ora.`;
+
+  try {
+    if (MAILGUN_API_KEY) {
+      const result = await sendViaMailgunAPI({ to, subject, html, text });
+      return { success: true, messageId: result.id || result.message };
+    }
+    const emailTransporter = getTransporter();
+    if (!emailTransporter) {
+      return { success: false, error: 'Nessun metodo di invio email configurato' };
+    }
+    const info = await emailTransporter.sendMail({
+      from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
+      to,
+      subject,
+      html,
+      text
+    });
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Errore invio email reset password:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Test connessione email (Mailgun API o SMTP)
  */
 export async function testEmailConnection() {
