@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import ForgotPassword from './ForgotPassword';
+import InstructionsModal from '../components/InstructionsModal';
 
 const Login = ({ branding = "LABA Gestione" }) => {
  const [isLogin, setIsLogin] = useState(true);
@@ -16,6 +17,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState(null);
  const [showForgotPassword, setShowForgotPassword] = useState(false);
+ const [showInstructions, setShowInstructions] = useState(false);
  const { login, register } = useAuth();
 
  const handleSubmit = async (e) => {
@@ -54,6 +56,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  }
 
  return (
+ <>
  <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
  <div className="max-w-md w-full space-y-8">
  {/* Header */}
@@ -258,6 +261,20 @@ const Login = ({ branding = "LABA Gestione" }) => {
  </div>
  )}
 
+ {/* Istruzioni */}
+ <div className="text-center pt-2">
+ <button
+ type="button"
+ onClick={() => setShowInstructions(true)}
+ className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors"
+ >
+ <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+ </svg>
+ Istruzioni
+ </button>
+ </div>
+
  {/* Toggle Login/Register */}
  <div className="text-center">
  <button
@@ -294,6 +311,9 @@ const Login = ({ branding = "LABA Gestione" }) => {
  </div>
  </div>
  </div>
+
+ <InstructionsModal isOpen={showInstructions} onClose={() => setShowInstructions(false)} />
+ </>
  );
 };
 
