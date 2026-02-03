@@ -12,6 +12,9 @@ const Penalties = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [userPenalties, setUserPenalties] = useState([]);
   const [showPenaltyModal, setShowPenaltyModal] = useState(false);
+  const [editingPenalty, setEditingPenalty] = useState(null);
+  const [editStrikes, setEditStrikes] = useState(1);
+  const [editMotivo, setEditMotivo] = useState('');
   const { token } = useAuth();
 
   const fetchData = async () => {
@@ -62,6 +65,54 @@ const Penalties = () => {
       }
     } catch (err) {
       console.error('Errore nel caricamento penalità utente:', err);
+    }
+  };
+
+  const handleDeletePenalty = async (penaltyId) => {
+    if (!confirm('Sei sicuro di voler eliminare questa penalità? Gli strike verranno sottratti dal totale.')) return;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/penalties/${penaltyId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Errore nell\'eliminazione');
+      await fetchData();
+      if (selectedUser) await fetchUserPenalties(selectedUser.id);
+      setEditingPenalty(null);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleEditPenalty = (penalty) => {
+    setEditingPenalty(penalty);
+    setEditStrikes(penalty.strike_assegnati || 1);
+    setEditMotivo(penalty.motivo || '');
+  };
+
+  const handleSavePenaltyEdit = async () => {
+    if (!editingPenalty) return;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/penalties/${editingPenalty.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          strike_assegnati: editStrikes,
+          motivo: editMotivo || undefined
+        })
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Errore nell\'aggiornamento');
+      }
+      await fetchData();
+      if (selectedUser) await fetchUserPenalties(selectedUser.id);
+      setEditingPenalty(null);
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -415,13 +466,33 @@ const Penalties = () => {
                             </p>
                             <p className="text-sm text-gray-600">{penalty.motivo || 'Nessun motivo specificato'}</p>
                           </div>
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            penalty.strike_assegnati >= 2 ? 'bg-red-100 text-red-800' :
-                            penalty.strike_assegnati === 1 ? 'bg-orange-100 text-orange-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {penalty.strike_assegnati} Strike
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              penalty.strike_assegnati >= 2 ? 'bg-red-100 text-red-800' :
+                              penalty.strike_assegnati === 1 ? 'bg-orange-100 text-orange-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {penalty.strike_assegnati} Strike
+                            </span>
+                            <button
+                              onClick={() => handleEditPenalty(penalty)}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Modifica"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDeletePenalty(penalty.id)}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Elimina"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                         <div className="text-xs text-gray-500 flex items-center justify-between">
                           <span>
@@ -471,6 +542,60 @@ const Penalties = () => {
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
               >
                 Chiudi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Penalty Modal */}
+      {editingPenalty && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Modifica penalità</h3>
+              <button onClick={() => setEditingPenalty(null)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Strike assegnati</label>
+                <select
+                  value={editStrikes}
+                  onChange={(e) => setEditStrikes(parseInt(e.target.value))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value={1}>1</option>
+                  <option value={2}>2</option>
+                  <option value={3}>3</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Motivo</label>
+                <textarea
+                  value={editMotivo}
+                  onChange={(e) => setEditMotivo(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Motivo della penalità"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={() => setEditingPenalty(null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={handleSavePenaltyEdit}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Salva
               </button>
             </div>
           </div>

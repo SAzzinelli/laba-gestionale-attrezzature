@@ -435,6 +435,112 @@ router.post('/check-and-assign', requireAuth, requireRole('admin'), async (req, 
   }
 });
 
+// PUT /api/penalties/:penaltyId - Modifica una penalità (solo admin)
+router.put('/:penaltyId', requireAuth, requireRole('admin'), async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { penaltyId } = req.params;
+    const { strike_assegnati, motivo } = req.body;
+    
+    if (!penaltyId) {
+      return res.status(400).json({ error: 'ID penalità mancante' });
+    }
+    
+    const penaltyResult = await client.query(
+      'SELECT user_id, strike_assegnati FROM user_penalties WHERE id = $1',
+      [penaltyId]
+    );
+    
+    if (penaltyResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Penalità non trovata' });
+    }
+    
+    const penalty = penaltyResult.rows[0];
+    const userId = penalty.user_id;
+    const oldStrikes = penalty.strike_assegnati || 0;
+    
+    let newStrikes = oldStrikes;
+    if (strike_assegnati !== undefined) {
+      const parsed = parseInt(strike_assegnati);
+      if (isNaN(parsed) || parsed < 1 || parsed > 3) {
+        return res.status(400).json({ error: 'Il numero di strike deve essere tra 1 e 3' });
+      }
+      newStrikes = parsed;
+    }
+    
+    await client.query('BEGIN');
+    
+    const updates = [];
+    const values = [];
+    let i = 1;
+    
+    if (motivo !== undefined) {
+      updates.push(`motivo = $${i++}`);
+      values.push(motivo);
+    }
+    if (newStrikes !== oldStrikes) {
+      updates.push(`strike_assegnati = $${i++}`);
+      values.push(newStrikes);
+    }
+    
+    if (updates.length > 0) {
+      values.push(penaltyId);
+      await client.query(
+        `UPDATE user_penalties SET ${updates.join(', ')} WHERE id = $${i}`,
+        values
+      );
+    }
+    
+    if (newStrikes !== oldStrikes) {
+      const diff = newStrikes - oldStrikes;
+      const userResult = await client.query(
+        `UPDATE users 
+         SET penalty_strikes = GREATEST(0, penalty_strikes + $1),
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $2
+         RETURNING penalty_strikes, is_blocked`,
+        [diff, userId]
+      );
+      
+      const newTotalStrikes = userResult.rows[0].penalty_strikes;
+      const wasBlocked = userResult.rows[0].is_blocked;
+      
+      if (wasBlocked && newTotalStrikes < 3) {
+        await client.query(
+          `UPDATE users 
+           SET is_blocked = FALSE, blocked_reason = NULL, blocked_at = NULL, blocked_by = NULL
+           WHERE id = $1`,
+          [userId]
+        );
+      } else if (!wasBlocked && newTotalStrikes >= 3) {
+        const blockedById = req.user.id === -1 ? null : req.user.id;
+        await client.query(
+          `UPDATE users 
+           SET is_blocked = TRUE, blocked_reason = 'Utente bloccato per aver accumulato 3 o più penalità',
+               blocked_at = CURRENT_TIMESTAMP, blocked_by = $1
+           WHERE id = $2`,
+          [blockedById, userId]
+        );
+      }
+    }
+    
+    await client.query('COMMIT');
+    
+    res.json({
+      message: 'Penalità aggiornata con successo',
+      strike_assegnati: newStrikes
+    });
+    
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('Errore nell\'aggiornamento penalità:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  } finally {
+    client.release();
+  }
+});
+
 // DELETE /api/penalties/:penaltyId - Rimuovi una penalità (solo admin)
 router.delete('/:penaltyId', requireAuth, requireRole('admin'), async (req, res) => {
   const client = await pool.connect();
