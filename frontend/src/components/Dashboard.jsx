@@ -20,7 +20,6 @@ const Dashboard = ({ onNavigate }) => {
  scadenze_domani: [],
  totale_avvisi: 0
  });
- const [passwordResetRequests, setPasswordResetRequests] = useState([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState(null);
  const [showAddModal, setShowAddModal] = useState(false);
@@ -30,9 +29,7 @@ const Dashboard = ({ onNavigate }) => {
  const [selectedLoan, setSelectedLoan] = useState(null);
  const [avvisiCollapsed, setAvvisiCollapsed] = useState(false);
  const [scadenzeCollapsed, setScadenzeCollapsed] = useState(false);
-  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
-  const [selectedPasswordRequest, setSelectedPasswordRequest] = useState(null);
-  const { token, isAdmin, roleLabel } = useAuth();
+   const { token, isAdmin, roleLabel } = useAuth();
 
  
   // Helper function to calculate time ago
@@ -91,60 +88,6 @@ const Dashboard = ({ onNavigate }) => {
     );
   };
 
-  // Handle password reset
-  const handlePasswordReset = async (email, newPassword) => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/admin-reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ email, newPassword })
-      });
-
-      if (response.ok) {
-        alert('Password aggiornata con successo!');
-        setShowPasswordResetModal(false);
-        setSelectedPasswordRequest(null);
-        fetchDashboardData(); // Refresh data
-      } else {
-        const error = await response.json();
-        alert(`Errore: ${error.error}`);
-      }
-    } catch (error) {
-      console.error('Errore reset password:', error);
-      alert('Errore durante l\'aggiornamento della password');
-    }
-  };
-
-  // Handle cancel password reset request
-  const handleCancelPasswordReset = async (email) => {
-    if (!confirm(`Sei sicuro di voler annullare la richiesta di reset password per ${email}?`)) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/password-reset-requests/${encodeURIComponent(email)}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        alert('Richiesta di reset password annullata con successo!');
-        fetchDashboardData(); // Refresh data
-      } else {
-        const error = await response.json();
-        alert(`Errore: ${error.error || 'Errore durante l\'annullamento della richiesta'}`);
-      }
-    } catch (error) {
-      console.error('Errore annullamento richiesta reset password:', error);
-      alert('Errore durante l\'annullamento della richiesta');
-    }
-  };
-
  // Fetch dashboard data
  const fetchDashboardData = useCallback(async () => {
  try {
@@ -172,10 +115,6 @@ const Dashboard = ({ onNavigate }) => {
       requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/avvisi`, {
         headers: { 'Authorization': `Bearer ${token}` }
       }));
-      // Add password reset requests for admin
-      requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/password-reset-requests`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      }));
     } else {
       requests.push(fetch(`${import.meta.env.VITE_API_BASE_URL}/api/avvisi/utente`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -183,7 +122,7 @@ const Dashboard = ({ onNavigate }) => {
     }
 
  const responses = await Promise.all(requests);
- const [inventoryRes, requestsRes, repairsRes, reportsRes, prestitiRes, alertsRes, passwordResetRes] = responses;
+ const [inventoryRes, requestsRes, repairsRes, reportsRes, prestitiRes, alertsRes] = responses;
 
  if (!inventoryRes.ok) throw new Error('Errore nel caricamento inventario');
  if (!requestsRes.ok) throw new Error('Errore nel caricamento richieste');
@@ -389,12 +328,6 @@ console.log('[Dashboard] Request states:', requestsData.map(r => ({ id: r.id, st
  });
 
  setAlerts(alertsData);
-
- // Handle password reset requests for admin
- if (isAdmin && passwordResetRes) {
- const passwordResetData = await passwordResetRes.json();
- setPasswordResetRequests(passwordResetData);
- }
 
 console.log('Dashboard - requestsData:', requestsData);
 setRecentRequests((requestsData || []).slice(0, 5));
@@ -781,71 +714,6 @@ return (
  </div>
  </div>
  )}
-
-    {/* Password Reset Requests Section - Moved to bottom */}
-    {isAdmin && passwordResetRequests.length > 0 && (
-      <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-            <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center mr-3">
-              <svg className="icon text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            Richieste Reset Password
-          </h2>
-          <span className="status-badge bg-orange-100 text-orange-800">
-            {passwordResetRequests.length} richieste
-          </span>
-        </div>
-        
-        <div className="space-y-3">
-          {passwordResetRequests.map((request) => (
-            <div key={request.id} className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3">
-                  {request.user_name ? request.user_name.charAt(0) : '?'}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">
-                    {request.user_name && request.user_surname 
-                      ? `${request.user_name} ${request.user_surname}` 
-                      : 'Utente sconosciuto'
-                    }
-                  </p>
-                  <p className="text-sm text-gray-600">{request.user_email || request.email || 'Email non disponibile'}</p>
-                  <p className="text-xs text-gray-500">
-                    Richiesto: {formatDate(request.requested_at)}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleCancelPasswordReset(request.user_email || request.email)}
-                  className="px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
-                  title="Annulla richiesta"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedPasswordRequest(request);
-                    setShowPasswordResetModal(true);
-                  }}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
-                >
-                  Gestisci
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
-
-
 
     {/* Recent Activity */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -1255,79 +1123,6 @@ return (
  />
 
 
-    {/* Password Reset Modal */}
-    {showPasswordResetModal && selectedPasswordRequest && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-        <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900">Reset Password</h3>
-            <button
-              onClick={() => {
-                setShowPasswordResetModal(false);
-                setSelectedPasswordRequest(null);
-              }}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="p-6">
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">Utente:</p>
-              <p className="font-medium text-gray-900">
-                {selectedPasswordRequest.user_name && selectedPasswordRequest.user_surname 
-                  ? `${selectedPasswordRequest.user_name} ${selectedPasswordRequest.user_surname}`
-                  : 'Nome non disponibile'
-                }
-              </p>
-              <p className="text-sm text-gray-600">{selectedPasswordRequest.user_email || selectedPasswordRequest.email}</p>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nuova Password
-              </label>
-              <input
-                type="password"
-                id="newPassword"
-                className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
-                placeholder="Inserisci nuova password"
-                required
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setShowPasswordResetModal(false);
-                  setSelectedPasswordRequest(null);
-                }}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Annulla
-              </button>
-              <button
-                onClick={() => {
-                  const newPassword = document.getElementById('newPassword').value;
-                  if (newPassword) {
-                    const email = selectedPasswordRequest.user_email || selectedPasswordRequest.email;
-                    handlePasswordReset(email, newPassword);
-                  } else {
-                    alert('Inserisci una nuova password');
-                  }
-                }}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-              >
-                Aggiorna Password
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )}
   </div>
 );
 };
