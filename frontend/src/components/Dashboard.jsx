@@ -869,9 +869,9 @@ return (
    setSelectedAlert(null);
  } : undefined}
  >
- <div className="flex items-center justify-between">
- <div>
-  <h3 className={`font-medium ${
+ <div className="flex flex-wrap items-start justify-between gap-3">
+ <div className="min-w-0 flex-1">
+  <h3 className={`font-medium break-words ${
    selectedAlert.type === 'oggi' ? 'text-purple-800' :
    selectedAlert.type === 'domani' ? 'text-purple-800' :
    'text-primary'
@@ -881,7 +881,7 @@ return (
                    `${item.utente_nome_reale} ${item.utente_cognome}` : 
                    item.utente_nome}
  </h3>
- <p className={`text-sm ${
+ <p className={`text-sm break-words ${
    selectedAlert.type === 'oggi' ? 'text-purple-700' :
    selectedAlert.type === 'domani' ? 'text-purple-700' :
    'text-secondary'
@@ -921,7 +921,7 @@ return (
    setEditingItemFromAlert(item);
    setSelectedAlert(null);
  }}
- className="btn-danger btn-small"
+ className="btn-danger btn-small flex-shrink-0"
  >
  Gestisci
  </button>
@@ -933,7 +933,7 @@ return (
    setSelectedAlert(null);
    onNavigate && onNavigate('prestiti');
  }}
- className="btn-danger btn-small"
+ className="btn-danger btn-small flex-shrink-0"
  >
  Gestisci Ritardo
  </button>
@@ -945,7 +945,7 @@ return (
    setSelectedLoan(item);
    setSelectedAlert(null);
  }}
- className={`btn-small ${selectedAlert.type === 'oggi' ? 'bg-purple-500 hover:bg-purple-600 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+ className={`btn-small flex-shrink-0 ${selectedAlert.type === 'oggi' ? 'bg-purple-500 hover:bg-purple-600 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
  >
  Visualizza
  </button>

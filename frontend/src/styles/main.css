@@ -1367,14 +1367,14 @@ footer {
   }
 }
 
-/* iPhone Pro Max (440px+) */
-@media (min-width: 440px) {
+/* iPhone Pro Max (440px+) - solo mobile/tablet piccoli */
+@media (min-width: 440px) and (max-width: 767px) {
   /* Even better spacing for the largest phones */
   .space-y-6 > * + * {
     margin-top: 2rem;
   }
   
-  /* Larger modals for better UX */
+  /* Modali proporzionate su phone/tablet piccoli */
   .modal-content {
     max-width: 28rem;
   }
@@ -1406,6 +1406,12 @@ footer {
 
 /* Standard tablets (768px+) */
 @media (min-width: 768px) {
+  /* Modali ampie su tablet e desktop - spazio laterale */
+  .modal-content {
+    max-width: 48rem;
+    margin: 1.5rem;
+  }
+  
   /* Full 4-column layout */
   .stats-grid-tablet {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1432,6 +1438,12 @@ footer {
   .sidebar-desktop {
     display: flex !important;
     width: 13.6rem;
+  }
+  
+  /* Modali ampie su desktop - spazio laterale, niente compenetrazione */
+  .modal-content {
+    max-width: min(90vw, 80rem);
+    margin: 2rem;
   }
   
   /* Desktop-optimized spacing - Ridotto all'85% */
