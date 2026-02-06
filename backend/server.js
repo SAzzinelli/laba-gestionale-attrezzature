@@ -155,7 +155,8 @@ app.use(express.static(staticDir, { maxAge: "1h", index: false }));
 
 app.get("/health", (_, res) => res.type("text").send("ok"));
 
-app.get("*", (req, res) => {
+// Express 5: wildcard must be named (path-to-regexp); use /{*path} for SPA fallback
+app.get("/{*path}", (req, res) => {
   if (req.path.startsWith("/api/"))
     return res.status(404).json({ error: "Not found" });
   try {
