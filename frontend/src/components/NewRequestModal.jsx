@@ -27,6 +27,23 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const { token, user } = useAuth();
 
+  // Parsing YYYY-MM-DD in timezone locale (evita bug sabato/domenica)
+  const getDayOfWeekLocal = (dateStr) => {
+    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return -1;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d).getDay();
+  };
+  const correctWeekendToMonday = (dateStr) => {
+    const day = getDayOfWeekLocal(dateStr);
+    if (day !== 0 && day !== 6) return dateStr;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    while (date.getDay() === 0 || date.getDay() === 6) {
+      date.setDate(date.getDate() + 1);
+    }
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+  };
+
   // Funzione per slittare la domenica a lunedì
   const skipSunday = (dateStr) => {
     if (!dateStr) return dateStr;
@@ -162,7 +179,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       setLoading(false);
       return;
     }
-    const dayInizio = dataInizio.getDay();
+    const dayInizio = getDayOfWeekLocal(dateRange.dal);
     if (dayInizio === 0 || dayInizio === 6) {
       setError('Sabato e domenica non sono validi per iniziare un prestito. Solo giorni feriali (lun-ven).');
       setLoading(false);
@@ -298,13 +315,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       setDateRange(prev => {
         let newValue = value;
         if (name === 'dal' && value) {
-          const d = new Date(value);
-          if (d.getDay() === 0 || d.getDay() === 6) {
-            while (d.getDay() === 0 || d.getDay() === 6) {
-              d.setDate(d.getDate() + 1);
-            }
-            newValue = d.toISOString().split('T')[0];
-          }
+          newValue = correctWeekendToMonday(value);
         }
         const newRange = { ...prev, [name]: newValue };
         
@@ -723,6 +734,14 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     name="dal"
                     value={dateRange.dal}
                     onChange={handleInputChange}
+                    onBlur={(e) => {
+                      if (e.target.name === 'dal' && dateRange.dal) {
+                        const corrected = correctWeekendToMonday(dateRange.dal);
+                        if (corrected !== dateRange.dal) {
+                          handleInputChange({ target: { name: 'dal', value: corrected } });
+                        }
+                      }
+                    }}
                     required
                     min={getMinStartDate()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

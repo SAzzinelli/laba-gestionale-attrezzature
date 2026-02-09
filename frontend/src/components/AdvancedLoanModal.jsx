@@ -14,6 +14,23 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
    }
    return d.toISOString().split('T')[0];
  };
+ // Parsing YYYY-MM-DD in timezone locale
+ const getDayOfWeekLocal = (dateStr) => {
+   if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return -1;
+   const [y, m, d] = dateStr.split('-').map(Number);
+   return new Date(y, m - 1, d).getDay();
+ };
+ const correctWeekendToMonday = (dateStr) => {
+   const day = getDayOfWeekLocal(dateStr);
+   if (day !== 0 && day !== 6) return dateStr;
+   const [y, m, d] = dateStr.split('-').map(Number);
+   const date = new Date(y, m - 1, d);
+   while (date.getDay() === 0 || date.getDay() === 6) {
+     date.setDate(date.getDate() + 1);
+   }
+   return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+ };
+
  // Funzione per slittare la domenica a lunedì
  const skipSunday = (dateStr) => {
    if (!dateStr) return dateStr;
@@ -154,7 +171,7 @@ const fetchAvailableUnits = async (itemId) => {
  return;
  }
 
- const startDay = new Date(dateRange.dal).getDay();
+ const startDay = getDayOfWeekLocal(dateRange.dal);
  if (startDay === 0 || startDay === 6) {
    setError('Sabato e domenica non sono validi per iniziare un prestito. Solo giorni feriali (lun-ven).');
    return;
@@ -650,6 +667,18 @@ body: JSON.stringify({
  <input
  type="date"
  value={dateRange.dal}
+ onBlur={(e) => {
+   if (dateRange.dal) {
+     const corrected = correctWeekendToMonday(dateRange.dal);
+     if (corrected !== dateRange.dal) {
+       setDateRange(prev => ({
+         ...prev,
+         dal: corrected,
+         al: (selectedItem?.tipo_prestito === 'solo_interno' || (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) ? corrected : prev.al
+       }));
+     }
+   }
+ }}
  onChange={(e) => {
  let newDal = e.target.value;
  const minStart = getMinStartDate();
@@ -657,13 +686,7 @@ body: JSON.stringify({
  setError('Il noleggio può iniziare al più presto dal giorno successivo');
  return;
  }
- const d = new Date(newDal);
- if (d.getDay() === 0 || d.getDay() === 6) {
-   while (d.getDay() === 0 || d.getDay() === 6) {
-     d.setDate(d.getDate() + 1);
-   }
-   newDal = d.toISOString().split('T')[0];
- }
+ newDal = correctWeekendToMonday(newDal);
  setError(null);
  setDateRange(prev => ({ 
    ...prev, 
