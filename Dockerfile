@@ -18,4 +18,7 @@ COPY backend/ ./backend/
 ENV NODE_ENV=production
 EXPOSE 3001
 
-CMD ["node", "backend/server.js"]
+COPY start.sh ./
+RUN chmod +x start.sh
+
+CMD ["./start.sh"]

@@ -11,5 +11,4 @@ zip/
 railpack*.json
 railway.json
 Procfile
-start.sh
 README.md

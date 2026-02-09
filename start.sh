@@ -1,18 +1,10 @@
 #!/bin/sh
 set -e
-# Debug: sempre visibile nei log Railway
-echo "[start] PWD=$(pwd)" 1>&2
-echo "[start] LS root:" 1>&2
-ls -la / 2>/dev/null | head -20 1>&2
-echo "[start] LS /app:" 1>&2
-ls -la /app 2>/dev/null | head -20 1>&2 || echo "/app non esiste" 1>&2
-if [ -d "/app/backend" ]; then
-  echo "[start] Avvio da /app/backend" 1>&2
-  cd /app/backend && exec node server.js
-elif [ -d "backend" ]; then
-  echo "[start] Avvio da backend locale" 1>&2
-  exec node backend/server.js
-else
-  echo "[start] ERRORE: backend non trovato" 1>&2
+echo "=== Container starting ==="
+echo "PORT=${PORT:-not set}"
+echo "DATABASE_URL: $(test -n "$DATABASE_URL" && echo 'set' || echo 'NOT SET - add in Railway Variables')"
+if [ -z "$DATABASE_URL" ]; then
+  echo "Fatal: DATABASE_URL required. Add it in Railway: Project → Variables"
   exit 1
 fi
+exec node backend/server.js
