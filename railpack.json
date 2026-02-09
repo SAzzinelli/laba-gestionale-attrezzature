@@ -48,6 +48,6 @@
       }
     ],
     "paths": ["/usr/local/bin"],
-    "startCommand": "sh start.sh"
+    "startCommand": "/bin/sh /app/start.sh"
   }
 }
