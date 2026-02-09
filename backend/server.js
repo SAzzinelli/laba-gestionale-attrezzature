@@ -1,3 +1,14 @@
+// Log uncaught errors for Railway/deploy visibility
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err?.message);
+  console.error(err?.stack);
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason, p) => {
+  console.error('❌ Unhandled Rejection:', reason);
+  process.exit(1);
+});
+
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -29,12 +40,17 @@ const HOST = process.env.HOST || "0.0.0.0";
 
 // Inizializza il database PostgreSQL/Supabase
 try {
+  if (!process.env.DATABASE_URL) {
+    console.error('❌ DATABASE_URL mancante. Imposta la variabile in Railway: Settings → Variables');
+    process.exit(1);
+  }
   console.log('🔄 Inizializzazione database PostgreSQL/Supabase...');
   await initDatabase();
   console.log('✅ Database PostgreSQL/Supabase inizializzato con successo!');
 } catch (error) {
   console.error('❌ Errore durante l\'inizializzazione del database:', error.message);
-  console.error('Verifica la configurazione DATABASE_URL e la connessione a Supabase');
+  console.error('Stack:', error.stack);
+  console.error('Verifica DATABASE_URL, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY in Railway Variables');
   process.exit(1);
 }
 

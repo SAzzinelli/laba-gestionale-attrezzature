@@ -5,7 +5,7 @@ const { Pool } = pkg;
 
 // Configurazione Supabase
 if (!process.env.DATABASE_URL) {
-  console.error('❌ Variabile d\'ambiente DATABASE_URL mancante. Impostala per avviare il servizio.');
+  console.error('❌ DATABASE_URL mancante. Impostala in Railway: Settings → Variables');
   throw new Error('DATABASE_URL non configurata');
 }
 
