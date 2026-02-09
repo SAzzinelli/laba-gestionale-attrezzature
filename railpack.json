@@ -48,6 +48,6 @@
       }
     ],
     "paths": ["/usr/local/bin"],
-    "startCommand": "cd /app/backend && node server.js"
+    "startCommand": "sh start.sh"
   }
 }
