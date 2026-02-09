@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import WeekdayDateInput from './WeekdayDateInput';
 
 const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  const [step, setStep] = useState(1); // 1: Seleziona oggetto, 2: Seleziona utente, 3: Seleziona unità, 4: Tipo utilizzo, 5: Date
@@ -20,17 +21,6 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
    const [y, m, d] = dateStr.split('-').map(Number);
    return new Date(y, m - 1, d).getDay();
  };
- const correctWeekendToMonday = (dateStr) => {
-   const day = getDayOfWeekLocal(dateStr);
-   if (day !== 0 && day !== 6) return dateStr;
-   const [y, m, d] = dateStr.split('-').map(Number);
-   const date = new Date(y, m - 1, d);
-   while (date.getDay() === 0 || date.getDay() === 6) {
-     date.setDate(date.getDate() + 1);
-   }
-   return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
- };
-
  // Funzione per slittare la domenica a lunedì
  const skipSunday = (dateStr) => {
    if (!dateStr) return dateStr;
@@ -664,41 +654,26 @@ body: JSON.stringify({
  Data Inizio *
  </label>
  <p className="text-xs text-gray-500 mb-1">Solo giorni feriali (lun-ven). Per la riconsegna è possibile anche il sabato.</p>
- <input
- type="date"
- value={dateRange.dal}
- onBlur={(e) => {
-   if (dateRange.dal) {
-     const corrected = correctWeekendToMonday(dateRange.dal);
-     if (corrected !== dateRange.dal) {
-       setDateRange(prev => ({
-         ...prev,
-         dal: corrected,
-         al: (selectedItem?.tipo_prestito === 'solo_interno' || (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) ? corrected : prev.al
-       }));
+ <WeekdayDateInput
+   name="dal"
+   value={dateRange.dal}
+   onChange={(val) => {
+     const minStart = getMinStartDate();
+     if (val < minStart) {
+       setError('Il noleggio può iniziare al più presto dal giorno successivo');
+       return;
      }
-   }
- }}
- onChange={(e) => {
- let newDal = e.target.value;
- const minStart = getMinStartDate();
- if (newDal < minStart) {
- setError('Il noleggio può iniziare al più presto dal giorno successivo');
- return;
- }
- newDal = correctWeekendToMonday(newDal);
- setError(null);
- setDateRange(prev => ({ 
-   ...prev, 
-   dal: newDal,
-   // Se è uso interno, imposta automaticamente la data di fine
-   al: (selectedItem?.tipo_prestito === 'solo_interno' || 
-        (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
-       ? newDal : prev.al
- }));
- }}
- min={getMinStartDate()}
- className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 "
+     setError(null);
+     setDateRange(prev => ({
+       ...prev,
+       dal: val,
+       al: (selectedItem?.tipo_prestito === 'solo_interno' || (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) ? val : prev.al
+     }));
+   }}
+   minDate={getMinStartDate()}
+   required
+   placeholder="Seleziona data inizio"
+   className="w-full px-3 py-2"
  />
  </div>
  <div>

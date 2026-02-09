@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import WeekdayDateInput from './WeekdayDateInput';
 
 const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
   const [step, setStep] = useState(1); // 1: Oggetto, 2: ID Univoco, 3: Tipo Utilizzo, 4: Date e Note
@@ -33,17 +34,6 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
     const [y, m, d] = dateStr.split('-').map(Number);
     return new Date(y, m - 1, d).getDay();
   };
-  const correctWeekendToMonday = (dateStr) => {
-    const day = getDayOfWeekLocal(dateStr);
-    if (day !== 0 && day !== 6) return dateStr;
-    const [y, m, d] = dateStr.split('-').map(Number);
-    const date = new Date(y, m - 1, d);
-    while (date.getDay() === 0 || date.getDay() === 6) {
-      date.setDate(date.getDate() + 1);
-    }
-    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
-  };
-
   // Funzione per slittare la domenica a lunedì
   const skipSunday = (dateStr) => {
     if (!dateStr) return dateStr;
@@ -313,10 +303,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
     const { name, value } = e.target;
     if (name === 'dal' || name === 'al') {
       setDateRange(prev => {
-        let newValue = value;
-        if (name === 'dal' && value) {
-          newValue = correctWeekendToMonday(value);
-        }
+        const newValue = value;
         const newRange = { ...prev, [name]: newValue };
         
         // Validazione per data fine: max 3 giorni dalla data di inizio (o 4 se il 3° giorno è domenica)
@@ -729,22 +716,14 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     Data Inizio *
                   </label>
                   <p className="text-xs text-gray-500 mb-1">Solo giorni feriali (lun-ven). Per la riconsegna è possibile anche il sabato.</p>
-                  <input
-                    type="date"
+                  <WeekdayDateInput
                     name="dal"
                     value={dateRange.dal}
-                    onChange={handleInputChange}
-                    onBlur={(e) => {
-                      if (e.target.name === 'dal' && dateRange.dal) {
-                        const corrected = correctWeekendToMonday(dateRange.dal);
-                        if (corrected !== dateRange.dal) {
-                          handleInputChange({ target: { name: 'dal', value: corrected } });
-                        }
-                      }
-                    }}
+                    onChange={(val) => handleInputChange({ target: { name: 'dal', value: val } })}
+                    minDate={getMinStartDate()}
                     required
-                    min={getMinStartDate()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Seleziona data inizio"
+                    className="w-full"
                   />
                 </div>
                 <div>
