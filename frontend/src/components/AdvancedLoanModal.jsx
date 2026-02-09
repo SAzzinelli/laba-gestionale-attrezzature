@@ -272,7 +272,7 @@ body: JSON.stringify({
 
  return (
  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
- <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+ <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[95vh] overflow-hidden">
  <div className="p-6 border-b ">
  <div className="flex items-center justify-between">
  <div>
@@ -318,7 +318,7 @@ body: JSON.stringify({
  </div>
  </div>
 
- <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+ <div className="p-6 overflow-y-auto max-h-[calc(95vh-200px)]">
  {/* Step 1: Select Item */}
  {step === 1 && (
  <div className="space-y-4">
@@ -653,7 +653,6 @@ body: JSON.stringify({
  <label className="block text-sm font-medium text-gray-700 mb-2">
  Data Inizio *
  </label>
- <p className="text-xs text-gray-500 mb-1">Solo giorni feriali (lun-ven). Per la riconsegna è possibile anche il sabato.</p>
  <WeekdayDateInput
    name="dal"
    value={dateRange.dal}
@@ -684,9 +683,6 @@ body: JSON.stringify({
    <span className="text-xs text-orange-600 ml-2">(Automatica per uso interno)</span>
  )}
  </label>
- {!(selectedItem?.tipo_prestito === 'solo_interno' || (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) && (
-   <p className="text-xs text-gray-500 mb-1">Possibile anche sabato, mai domenica</p>
- )}
  <WeekdayDateInput
    name="al"
    value={(selectedItem?.tipo_prestito === 'solo_interno' || 

@@ -391,7 +391,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
@@ -715,7 +715,6 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Data Inizio *
                   </label>
-                  <p className="text-xs text-gray-500 mb-1">Solo giorni feriali (lun-ven). Per la riconsegna è possibile anche il sabato.</p>
                   <WeekdayDateInput
                     name="dal"
                     value={dateRange.dal}
@@ -734,9 +733,6 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                       <span className="text-xs text-orange-600 ml-2">(Automatica per uso interno)</span>
                     )}
                   </label>
-                  {!(selectedObject.tipo_prestito === 'solo_interno' || (selectedObject.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) && (
-                    <p className="text-xs text-gray-500 mb-1">Possibile anche sabato, mai domenica</p>
-                  )}
                   <WeekdayDateInput
                     name="al"
                     value={(selectedObject.tipo_prestito === 'solo_interno' || 
