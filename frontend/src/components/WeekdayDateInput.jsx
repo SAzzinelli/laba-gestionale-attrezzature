@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * Input date che consente SOLO giorni feriali (lun-ven).
- * Sabato e domenica sono visivamente disabilitati e non selezionabili.
+ * Calendario custom per date.
+ * disabledDays: array di giorni da disabilitare (0=domenica, 6=sabato).
+ * Es: [0, 6] = solo lun-ven | [0] = lun-sab (domenica disabilitata)
  */
-const WeekdayDateInput = ({ value, onChange, minDate, maxDate, id, name, required, className = '', placeholder = 'Seleziona data' }) => {
+const WeekdayDateInput = ({ value, onChange, minDate, maxDate, disabledDays = [0, 6], disabled, id, name, required, className = '', placeholder = 'Seleziona data' }) => {
   const [open, setOpen] = useState(false);
   const [viewMonth, setViewMonth] = useState(() => {
     if (value) {
@@ -30,14 +31,14 @@ const WeekdayDateInput = ({ value, onChange, minDate, maxDate, id, name, require
     return new Date(y, m - 1, d);
   };
   const toStr = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  const isWeekend = (d) => (d.getDay() === 0 || d.getDay() === 6);
+  const isDisabledDay = (d) => disabledDays.includes(d.getDay());
   const isSameDay = (a, b) => a && b && a.getTime() === b.getTime();
 
   const minD = minDate ? parseDate(minDate) : null;
   const maxD = maxDate ? parseDate(maxDate) : null;
 
   const canSelect = (d) => {
-    if (isWeekend(d)) return false;
+    if (isDisabledDay(d)) return false;
     if (minD && d < minD) return false;
     if (maxD && d > maxD) return false;
     return true;
@@ -72,12 +73,12 @@ const WeekdayDateInput = ({ value, onChange, minDate, maxDate, id, name, require
         type="text"
         readOnly
         value={value ? new Date(value + 'T12:00:00').toLocaleDateString('it-IT') : ''}
-        onClick={() => setOpen(!open)}
+        onClick={() => !disabled && setOpen(!open)}
         placeholder={placeholder}
         id={id}
         name={name}
         required={required}
-        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer bg-white ${className}`}
+        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
       />
       {open && (
         <div className="absolute z-50 mt-1 left-0 bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[280px]">

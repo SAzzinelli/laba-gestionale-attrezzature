@@ -684,13 +684,16 @@ body: JSON.stringify({
    <span className="text-xs text-orange-600 ml-2">(Automatica per uso interno)</span>
  )}
  </label>
- <input
- type="date"
- value={(selectedItem?.tipo_prestito === 'solo_interno' || 
-        (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
-       ? dateRange.dal : dateRange.al}
- onChange={(e) => {
-   const newAl = e.target.value;
+ {!(selectedItem?.tipo_prestito === 'solo_interno' || (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) && (
+   <p className="text-xs text-gray-500 mb-1">Possibile anche sabato, mai domenica</p>
+ )}
+ <WeekdayDateInput
+   name="al"
+   value={(selectedItem?.tipo_prestito === 'solo_interno' || 
+          (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
+         ? dateRange.dal : dateRange.al}
+onChange={(val) => {
+  const newAl = val;
    if (newAl < dateRange.dal) {
      setError('La data di fine non può essere prima della data di inizio');
      return;
@@ -754,31 +757,18 @@ body: JSON.stringify({
    setError(null);
    setDateRange(prev => ({ ...prev, al: newAl }));
  }}
- required
- disabled={selectedItem?.tipo_prestito === 'solo_interno' || 
-          (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
- min={dateRange.dal || getMinStartDate()}
-max={(() => {
-  // Calcola max 3 giorni dalla data di inizio (non da oggi)
-  // +2 perché includiamo inizio e fine (es: 22->24 = 3 giorni: 22, 23, 24)
-  if (dateRange.dal) {
-    const maxDate = new Date(dateRange.dal);
-    maxDate.setDate(maxDate.getDate() + 2); // +2 per avere 3 giorni totali
-    // Se il max date è domenica, slitta a lunedì
-    const maxDateStr = maxDate.toISOString().split('T')[0];
-    return skipSunday(maxDateStr);
-  }
-  // Se non c'è data di inizio, usa oggi + 2 come fallback
-  const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + 2);
-  const maxDateStr = maxDate.toISOString().split('T')[0];
-  return skipSunday(maxDateStr);
-})()}
- className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 ${
-   (selectedItem?.tipo_prestito === 'solo_interno' || 
-    (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) 
-   ? 'bg-gray-100 cursor-not-allowed' : ''
- }`}
+   minDate={dateRange.dal || getMinStartDate()}
+   maxDate={dateRange.dal ? (() => {
+     const maxDate = new Date(dateRange.dal);
+     maxDate.setDate(maxDate.getDate() + 2);
+     return skipSunday(maxDate.toISOString().split('T')[0]);
+   })() : undefined}
+   disabledDays={[0]}
+   disabled={selectedItem?.tipo_prestito === 'solo_interno' || 
+            (selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')}
+   required
+   placeholder="Seleziona data fine"
+   className="w-full px-3 py-2"
  />
  </div>
  </div>
