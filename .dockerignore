@@ -1,0 +1,15 @@
+node_modules
+.git
+.gitignore
+.DS_Store
+*.log
+.env*
+data/
+testsprite_tests/
+zip/
+*.db
+railpack*.json
+railway.json
+Procfile
+start.sh
+README.md
