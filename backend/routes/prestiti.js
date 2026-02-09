@@ -141,12 +141,21 @@ r.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     domani.setDate(domani.getDate() + 1);
     domani.setHours(0, 0, 0, 0);
     
+    const dayUscita = dataUscita.getDay();
+    if (dayUscita === 0 || dayUscita === 6) {
+      return res.status(400).json({ error: 'La data di inizio non può essere sabato o domenica. Il primo giorno utile è lunedì.' });
+    }
     if (dataUscita < domani) {
       return res.status(400).json({ error: 'Il noleggio può iniziare al più presto dal giorno successivo' });
     }
     
     if (dataRientro < dataUscita) {
       return res.status(400).json({ error: 'La data di rientro deve essere successiva alla data di uscita' });
+    }
+    
+    const dayRientro = dataRientro.getDay();
+    if (dayRientro === 0) {
+      return res.status(400).json({ error: 'La domenica non è mai valida. Per la riconsegna scegli lunedì-sabato.' });
     }
     
     // Verifica che l'oggetto esista

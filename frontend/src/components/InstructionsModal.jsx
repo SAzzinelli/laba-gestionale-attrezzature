@@ -48,7 +48,7 @@ const InstructionsModal = ({ isOpen, onClose }) => {
       bg: 'bg-indigo-100',
       color: 'text-indigo-600',
       title: "Come noleggiare",
-      text: "Articoli Disponibili → scegli unità → date (dal giorno dopo) → invia richiesta."
+      text: "Articoli Disponibili → scegli unità → date. Data inizio: solo lun-ven. Riconsegna: possibile sabato, mai domenica."
     },
     {
       icon: (

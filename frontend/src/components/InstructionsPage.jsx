@@ -5,7 +5,7 @@ const InstructionsPage = () => {
     { n: 1, title: 'Sfoglia gli articoli', desc: 'Vai in "Articoli Disponibili" e scegli l\'attrezzatura che ti serve' },
     { n: 2, title: 'Seleziona l\'unità', desc: 'Scegli l\'unità specifica (es. Fotocamera #3) se richiesto' },
     { n: 3, title: 'Tipo di utilizzo', desc: 'Uso interno solo in accademia, oppure Prestito esterno per portarlo fuori' },
-    { n: 4, title: 'Date', desc: 'Il noleggio può iniziare dal giorno successivo (non oggi). Esterno: massimo 3 giorni (o 4 se include domenica)' },
+    { n: 4, title: 'Date', desc: 'Data inizio: solo giorni feriali (lun-ven), mai sabato/domenica. Riconsegna: possibile anche sabato, la domenica non è mai valida. Esterno: max 3 giorni (o 4 se include domenica)' },
     { n: 5, title: 'Attendi l\'approvazione', desc: 'Invia la richiesta e attendi conferma dal Service' },
     { n: 6, title: 'Ritira e restituisci', desc: 'Ritira l\'attrezzatura nel giorno concordato e restituiscila in orario' }
   ];

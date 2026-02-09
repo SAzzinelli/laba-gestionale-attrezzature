@@ -9,14 +9,17 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
   const [selectedObject, setSelectedObject] = useState(null);
   const [availableUnits, setAvailableUnits] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState(null);
-  // Primo giorno utile = domani (non si può noleggiare per oggi)
+  // Primo giorno utile = domani, ma mai sabato/domenica (se sabato → lunedì)
   const getMinStartDate = () => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
+    while (d.getDay() === 0 || d.getDay() === 6) {
+      d.setDate(d.getDate() + 1);
+    }
     return d.toISOString().split('T')[0];
   };
   const [dateRange, setDateRange] = useState({
-    dal: (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })(),
+    dal: (() => { const d = new Date(); d.setDate(d.getDate() + 1); while (d.getDay() === 0 || d.getDay() === 6) { d.setDate(d.getDate() + 1); } return d.toISOString().split('T')[0]; })(),
     al: ''
   });
   const [note, setNote] = useState('');
@@ -159,6 +162,12 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
       setLoading(false);
       return;
     }
+    const dayInizio = dataInizio.getDay();
+    if (dayInizio === 0 || dayInizio === 6) {
+      setError('Sabato e domenica non sono validi per iniziare un prestito. Solo giorni feriali (lun-ven).');
+      setLoading(false);
+      return;
+    }
 
     if (dataFine < dataInizio) {
       setError('La data di fine deve essere successiva alla data di inizio');
@@ -287,7 +296,17 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
     const { name, value } = e.target;
     if (name === 'dal' || name === 'al') {
       setDateRange(prev => {
-        const newRange = { ...prev, [name]: value };
+        let newValue = value;
+        if (name === 'dal' && value) {
+          const d = new Date(value);
+          if (d.getDay() === 0 || d.getDay() === 6) {
+            while (d.getDay() === 0 || d.getDay() === 6) {
+              d.setDate(d.getDate() + 1);
+            }
+            newValue = d.toISOString().split('T')[0];
+          }
+        }
+        const newRange = { ...prev, [name]: newValue };
         
         // Validazione per data fine: max 3 giorni dalla data di inizio (o 4 se il 3° giorno è domenica)
         if (name === 'al' && newRange.dal) {
@@ -346,11 +365,11 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
           setError(null);
         }
         
-        // Per uso interno, imposta automaticamente la data di fine = data di inizio
+        // Per uso interno, imposta automaticamente la data di fine = data di inizio (usa newValue, già corretta se weekend)
         if ((selectedObject?.tipo_prestito === 'solo_interno' || 
              (selectedObject?.tipo_prestito === 'entrambi' && tipoUtilizzo === 'interno')) && 
             name === 'dal') {
-          newRange.al = value;
+          newRange.al = newValue;
         }
         
         return newRange;
@@ -698,6 +717,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Data Inizio *
                   </label>
+                  <p className="text-xs text-gray-500 mb-1">Solo giorni feriali (lun-ven). Per la riconsegna è possibile anche il sabato.</p>
                   <input
                     type="date"
                     name="dal"

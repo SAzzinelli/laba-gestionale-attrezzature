@@ -5,10 +5,13 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  const [step, setStep] = useState(1); // 1: Seleziona oggetto, 2: Seleziona utente, 3: Seleziona unità, 4: Tipo utilizzo, 5: Date
  const [inventory, setInventory] = useState([]);
  
- // Primo giorno utile = domani (non si può noleggiare per oggi)
+ // Primo giorno utile = domani, mai sabato/domenica (se sabato → lunedì)
  const getMinStartDate = () => {
    const d = new Date();
    d.setDate(d.getDate() + 1);
+   while (d.getDay() === 0 || d.getDay() === 6) {
+     d.setDate(d.getDate() + 1);
+   }
    return d.toISOString().split('T')[0];
  };
  // Funzione per slittare la domenica a lunedì
@@ -32,6 +35,9 @@ const AdvancedLoanModal = ({ isOpen, onClose, onSuccess }) => {
  const [dateRange, setDateRange] = useState(() => {
    const d = new Date();
    d.setDate(d.getDate() + 1);
+   while (d.getDay() === 0 || d.getDay() === 6) {
+     d.setDate(d.getDate() + 1);
+   }
    return { dal: d.toISOString().split('T')[0], al: '' };
  });
  const [manualUser, setManualUser] = useState({
@@ -146,6 +152,12 @@ const fetchAvailableUnits = async (itemId) => {
  if (!selectedItem || (!selectedUser && !isManualUser) || selectedUnits.length === 0 || !dateRange.dal || !dateRange.al) {
  setError('Compila tutti i campi obbligatori');
  return;
+ }
+
+ const startDay = new Date(dateRange.dal).getDay();
+ if (startDay === 0 || startDay === 6) {
+   setError('Sabato e domenica non sono validi per iniziare un prestito. Solo giorni feriali (lun-ven).');
+   return;
  }
 
  // Validazione per oggetti "entrambi"
@@ -634,15 +646,23 @@ body: JSON.stringify({
  <label className="block text-sm font-medium text-gray-700 mb-2">
  Data Inizio *
  </label>
+ <p className="text-xs text-gray-500 mb-1">Solo giorni feriali (lun-ven). Per la riconsegna è possibile anche il sabato.</p>
  <input
  type="date"
  value={dateRange.dal}
  onChange={(e) => {
- const newDal = e.target.value;
+ let newDal = e.target.value;
  const minStart = getMinStartDate();
  if (newDal < minStart) {
  setError('Il noleggio può iniziare al più presto dal giorno successivo');
  return;
+ }
+ const d = new Date(newDal);
+ if (d.getDay() === 0 || d.getDay() === 6) {
+   while (d.getDay() === 0 || d.getDay() === 6) {
+     d.setDate(d.getDate() + 1);
+   }
+   newDal = d.toISOString().split('T')[0];
  }
  setError(null);
  setDateRange(prev => ({ 
