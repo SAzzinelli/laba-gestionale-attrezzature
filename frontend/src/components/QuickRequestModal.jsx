@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { X } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 
 const QuickRequestModal = ({ isOpen, onClose, request, onSuccess }) => {
@@ -61,9 +62,7 @@ const QuickRequestModal = ({ isOpen, onClose, request, onSuccess }) => {
  onClick={handleClose}
  className="text-muted hover:text-primary"
  >
- <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
- </svg>
+ <X className="icon" />
  </button>
  </div>
 

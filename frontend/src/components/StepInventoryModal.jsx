@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Info, Image, ArrowLeftRight, BookOpen, Hash, X, AlertCircle } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 
 const StepInventoryModal = ({ isOpen, onClose, onSuccess, editingItem = null }) => {
@@ -270,9 +271,7 @@ const canProceed = () => {
  onClick={handleClose}
  className="text-muted hover:text-primary"
  >
- <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
- </svg>
+ <X className="icon" />
  </button>
  </div>
  
@@ -281,11 +280,11 @@ const canProceed = () => {
  <div className="flex items-center justify-center">
  <div className="flex items-center space-x-4">
  {[
-   { num: 1, label: 'Info Base', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
-   { num: 2, label: 'Descrizione', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
-   { num: 3, label: 'Tipo Utilizzo', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg> },
-   { num: 4, label: 'Corsi & Categoria', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
-   { num: 5, label: 'Codici Unità', icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg> }
+   { num: 1, label: 'Info Base', icon: <Info className="w-4 h-4" /> },
+   { num: 2, label: 'Descrizione', icon: <Image className="w-4 h-4" /> },
+   { num: 3, label: 'Tipo Utilizzo', icon: <ArrowLeftRight className="w-4 h-4" /> },
+   { num: 4, label: 'Corsi & Categoria', icon: <BookOpen className="w-4 h-4" /> },
+   { num: 5, label: 'Codici Unità', icon: <Hash className="w-4 h-4" /> }
  ].map((stepData, index) => (
  <React.Fragment key={stepData.num}>
  <div className="flex flex-col items-center">
@@ -636,9 +635,7 @@ Tipo di Utilizzo
  {error && (
  <div className="alert-card alert-danger mt-4">
  <div className="flex items-center">
- <svg className="icon text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
- </svg>
+ <AlertCircle className="icon text-red-500 mr-3" />
  <p className="text-red-800 ">{error}</p>
  </div>
  </div>

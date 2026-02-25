@@ -58,7 +58,7 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
-app.get("/api/health", (_, res) => res.json({ ok: true, version: "2.0.0", build: "100" }));
+app.get("/api/health", (_, res) => res.json({ ok: true, version: "2.1", build: "2.1" }));
 
 // Keepalive endpoint per mantenere attivo il database Supabase
 app.get("/api/keepalive", async (_, res) => {

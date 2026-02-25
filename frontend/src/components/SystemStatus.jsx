@@ -206,7 +206,7 @@ const SystemStatus = () => {
               <div className="mt-2 flex items-center space-x-4">
                 <span className="text-sm text-gray-500">Build: 498</span>
                 <span className="text-sm text-gray-500">•</span>
-                <span className="text-sm text-gray-500">Versione: 2.0.0</span>
+                <span className="text-sm text-gray-500">Versione: 2.1</span>
                 <span className="text-sm text-gray-500">•</span>
                 <span className="text-sm text-gray-500">
                   Ultimo aggiornamento: {new Date().toLocaleTimeString('it-IT')}

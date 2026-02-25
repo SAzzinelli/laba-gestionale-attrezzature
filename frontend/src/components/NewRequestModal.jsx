@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { X, AlertCircle, Layers, ArrowLeft, ArrowRight, List, TriangleAlert, Info } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import WeekdayDateInput from './WeekdayDateInput';
 
@@ -253,9 +254,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
           setError(
             <div className="space-y-2">
               <div className="flex items-center">
-                <svg className="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
-                </svg>
+                <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
                 <span className="font-semibold text-red-800">Account Bloccato</span>
               </div>
               <p className="text-red-700">{errorData.message}</p>
@@ -402,9 +401,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-6 h-6" />
           </button>
         </div>
 
@@ -476,9 +473,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                 return matchesSearch;
               }).length === 0 && (
                 <div className="text-center py-8 text-gray-500">
-                  <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
+                  <Layers className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                   <p>
                     {searchTerm 
                       ? 'Nessun oggetto trovato con i criteri di ricerca'
@@ -538,9 +533,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   onClick={() => setStep(1)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors flex items-center gap-2"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
+                  <ArrowLeft className="w-4 h-4" />
                   Indietro
                 </button>
                 <div className="flex space-x-3">
@@ -568,9 +561,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
 
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
                 <div className="flex items-center mb-3">
-                  <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                  </svg>
+                  <List className="w-5 h-5 text-purple-600 mr-2" />
                   <div>
                     <h4 className="text-sm font-medium text-purple-800">Come intendi utilizzare questo oggetto?</h4>
                     <p className="text-xs text-purple-700 mt-1">
@@ -631,9 +622,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   onClick={() => setStep(2)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors flex items-center gap-2"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
+                  <ArrowLeft className="w-4 h-4" />
                   Indietro
                 </button>
                 <div className="flex space-x-3">
@@ -651,9 +640,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
                     Continua
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
+                    <ArrowRight className="w-4 h-4" />
                 </button>
                 </div>
               </div>
@@ -674,9 +661,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
               {selectedObject.tipo_prestito === 'solo_interno' && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
                   <div className="flex items-center">
-                    <svg className="w-5 h-5 text-orange-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
+                    <TriangleAlert className="w-5 h-5 text-orange-600 mr-2" />
                     <div>
                       <h4 className="text-sm font-medium text-orange-800">Solo per uso interno</h4>
                       <p className="text-xs text-orange-700 mt-1">
@@ -691,9 +676,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
               {selectedObject.tipo_prestito === 'entrambi' && (
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
                   <div className="flex items-center">
-                    <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
+                    <Info className="w-5 h-5 text-purple-600 mr-2" />
                     <div>
                       <h4 className="text-sm font-medium text-purple-800">
                         Tipo di utilizzo selezionato: {tipoUtilizzo === 'interno' ? '🏠 Uso Interno' : '📅 Prestito Esterno'}
@@ -790,9 +773,7 @@ const NewRequestModal = ({ isOpen, onClose, selectedItem, onSuccess }) => {
                   }}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors flex items-center gap-2"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
+                  <ArrowLeft className="w-4 h-4" />
                   Indietro
                 </button>
                 <div className="flex space-x-3">

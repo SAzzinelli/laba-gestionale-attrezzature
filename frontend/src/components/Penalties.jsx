@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { TriangleAlert, Ban, Clock, CheckCircle, X, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { TableSkeleton } from './SkeletonLoader';
 
@@ -203,9 +204,7 @@ const Penalties = () => {
                 <p className="text-sm text-gray-500">Totale utenti penalizzati</p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
+                <TriangleAlert className="w-6 h-6 text-yellow-600" />
               </div>
             </div>
           </div>
@@ -218,9 +217,7 @@ const Penalties = () => {
                 <p className="text-sm text-gray-500">Bloccati per 3+ strike</p>
               </div>
               <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                </svg>
+                <Ban className="w-6 h-6 text-red-600" />
               </div>
             </div>
           </div>
@@ -233,9 +230,7 @@ const Penalties = () => {
                 <p className="text-sm text-gray-500">Penalità assegnate</p>
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <Clock className="w-6 h-6 text-orange-600" />
               </div>
             </div>
           </div>
@@ -316,9 +311,7 @@ const Penalties = () => {
                   <tr>
                     <td colSpan="5" className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center">
-                        <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <CheckCircle className="w-12 h-12 text-gray-400 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-1">
                           Nessun utente trovato
                         </h3>
@@ -375,9 +368,7 @@ const Penalties = () => {
                           onClick={() => openPenaltyModal(user)}
                           className="inline-flex items-center px-3 py-2 text-xs font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors"
                         >
-                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                          </svg>
+                          <TriangleAlert className="w-3 h-3 mr-1" />
                           Dettagli
                         </button>
                       </td>
@@ -397,9 +388,7 @@ const Penalties = () => {
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center">
                 <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
+                  <TriangleAlert className="w-6 h-6 text-purple-600" />
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-gray-900">Dettagli Penalità</h3>
@@ -410,9 +399,7 @@ const Penalties = () => {
                 onClick={() => setShowPenaltyModal(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-6 h-6" />
               </button>
             </div>
 
@@ -450,9 +437,7 @@ const Penalties = () => {
                 <h4 className="text-md font-semibold text-gray-900 mb-3">Storico Penalità</h4>
                 {userPenalties.length === 0 ? (
                   <div className="text-center py-8">
-                    <svg className="w-12 h-12 text-gray-400 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <CheckCircle className="w-12 h-12 text-gray-400 mb-4 mx-auto" />
                     <p className="text-gray-500">Nessuna penalità registrata</p>
                   </div>
                 ) : (
@@ -479,18 +464,14 @@ const Penalties = () => {
                               className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                               title="Modifica"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
+                              <Pencil className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeletePenalty(penalty.id)}
                               className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Elimina"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
@@ -555,9 +536,7 @@ const Penalties = () => {
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Modifica penalità</h3>
               <button onClick={() => setEditingPenalty(null)} className="text-gray-400 hover:text-gray-600">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-6 h-6" />
               </button>
             </div>
             <div className="p-6 space-y-4">

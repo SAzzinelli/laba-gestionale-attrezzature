@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AlertCircle, Loader2, ArrowRight, Info, ChevronRight } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import ForgotPassword from './ForgotPassword';
 import InstructionsModal from '../components/InstructionsModal';
@@ -73,7 +74,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  </h2>
  <p className="mt-2 text-sm text-gray-600">
    {isLogin 
-     ? 'Accedi al tuo account per gestire il Service Attrezzatura'
+     ? 'Accedi al Service LABA e gestisci i tuoi prestiti'
      : 'Crea un nuovo account per accedere al sistema'
    }
  </p>
@@ -214,9 +215,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
  {error && (
  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
  <div className="flex">
- <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
- </svg>
+ <AlertCircle className="w-5 h-5 text-red-400 mr-2" />
  <p className="text-red-800 text-sm">{error}</p>
  </div>
  </div>
@@ -231,18 +230,13 @@ const Login = ({ branding = "LABA Gestione" }) => {
  >
  {loading ? (
  <div className="flex items-center">
- <svg className="animate-spin -ml-1 mr-3 h-6 w-6 text-white" fill="none" viewBox="0 0 24 24">
- <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
- <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
- </svg>
+ <Loader2 className="animate-spin -ml-1 mr-3 h-6 w-6 text-white" />
  {isLogin ? 'Accesso in corso...' : 'Registrazione in corso...'}
  </div>
  ) : (
  <div className="flex items-center">
  <span className="mr-2">{isLogin ? 'Accedi' : 'Registrati'}</span>
- <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
- </svg>
+ <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
  </div>
  )}
  </button>
@@ -265,7 +259,7 @@ const Login = ({ branding = "LABA Gestione" }) => {
        setError(null);
        setFormData({ email: '', password: '', name: '', surname: '', matricola: '', corso_accademico: '' });
      }}
-     className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
+     className="w-full py-2.5 px-4 rounded-xl text-sm font-medium text-gray-700 bg-gray-100/80 hover:bg-gray-200/80 border border-gray-200/80 transition-colors"
    >
      {isLogin ? 'Non hai un account? Registrati' : 'Hai già un account? Accedi'}
    </button>
@@ -280,17 +274,13 @@ const Login = ({ branding = "LABA Gestione" }) => {
    className="flex w-full items-center gap-3 rounded-2xl bg-white/95 backdrop-blur-sm px-5 py-4 text-left border border-gray-100/80 shadow-lg shadow-blue-900/5 hover:bg-gray-50/80 transition-colors"
  >
    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-     <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-     </svg>
+     <Info className="w-5 h-5 text-blue-600" />
    </div>
    <div>
      <h3 className="font-semibold text-gray-900">Istruzioni</h3>
      <p className="text-xs text-gray-500">Cos'è, come noleggiare, strike e penalità</p>
    </div>
-   <svg className="w-5 h-5 text-gray-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-   </svg>
+   <ChevronRight className="w-5 h-5 text-gray-400 ml-auto" />
  </button>
 
  <InstructionsModal isOpen={showInstructions} onClose={() => setShowInstructions(false)} />

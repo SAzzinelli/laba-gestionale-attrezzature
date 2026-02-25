@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { X, Image, Check, List, TriangleAlert, Info } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import WeekdayDateInput from './WeekdayDateInput';
 
@@ -287,9 +288,7 @@ body: JSON.stringify({
  onClick={handleClose}
  className="text-gray-400 hover:text-gray-600 "
  >
- <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
- </svg>
+ <X className="w-6 h-6" />
  </button>
  </div>
  
@@ -348,9 +347,7 @@ body: JSON.stringify({
                     className="mt-2 inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full hover:bg-blue-200 transition-colors"
                     title="Visualizza immagine"
                   >
-                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                    <Image className="w-3 h-3 mr-1" />
                     Immagine
                   </button>
                 )}
@@ -493,9 +490,7 @@ body: JSON.stringify({
  {unit.codice_univoco}
  </span>
  {selectedUnits.find(u => u.id === unit.id) && (
- <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
- <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
- </svg>
+ <Check className="w-5 h-5 text-blue-600" />
  )}
  </div>
  {unit.note && (
@@ -534,9 +529,7 @@ body: JSON.stringify({
 
      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
        <div className="flex items-center mb-3">
-         <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-           <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-         </svg>
+         <List className="w-5 h-5 text-purple-600 mr-2" />
          <div>
            <h4 className="text-sm font-medium text-purple-800">Come intendi utilizzare questo oggetto?</h4>
            <p className="text-xs text-purple-700 mt-1">
@@ -613,9 +606,7 @@ body: JSON.stringify({
  {selectedItem?.tipo_prestito === 'solo_interno' && (
    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
      <div className="flex items-center">
-       <svg className="w-5 h-5 text-orange-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-       </svg>
+       <TriangleAlert className="w-5 h-5 text-orange-600 mr-2" />
        <div>
          <h4 className="text-sm font-medium text-orange-800">Solo per uso interno</h4>
          <p className="text-xs text-orange-700 mt-1">
@@ -630,9 +621,7 @@ body: JSON.stringify({
  {selectedItem?.tipo_prestito === 'entrambi' && tipoUtilizzo && (
    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
      <div className="flex items-center">
-       <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-       </svg>
+       <Info className="w-5 h-5 text-purple-600 mr-2" />
        <div>
          <h4 className="text-sm font-medium text-purple-800">
            Tipo di utilizzo selezionato: {tipoUtilizzo === 'interno' ? '🏠 Uso Interno' : '📅 Prestito Esterno'}
